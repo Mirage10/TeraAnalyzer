@@ -89,8 +89,8 @@ class DaoConfig():
     def value_set(self,key, value):
         self.__settings.setValue(key,value)
 
-##
 
+## little change
 ######################################################################
 class Dao():
 
