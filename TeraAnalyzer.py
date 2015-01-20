@@ -688,6 +688,8 @@ class Files(QTableWidget):
         self.setHorizontalHeaderLabels( ['suffix','file', 'name', 'directory', 'year','month','timestamp' ,'size'])
         print('clickEND')
         self.setSortingEnabled(True)
+        # spalte filename vollständig anzeigen ...
+        self.resizeColumnToContents(2)
         #self.show()
 
 
