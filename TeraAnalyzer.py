@@ -135,55 +135,55 @@ class Dao():
       for a in self.A:
         size_all+=int(a[SIZE])
 
-      self.ALL={}
-      self.ALL[ASTERIX] = (str(len(self.A)), str(len({a[DIRECTORY]for a in self.A})), str(size_all))
+      self.ALL=[]
+      self.ALL.append((ASTERIX ,str(len(self.A)), str(len({a[DIRECTORY]for a in self.A})), str(size_all)))
 
 
-      self.SU = {}
+      self.SU = []
       self.A.sort(key=getkeysuffix)
       for k, F in it.groupby(self.A, getkeysuffix):
          F=list(F)
-         self.SU[k] = (len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ]))
+         self.SU.append((k , len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
 
 
-      self.YE = {}
+      self.YE = []
       self.A.sort(key=getkeyyear)
       for k, F in it.groupby(self.A, getkeyyear):
          F=list(F)
-         self.YE[k] = (len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ]))
+         self.YE.append((k,len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
-      self.SUYE = {}
+      self.SUYE = []
 
       self.A.sort(key=getkeysuffixyear)
       for k, F in it.groupby(self.A, getkeysuffixyear):
          F=list(F)
-         self.SUYE[k] = (len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ]))
+         self.SUYE.append((k[0],k[1],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
-      self.YESU = {}
+      self.YESU = []
       self.A.sort(key=getkeyyearsuffix)
       for k, F in it.groupby(self.A, getkeyyearsuffix):
          F=list(F)
-         self.YESU[k] = (len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ]))
+         self.YESU.append((k[0],k[1],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
-      self.YEMO = {}
+      self.YEMO = []
       self.A.sort(key=getkeyyearmonth)
       for k, F in it.groupby(self.A, getkeyyearmonth):
          F=list(F)
-         self.YEMO[k] = (len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ]))
+         self.YEMO.append((k[0],k[1], len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
-      self.SUYEMO = {}
+      self.SUYEMO = []
       self.A.sort(key=getkeysuffixyearmonth)
       for k, F in it.groupby(self.A, getkeysuffixyearmonth):
          F=list(F)
-         self.SUYEMO[k] = (len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ]))
+         self.SUYEMO.append((k[0],k[1],k[2],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
 
-      self.YEMOSU = {}
+      self.YEMOSU = []
       self.A.sort(key=getkeyyearmonthsuffix)
       for k, F in it.groupby(self.A, getkeyyearmonthsuffix):
          F=list(F)
-         self.YEMOSU[k] = (len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ]))
+         self.YEMOSU.append(( k[0],k[1],k[2], len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
 
       print('Ende Zaehlen')
@@ -258,14 +258,18 @@ class Matrix(QTabWidget):
         tab8= self.get_tab_cat_year_month_suffix()
         self.addTab(tab8,'year month suffix')
 
-        tab1.itemClicked.connect(self.on_matrixfiles_clicked)
-        tab2.itemClicked.connect(self.on_matrixfiles_clicked)
-        tab3.itemClicked.connect(self.on_matrixfiles_clicked)
-        tab4.itemClicked.connect(self.on_matrixfiles_clicked)
-        tab5.itemClicked.connect(self.on_matrixfiles_clicked)
-        tab6.itemClicked.connect(self.on_matrixfiles_clicked)
-        tab7.itemClicked.connect(self.on_matrixfiles_clicked)
-        tab8.itemClicked.connect(self.on_matrixfiles_clicked)
+        tab1.itemClicked.connect(self.on_matrixfiles_clicked_all)
+        tab2.itemClicked.connect(self.on_matrixfiles_clicked_su)
+        tab3.itemClicked.connect(self.on_matrixfiles_clicked_ye)
+        tab4.itemClicked.connect(self.on_matrixfiles_clicked_yemo)
+        tab5.itemClicked.connect(self.on_matrixfiles_clicked_suye)
+        tab6.itemClicked.connect(self.on_matrixfiles_clicked_yesu)
+        tab7.itemClicked.connect(self.on_matrixfiles_clicked_suyemo)
+        tab8.itemClicked.connect(self.on_matrixfiles_clicked_yemosu)
+
+
+
+
 
 
         # self.setSortingEnabled(True)
@@ -277,31 +281,34 @@ class Matrix(QTabWidget):
         table.setColumnCount(30)
         table.setRowCount(100)
         table.setHorizontalHeaderLabels(['all', '# file', '# directory','# size'])
-        value = QTableWidgetItem(ASTERIX)
-        # zelle hell violett ...
-        value.setBackground(BRUSH_COMBI)
 
-        table.setItem(0, 0, value)
-        value = QTItem(self.dao.ALL[ASTERIX][CNTFILE], self.dao.ALL[ASTERIX][CNTFILE] )
-        # zelle pastell rot ...
-        dat =[ BLOCK0, CNTFILE, ASTERIX ]
-        value.setData(5,dat) ##########################
-        value.setBackground(BRUSH_TARGET)
-        table.setItem(0, 1, value)
-        value = QTItem(self.dao.ALL[ASTERIX][CNTDIR],self.dao.ALL[ASTERIX][CNTDIR])
-        dat =[ BLOCK0, CNTDIR, ASTERIX ]
-        value.setData(5,dat) ##########################
-        # zelle pastell rot ...
-        value.setBackground(BRUSH_TARGET)
-        table.setItem(0, 2, value)
-        value = QTItem(frmt(self.dao.ALL[ASTERIX][CNTSIZE]),self.dao.ALL[ASTERIX][CNTSIZE]  )
-        dat =[ BLOCK0, CNTSIZE, ASTERIX ]
-        value.setData(5,dat) ##########################
-        # zelle pastell rot ...
-        value.setBackground(BRUSH_SIZE)
-        value.setTextAlignment(Qt.AlignRight)
-        table.setItem(0, 3, value)
-        #table.setSortingEnabled(True)
+        CNTFILE = 1
+        CNTDIR  = 2
+        CNTSIZE = 3
+
+        for i,s in enumerate(self.dao.ALL):
+          value = QTableWidgetItem(s[0])
+          # zelle hell violett ...
+          value.setBackground(BRUSH_COMBI)
+          table.setItem(0, 0, value)
+          value = QTItem(str(s[CNTFILE]), s[CNTFILE] )
+          # zelle pastell rot ...
+          dat =[ BLOCK0, CNTFILE, ASTERIX ]
+          value.setData(5,i) ##########################
+          value.setBackground(BRUSH_TARGET)
+          table.setItem(0, 1, value)
+          value = QTItem(str(s[CNTDIR]),s[CNTDIR])
+          value.setData(5,i) ##########################
+          # zelle pastell rot ...
+          value.setBackground(BRUSH_TARGET)
+          table.setItem(0, 2, value)
+          value = QTItem(frmt(s[CNTSIZE]),s[CNTSIZE]  )
+          value.setData(5,i) ##########################
+          # zelle pastell rot ...
+          value.setBackground(BRUSH_SIZE)
+          value.setTextAlignment(Qt.AlignRight)
+          table.setItem(0, 3, value)
+          #table.setSortingEnabled(True)
         return table
 
 
@@ -312,30 +319,28 @@ class Matrix(QTabWidget):
         table.setRowCount(len(self.dao.SU))
         table.setHorizontalHeaderLabels([ 'suffix','# file', '# directory', '# size'])
         # suffixe anzeigen ...
-        K = list(self.dao.SU.keys())
-        K.sort()
+        CNTFILE = 1
+        CNTDIR  = 2
+        CNTSIZE = 3
 
-        for i,s in enumerate(K):
-          value = QTableWidgetItem(s)
+        for i,s in enumerate(self.dao.SU):
+          value = QTableWidgetItem(s[0])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
           table.setItem(i, 0, value)
-          value = QTItem(str(self.dao.SU[s][CNTFILE]),self.dao.SU[s][CNTFILE]    )
-          dat =[ BLOCK1, CNTFILE, s ]
-          value.setData(5,dat) ##########################
+          value = QTItem(str(s[CNTFILE]),s[CNTFILE]  )
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           table.setItem(i, 1, value)
-          value = QTItem(str(self.dao.SU[s][CNTDIR]), self.dao.SU[s][CNTDIR]    )
-          dat =[ BLOCK1, CNTDIR, s ]
-          value.setData(5,dat) ##########################
+          value = QTItem(str(s[CNTDIR]), s[CNTDIR]    )
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
 
           value.setBackground(BRUSH_TARGET)
           table.setItem(i, 2, value)
-          value = QTItem(frmt(str(self.dao.SU[s][CNTSIZE])),self.dao.SU[s][CNTSIZE])
-          dat =[ BLOCK1, CNTSIZE, s ]
-          value.setData(5,dat) ##########################
+          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
@@ -349,29 +354,29 @@ class Matrix(QTabWidget):
         table.setSortingEnabled(True)
         table.setColumnCount(30)
         table.setRowCount(len(self.dao.YE))
+
+        CNTFILE = 1
+        CNTDIR  = 2
+        CNTSIZE = 3
+
         table.setHorizontalHeaderLabels([ 'year','# file', '# directory', '# size'])
-        K = list(self.dao.YE.keys())
-        K.sort()
-        for i,k in enumerate(K):
-          value = QTableWidgetItem(k)
+        for i,s in enumerate(self.dao.YE):
+          value = QTableWidgetItem(s[0])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
           table.setItem(i, 0, value)
-          value = QTItem(str(self.dao.YE[k][CNTFILE]),int(self.dao.YE[k][CNTFILE])          )
-          dat =[ BLOCK2, CNTFILE, k ]
-          value.setData(5,dat) ##########################
+          value = QTItem(str(s[CNTFILE]),s[CNTFILE]        )
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           table.setItem(i, 1, value)
-          value = QTItem(str(self.dao.YE[k][CNTDIR]),self.dao.YE[k][CNTDIR]   )
-          dat =[ BLOCK2, CNTDIR, k ]
-          value.setData(5,dat) ##########################
+          value = QTItem(str(s[CNTDIR]),s[CNTDIR]   )
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           table.setItem(i, 2, value)
-          value = QTItem(frmt(str(self.dao.YE[k][CNTSIZE])),self.dao.YE[k][CNTSIZE])
-          dat =[ BLOCK2, CNTSIZE, k ]
-          value.setData(5,dat) ##########################
+          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
@@ -385,37 +390,36 @@ class Matrix(QTabWidget):
         table.setColumnCount(30)
         table.setRowCount(len(self.dao.YEMO))
         table.setHorizontalHeaderLabels([ 'year', 'month','# file', '# directory', '# size'])
+        CNTFILE = 2
+        CNTDIR  = 3
+        CNTSIZE = 4
 
 
-        K = list(self.dao.YEMO.keys())
-        K.sort()
-        for i,k in enumerate(K):
-          value = QTableWidgetItem(k[0])
+        for i,s in enumerate(self.dao.YEMO):
+          value = QTableWidgetItem(s[0])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
           table.setItem(i, 0, value)
-          value = QTableWidgetItem(k[1])
+          value = QTableWidgetItem(s[1])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
           table.setItem(i, 1, value)
-          value = QTItem(str(self.dao.YEMO[k][CNTFILE]),self.dao.YEMO[k][CNTFILE])
-          dat =[ BLOCK3, CNTFILE, k[0], k[1] ]
-          value.setData(5,dat) ##########################
+          value = QTItem(str(s[CNTFILE]),s[CNTFILE])
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           table.setItem(i, 2, value)
-          value = QTItem(str(self.dao.YEMO[k][CNTDIR]), self.dao.YEMO[k][CNTDIR])
-          dat =[ BLOCK3, CNTDIR, k[0],k[1] ]
-          value.setData(5,dat) ##########################
+          value = QTItem(str(s[CNTDIR]), s[CNTDIR])
+          value.setData(5,i) ##########################
           # zelle pastell rot ...dao.YEMO[k][CNTDIR]
           value.setBackground(BRUSH_TARGET)
           table.setItem(i, 3, value)
-          value = QTItem(frmt(str(self.dao.YEMO[k][CNTSIZE])),self.dao.YEMO[k][CNTSIZE])
-          dat =[ BLOCK3, CNTSIZE, k[0], k[1] ]
-          value.setData(5,dat) ##########################
+          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
+          self.files.setSortingEnabled(False)
           table.setItem(i, 4, value)
         return table
 
@@ -427,33 +431,33 @@ class Matrix(QTabWidget):
         table.setRowCount(len(self.dao.SUYE))
         table.setHorizontalHeaderLabels([ 'suffix', 'year','# file', '# directory', '# size'])
 
+        CNTFILE = 2
+        CNTDIR  = 3
+        CNTSIZE = 4
 
-        K = list(self.dao.SUYE.keys())
-        K.sort()
-        for i,k in enumerate(K):
-          value = QTableWidgetItem(k[0])
+
+        for i,s in enumerate(self.dao.SUYE):
+          value = QTableWidgetItem(s[0])
+          self.files.setSortingEnabled(False)
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
           table.setItem(i, 0, value)
-          value = QTableWidgetItem(k[1])
+          value = QTableWidgetItem(s[1])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
           table.setItem(i, 1, value)
-          value = QTItem(str(self.dao.SUYE[k][CNTFILE]),self.dao.SUYE[k][CNTFILE])
-          dat =[ BLOCK4, CNTFILE, k[0], k[1] ]
-          value.setData(5,dat) ##########################
+          value = QTItem(str(s[CNTFILE]),s[CNTFILE])
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           table.setItem(i, 2, value)
-          value = QTItem(str(self.dao.SUYE[k][CNTDIR]),self.dao.SUYE[k][CNTDIR])
-          dat =[ BLOCK4, CNTDIR, k[0], k[1] ]
-          value.setData(5,dat) ##########################
+          value = QTItem(str(s[CNTDIR]),s[CNTDIR])
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           table.setItem(i, 3, value)
-          value = QTItem(frmt(str(self.dao.SUYE[k][CNTSIZE])),self.dao.SUYE[k][CNTSIZE])
-          dat =[ BLOCK4, CNTSIZE, k[0], k[1] ]
-          value.setData(5,dat) ##########################
+          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
@@ -470,32 +474,33 @@ class Matrix(QTabWidget):
         table.setRowCount(len(self.dao.YESU))
         table.setHorizontalHeaderLabels([ 'year', 'suffix','# file', '# directory', '# size'])
 
-        K = list(self.dao.YESU.keys())
-        K.sort()
-        for i,k in enumerate(K):
-          value = QTableWidgetItem(k[0])
+        CNTFILE = 2
+        CNTDIR  = 3
+        CNTSIZE = 4
+
+
+
+        for i,s in enumerate(self.dao.YESU):
+          value = QTableWidgetItem(s[0])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
           table.setItem(i, 0, value)
-          value = QTableWidgetItem(k[1])
+          value = QTableWidgetItem(s[1])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
           table.setItem(i, 1, value)
-          value = QTItem(str(self.dao.YESU[k][CNTFILE]),self.dao.YESU[k][CNTFILE])
-          dat =[ BLOCK5, CNTFILE, k[0], k[1] ]
-          value.setData(5,dat) ##########################
+          value = QTItem(str(s[CNTFILE]),s[CNTFILE])
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           table.setItem(i, 2, value)
-          value = QTItem(str(self.dao.YESU[k][CNTDIR]),self.dao.YESU[k][CNTDIR])
-          dat =[ BLOCK5, CNTDIR, k[0], k[1] ]
-          value.setData(5,dat) ##########################
+          value = QTItem(str(s[CNTDIR]),s[CNTDIR])
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           table.setItem(i, 3, value)
-          value = QTItem(frmt(str(self.dao.YESU[k][CNTSIZE])),self.dao.YESU[k][CNTSIZE])
-          dat =[ BLOCK5, CNTSIZE, k[0], k[1] ]
-          value.setData(5,dat) ##########################
+          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
@@ -510,37 +515,38 @@ class Matrix(QTabWidget):
         table.setRowCount(len(self.dao.SUYEMO))
         table.setHorizontalHeaderLabels([ 'suffix', 'year', 'month','# file', '# directory', '# size'])
 
+        CNTFILE = 3
+        CNTDIR  = 4
+        CNTSIZE = 5
+
+
         # suffix years month anzeigen
-        K = list(self.dao.SUYEMO.keys())
-        K.sort()
-        for i,k in enumerate(K):
-          value = QTableWidgetItem(k[0])
+
+        for i,s in enumerate(self.dao.SUYEMO):
+          value = QTableWidgetItem(s[0])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
           table.setItem(i, 0, value)
-          value = QTableWidgetItem(k[1])
+          value = QTableWidgetItem(s[1])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
           table.setItem(i, 1, value)
-          value = QTableWidgetItem(k[2])
+          value = QTableWidgetItem(s[2])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
           table.setItem(i, 2, value)
-          value = QTItem(str(self.dao.SUYEMO[k][CNTFILE]),self.dao.SUYEMO[k][CNTFILE])
-          dat =[ BLOCK6, CNTFILE, k[0], k[1], k[2]]
-          value.setData(5,dat) ##########################
+          value = QTItem(str(s[CNTFILE]),s[CNTFILE])
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           table.setItem(i, 3, value)
-          value = QTItem(str(self.dao.SUYEMO[k][CNTDIR]),self.dao.SUYEMO[k][CNTDIR])
-          dat =[ BLOCK6, CNTDIR, k[0], k[1], k[2]]
-          value.setData(5,dat) ##########################
+          value = QTItem(str(s[CNTDIR]),s[CNTDIR])
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           table.setItem(i, 4, value)
-          value = QTItem(frmt(str(self.dao.SUYEMO[k][CNTSIZE])),self.dao.SUYEMO[k][CNTSIZE])
-          dat =[ BLOCK6, CNTSIZE, k[0], k[1], k[2]]
-          value.setData(5,dat) ##########################
+          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
@@ -554,36 +560,37 @@ class Matrix(QTabWidget):
         table.setColumnCount(30)
         table.setRowCount(len(self.dao.YEMOSU))
         table.setHorizontalHeaderLabels([ 'year', 'month','suffix','# file', '# directory', '# size'])
-        K = list(self.dao.YEMOSU.keys())
-        K.sort()
-        for i,k in enumerate(K):
-          value = QTableWidgetItem(k[0])
+
+        CNTFILE = 3
+        CNTDIR  = 4
+        CNTSIZE = 5
+
+
+        for i,s in enumerate(self.dao.YEMOSU):
+          value = QTableWidgetItem(s[0])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
           table.setItem(i, 0, value)
-          value = QTableWidgetItem(k[1])
+          value = QTableWidgetItem(s[1])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
           table.setItem(i, 1, value)
-          value = QTableWidgetItem(k[2])
+          value = QTableWidgetItem(s[2])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
           table.setItem(i, 2, value)
-          value = QTItem(str(self.dao.YEMOSU[k][CNTFILE]),self.dao.YEMOSU[k][CNTFILE])
-          dat =[ BLOCK7, CNTFILE, k[0], k[1], k[2]]
-          value.setData(5,dat) ##########################
+          value = QTItem(str(s[CNTFILE]),s[CNTFILE])
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           table.setItem(i, 3, value)
-          value = QTItem(str(self.dao.YEMOSU[k][CNTDIR]),self.dao.YEMOSU[k][CNTDIR])
-          dat =[ BLOCK7, CNTDIR, k[0], k[1], k[2]]
-          value.setData(5,dat) ##########################
+          value = QTItem(str(s[CNTDIR]),s[CNTDIR])
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           table.setItem(i, 4, value)
-          value = QTItem(frmt(str(self.dao.YEMOSU[k][CNTSIZE])),self.dao.YEMOSU[k][CNTSIZE])
-          dat =[ BLOCK7, CNTSIZE, k[0], k[1], k[2]]
-          value.setData(5,dat) ##########################
+          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
@@ -593,44 +600,76 @@ class Matrix(QTabWidget):
 
 
 
-    def on_matrixfiles_clicked(self,item):
 
 
+
+    def on_matrixfiles_clicked_all(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
         self.files.setSortingEnabled(False)
+        index = item.data(5)
+        s = self.dao.ALL[index]
+        self.dao.filter_all()
+        self.files.display()
+        #self.files.setSortingEnabled(True)
 
-        dat = item.data(5)
-        if not dat:
-          self.dao.FIL=[]
-          self.files.display()
-          return
-        # es werden nur die Spalten mit # Files beruecksichtigt ...
-        if dat[0] == BLOCK0:
-          if dat[1] == CNTFILE or dat[1] == CNTDIR or dat[1] == CNTSIZE :
-            self.dao.filter_all()
-        if dat[0] == BLOCK1:
-           if dat[1] == CNTFILE or dat[1] == CNTDIR or dat[1] == CNTSIZE :
-             self.dao.filter_suffix(dat[2])
-        if dat[0] == BLOCK2:
-          if dat[1] == CNTFILE or dat[1] == CNTDIR or dat[1] == CNTSIZE :
-             self.dao.filter_year(dat[2])
-        if dat[0] == BLOCK3:
-          if dat[1] == CNTFILE or dat[1] == CNTDIR or dat[1] == CNTSIZE :
-             self.dao.filter_year_month(dat[2],dat[3])
-        if dat[0] == BLOCK4:
-          if dat[1] == CNTFILE or dat[1] == CNTDIR or dat[1] == CNTSIZE :
-             self.dao.filter_suffix_year(dat[2],dat[3])
-        if dat[0] == BLOCK5:
-          if dat[1] == CNTFILE or dat[1] == CNTDIR or dat[1] == CNTSIZE :
-             self.dao.filter_year_suffix(dat[2],dat[3])
-        if dat[0] == BLOCK6:
-           if dat[1] == CNTFILE or dat[1] == CNTDIR or dat[1] == CNTSIZE :
-             self.dao.filter_suffix_year_month(dat[2],dat[3], dat[4])
-        if dat[0] == BLOCK7:
-           if dat[1] == CNTFILE or dat[1] == CNTDIR or dat[1] == CNTSIZE :
-             self.dao.filter_year_month_suffix(dat[2],dat[3], dat[4])
+    def on_matrixfiles_clicked_su(self,item):
+        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
+        self.files.setSortingEnabled(False)
+        index = item.data(5)
+        s = self.dao.SU[index]
+        self.dao.filter_suffix(s[0])
+        self.files.display()
+        #self.files.setSortingEnabled(True)
 
+    def on_matrixfiles_clicked_ye(self,item):
+        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
+        self.files.setSortingEnabled(False)
+        index = item.data(5)
+        s = self.dao.YE[index]
+        self.dao.filter_year(s[0])
+        self.files.display()
+        #self.files.setSortingEnabled(True)
+    def on_matrixfiles_clicked_yemo(self,item):
+        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
+        self.files.setSortingEnabled(False)
+        index = item.data(5)
+        s = self.dao.YEMO[index]
+        self.dao.filter_year_month(s[0],s[1])
+        self.files.display()
+        #self.files.setSortingEnabled(True)
 
+    def on_matrixfiles_clicked_suye(self,item):
+        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
+        self.files.setSortingEnabled(False)
+        index = item.data(5)
+        s = self.dao.SUYE[index]
+        self.dao.filter_suffix_year(s[0],s[1])
+        self.files.display()
+        #self.files.setSortingEnabled(True)
+
+    def on_matrixfiles_clicked_yesu(self,item):
+        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
+        self.files.setSortingEnabled(False)
+        index = item.data(5)
+        s = self.dao.YESU[index]
+        self.dao.filter_year_suffix(s[0],s[1])
+        self.files.display()
+        #self.files.setSortingEnabled(True)
+    def on_matrixfiles_clicked_suyemo(self,item):
+        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
+        self.files.setSortingEnabled(False)
+        index = item.data(5)
+        s = self.dao.SUYEMO[index]
+        self.dao.filter_suffix_year_month(s[0],s[1],s[2])
+        self.files.display()
+        #self.files.setSortingEnabled(True)
+
+    def on_matrixfiles_clicked_yemosu(self,item):
+        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
+        self.files.setSortingEnabled(False)
+        index = item.data(5)
+        s = self.dao.YEMOSU[index]
+        self.dao.filter_year_month_suffix(s[0],s[1],s[2])
         self.files.display()
         #self.files.setSortingEnabled(True)
 
