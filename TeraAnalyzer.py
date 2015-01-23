@@ -14,6 +14,7 @@ SUFFIXES = ['.eps','.tif','.tiff','.jpeg','.jpg',  '.png', '.ppt', '.pptx', '.pd
 SUFFIXES = []
 
 
+
 DATA_SOURCE_A   = 'sourceA'
 DATA_SOURCE_B   = 'sourceB'
 
@@ -27,21 +28,13 @@ YEAR        = 5
 MONTH       = 6
 YEARMONTH   = 7
 SIZE        = 8
-HASH        = 9
-CNTFILE     = 0
-CNTDIR      = 1
-CNTSIZE     = 2
+LEVEL       = 9
+HASH        = 10
+
+
 ASTERIX     = '*'
 
 
-BLOCK0 = 0
-BLOCK1 = 1
-BLOCK2 = 2
-BLOCK3 = 3
-BLOCK4 = 4
-BLOCK5 = 5
-BLOCK6 = 6
-BLOCK7 = 7
 
 
 
@@ -59,6 +52,8 @@ def getkeysuffixyearmonth(item):
     return item[SUFFIX],item[YEAR],item[MONTH]
 def getkeyyearmonthsuffix(item):
     return item[YEAR],item[MONTH],item[SUFFIX]
+def getkeylevel(item):
+    return int(item[LEVEL])
 def getkeysize(item):
     return int(item[SIZE])
 
@@ -121,8 +116,10 @@ class Dao():
                            str('0'+str(dt.date.fromtimestamp(os.stat(a).st_mtime).month))[-2:],
                            str(dt.date.fromtimestamp(os.stat(a).st_mtime).year)+' '+str(dt.date.fromtimestamp(os.stat(a).st_mtime).month),
                            str(os.stat(a).st_size),
-                           str(''))
-                           )
+                           str(a.count('/')-1),  #level
+                           str(''), ))           #hash
+
+
       print('Ende Selektion')
 
 
@@ -186,6 +183,13 @@ class Dao():
          self.YEMOSU.append(( k[0],k[1],k[2], len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
 
+      self.LE = []
+      self.A.sort(key=getkeylevel)
+      for k, F in it.groupby(self.A, getkeylevel):
+         F=list(F)
+         self.LE.append((k , len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+
       print('Ende Zaehlen')
       print('Das Ergebnis')
 
@@ -206,6 +210,9 @@ class Dao():
         self.FIL=[ a for a in self.A if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month  ]
     def filter_year_month_suffix(self, year, month, suffix):
         self.FIL=[ a for a in self.A if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix  ]
+    def filter_level(self,level):
+        self.FIL=[ a for a in self.A if a[LEVEL] == str(level)]
+
 
 
 
@@ -257,6 +264,10 @@ class Matrix(QTabWidget):
         self.addTab(tab7,'suffix year month')
         tab8= self.get_tab_cat_year_month_suffix()
         self.addTab(tab8,'year month suffix')
+        tab9= self.get_tab_cat_level()
+        self.addTab(tab9,'level')
+
+
 
         tab1.itemClicked.connect(self.on_matrixfiles_clicked_all)
         tab2.itemClicked.connect(self.on_matrixfiles_clicked_su)
@@ -266,6 +277,7 @@ class Matrix(QTabWidget):
         tab6.itemClicked.connect(self.on_matrixfiles_clicked_yesu)
         tab7.itemClicked.connect(self.on_matrixfiles_clicked_suyemo)
         tab8.itemClicked.connect(self.on_matrixfiles_clicked_yemosu)
+        tab9.itemClicked.connect(self.on_matrixfiles_clicked_le)
 
 
 
@@ -293,7 +305,6 @@ class Matrix(QTabWidget):
           table.setItem(0, 0, value)
           value = QTItem(str(s[CNTFILE]), s[CNTFILE] )
           # zelle pastell rot ...
-          dat =[ BLOCK0, CNTFILE, ASTERIX ]
           value.setData(5,i) ##########################
           value.setBackground(BRUSH_TARGET)
           table.setItem(0, 1, value)
@@ -478,8 +489,6 @@ class Matrix(QTabWidget):
         CNTDIR  = 3
         CNTSIZE = 4
 
-
-
         for i,s in enumerate(self.dao.YESU):
           value = QTableWidgetItem(s[0])
           # zelle hell violett ...
@@ -597,7 +606,42 @@ class Matrix(QTabWidget):
           table.setItem(i, 5, value)
         return table
 
+    def get_tab_cat_level(self):
+        # years month suffix anzeigen
+        table = QTableWidget()
+        table.setSortingEnabled(True)
+        table.setColumnCount(30)
+        table.setRowCount(len(self.dao.LE))
+        table.setHorizontalHeaderLabels([ 'level','# file', '# directory', '# size'])
 
+        CNTFILE = 1
+        CNTDIR  = 2
+        CNTSIZE = 3
+
+
+        for i,s in enumerate(self.dao.LE):
+          value=QTItem(frmt(str(s[0])),s[0])
+          # zelle hell violett ...
+          value.setBackground(BRUSH_COMBI)
+          table.setItem(i, 0, value)
+          value = QTItem(str(s[CNTFILE]),s[CNTFILE])
+          value.setData(5,i) ##########################
+          # zelle pastell rot ...
+          value.setBackground(BRUSH_TARGET)
+          table.setItem(i, 1, value)
+          value = QTItem(str(s[CNTDIR]),s[CNTDIR])
+          value.setData(5,i) ##########################
+          # zelle pastell rot ...
+          value.setBackground(BRUSH_TARGET)
+          table.setItem(i, 2, value)
+          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value.setData(5,i) ##########################
+          # zelle pastell rot ...
+          value.setBackground(BRUSH_SIZE)
+          value.setTextAlignment(Qt.AlignRight)
+          table.setItem(i, 3, value)
+
+        return table
 
 
 
@@ -673,7 +717,14 @@ class Matrix(QTabWidget):
         self.files.display()
         #self.files.setSortingEnabled(True)
 
-
+    def on_matrixfiles_clicked_le(self,item):
+        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
+        self.files.setSortingEnabled(False)
+        index = item.data(5)
+        s = self.dao.LE[index]
+        self.dao.filter_level(s[0])
+        self.files.display()
+        #self.files.setSortingEnabled(True)
 
 
 
@@ -689,9 +740,13 @@ class Files(QTableWidget):
 #
     def display(self):
 
-        self.setColumnCount(8)
-        self.setRowCount(len(self.dao.FIL))
 
+
+        self.setColumnCount(9)
+        self.setRowCount(len(self.dao.FIL))
+        self.clear()
+        self.clearContents()
+        #self.hide()
         print('clickBegin', len(self.dao.FIL))
         for i, row in enumerate(self.dao.FIL):
           value = QTableWidgetItem(row[SUFFIX])
@@ -701,11 +756,11 @@ class Files(QTableWidget):
           value.setBackground(BRUSH_FILE)
           self.setItem(i, 1, value) # spalte file
           value = QTableWidgetItem(row[NAME])
-          value.setData(1,row[FILE])   # bei filename wird intern auch file gespeichert zwecks Positionierung in nemo
+          value.setData(5,i)   # bei filename wird intern auch file gespeichert zwecks Positionierung in nemo
           value.setBackground(BRUSH_FILE)
           self.setItem(i, 2, value) # spalte filename
           value = QTableWidgetItem(str(row[DIRECTORY]))
-          value.setData(1,str(row[FILE]))   # beim Directory wird intern auch file gespeichert zwecks Positionierung in nemo
+          value.setData(5,i)   # beim Directory wird intern auch file gespeichert zwecks Positionierung in nemo
           value.setBackground(BRUSH_DIRECTORY)
           self.setItem(i, 3, value) # spalte directory
 
@@ -718,13 +773,17 @@ class Files(QTableWidget):
           value = QTableWidgetItem(row[TIMESTAMP])
           self.setItem(i, 6, value)
 
-          value = QTItem(frmt(row[SIZE]), int(row[SIZE]))
+          value = QTItem(frmt(row[LEVEL]), int(row[LEVEL]))
           value.setTextAlignment(Qt.AlignRight)
           self.setItem(i, 7, value)
 
+          value = QTItem(frmt(row[SIZE]), int(row[SIZE]))
+          value.setTextAlignment(Qt.AlignRight)
+          self.setItem(i, 8, value)
+
 
           # Spaltennamen der Filetabelle setzen
-        self.setHorizontalHeaderLabels( ['suffix','file', 'name', 'directory', 'year','month','timestamp' ,'size'])
+        self.setHorizontalHeaderLabels( ['suffix','file', 'name', 'directory', 'year','month','timestamp' , 'level', 'size'])
         print('clickEND')
         self.setSortingEnabled(True)
         # spalte filename vollständig anzeigen ...
@@ -733,17 +792,19 @@ class Files(QTableWidget):
 
 
     def on_file_clicked(self, item):
+
+        index = item.data(5)
         command=''
         if item.column() == 1: # click auf file
           command = 'xdg-open '+'\''+item.text()+'\''
           # das File muss in Hochkommata stehen, da der finename ein blank enthalten kann
         if item.column() == 2: # click auf filename
           # Achtung: data enthaelt  filename incl path, damit nemo in dem Directory auf das File positioniert ...
-          command = 'xdg-open '+'\''+item.data(1)+'\''
+          command = 'xdg-open '+'\''+self.dao.FIL[index][FILE]+'\''
           # das Directory muss in Hochkommata stehen, da der finename ein blank enthalten kann
         if item.column() == 3: # click auf directory
           # Achtung: data enthaelt  filename incl path, damit nemo in dem Directory auf das File positioniert ...
-          command = 'nemo '+'\''+item.data(1)+'\''
+          command = 'nemo '+'\''+self.dao.FIL[index][FILE]+'\''
 
         # File oder Ordner anzeigen mit dem richtigen Tool ...
         if command: os.system(command)
@@ -870,8 +931,6 @@ class Form(QWidget):
 
 
         tabwid = QTabWidget()
-
-
 
 
         tabwid.addTab(tab1,'Space A')
