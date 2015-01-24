@@ -88,7 +88,11 @@ class DaoConfig():
 ## little change
 ######################################################################
 class Dao():
-
+    def difference(daoa, daob):
+        daoc = Dao()
+        daoa.A.sort()
+        daob.A.sort()
+        pass
     def __init__(self, datasource):
         self.A=[]
         self.path = ''
@@ -215,6 +219,8 @@ class Dao():
 
 
 
+
+#
 
 ##########################################################################
 ################### UI Entwicklung #######################################
