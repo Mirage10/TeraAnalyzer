@@ -74,6 +74,7 @@ def frmt(numstr):
     return ret
 
 
+
 class DaoConfig():
     def __init__(self):
        self.__settings = QSettings('TeraAnalyzer', 'TeraAnalyzer')
@@ -85,15 +86,36 @@ class DaoConfig():
         self.__settings.setValue(key,value)
 
 
+import itertools
+
 ## little change
 ######################################################################
 class Dao():
     def difference(daoa, daob):
         daoc = Dao()
-        daoa.A.sort()
-        daob.A.sort()
-        pass
-    def __init__(self, datasource):
+        daoa.A.sort(key=getkeysize)
+        daob.A.sort(key=getkeysize)
+
+        i = 0
+        for a in daoa.A:
+            while True:
+              try: b=daob.A[i]
+              except: return daoc
+
+              if a[SIZE] > b[SIZE]:
+                  i+=1
+                  continue
+              if a[SIZE] == b[SIZE]:
+                  daoc.A.append(a)
+                  i+=1
+                  continue
+              if a[SIZE] < b[SIZE]:
+                  break
+
+        return daoc
+
+
+    def __init__(self, datasource=None):
         self.A=[]
         self.path = ''
         if datasource == DATA_SOURCE_A or datasource == DATA_SOURCE_B:
@@ -1003,6 +1025,7 @@ daoB = Dao(DATA_SOURCE_B)
 daoB.selection()
 daoB.count_files()
 daoConfig = DaoConfig()
+Dao.difference(daoA,daoB)
 
 
 #for a in daoo.A:B
