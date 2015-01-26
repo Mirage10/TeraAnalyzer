@@ -56,7 +56,8 @@ def getkeylevel(item):
     return int(item[LEVEL])
 def getkeysize(item):
     return int(item[SIZE])
-
+def getkeyhash(item):
+    return item[HASH]
 
 
 
@@ -91,28 +92,140 @@ import itertools
 ## little change
 ######################################################################
 class Dao():
+
+
+    def diff(A,B):
+    # dient nur als Prototyp ...
+        L =[]
+        M =[]
+        R =[]
+        A.sort()
+        B.sort()
+        i = 0
+        j = 0
+
+        while True:
+            try: a=A[i]
+            except:
+              R.extend(B[j:])
+              break
+            try: b=B[j]
+            except:
+              L.extend(A[i:])
+              break
+
+            if a > b:
+                R.append(b)
+                j+=1
+                continue
+            if a == b:
+                M.append(a)
+                i+=1
+                j+=1
+                continue
+            if a < b:
+                L.append(a)
+                i+=1
+                continue
+        return L, M , R
+
+
+
+    def dedup( self ):
+
+        daoDup = Dao()
+
+        # keine Duplikate vorhanden wenn nicht mindestens 2 Eintraege vorhanden sind ...
+        if len(self.A) <= 1:
+            return
+        # Filelaenge in das Feld hash uebertragen ...
+        for a in self.A:
+            a[HASH] = int(a[SIZE])
+
+        # nach size sortieren
+        self.A.sort(key=getkeysize)
+
+        for i, a in enumerate(self.A[:-1]):
+            b=self.A[i+1]
+            if a[SIZE] == b[SIZE]:
+                f=open(a[FILE],'rb')
+                h=hash(f.read())
+                if h < 0: h=-h
+                a[HASH] = h
+
+                # Achtung dies koennte effizienter sein, da hash werte doppelt berechnet werden ...
+                f=open(b[FILE],'rb')
+                h=hash(f.read())
+                if h < 0: h=-h
+                b[HASH] = h
+                #print('duplicaate',b[SIZE],'hash',h)
+
+        # nach hash sortieren
+        self.A.sort(key=getkeyhash)
+
+        # duplicate ermitteln und in ein separates dao abspeichern ...
+        i=len(self.A)-1
+        while i>0:
+            a=self.A[i-1]
+            b=self.A[i]
+            if a[HASH]==b[HASH]:
+                daoDup.A.append(b)
+                del self.A[i]
+            i=i-1
+        #print('Duplicate:', len(daoDup.A)+len(self.A))
+        s=[]
+        for a in self.A:
+            s.append(a[HASH])
+
+        # ab hier sind die HASH-Werte in A unique; alle duplicate sind eliminiert ...
+        # Achtung in daoDup stehen nicht mehr der Eintrag aus A, zu dem sie duplikat sind ...
+        return daoDup
+
+
+
+
     def difference(daoa, daob):
-        daoc = Dao()
+        # dient nur als Prototyp ...
+        daol=Dao()
+        daom=Dao()
+        daor=Dao()
         daoa.A.sort(key=getkeysize)
         daob.A.sort(key=getkeysize)
-
+        lena = len(daoa.A)
+        lenb = len(daob.A)
         i = 0
-        for a in daoa.A:
-            while True:
-              try: b=daob.A[i]
-              except: return daoc
+        j = 0
 
-              if a[SIZE] > b[SIZE]:
-                  i+=1
-                  continue
-              if a[SIZE] == b[SIZE]:
-                  daoc.A.append(a)
-                  i+=1
-                  continue
-              if a[SIZE] < b[SIZE]:
-                  break
+        while True:
+            try:
+              a=daoa.A[i]
+            except:
+              daor.A.extend(daob.A[j:])
+              break
+            try: b=daob.A[j]
+            except:
+              daol.A.extend(daoa.A[i:])
+              break
 
-        return daoc
+            if a[SIZE] > b[SIZE]:
+                daor.A.append(b)
+                j+=1
+                continue
+            if a[SIZE] == b[SIZE]:
+                print('Gleichheit')
+                daom.A.append(a)
+                i+=1
+                j+=1
+
+                continue
+            if a[SIZE] < b[SIZE]:
+                daol.A.append(a)
+                i+=1
+                continue
+        return daol, daom , daor
+
+
+
 
 
     def __init__(self, datasource=None):
@@ -133,7 +246,7 @@ class Dao():
           if '/.' in os.path.join(root, a): continue
           if SUFFIXES and os.path.splitext(a)[1].lower() not in SUFFIXES: continue
           if not os.path.exists(a): continue
-          self.A.append( ( str(a),
+          self.A.append( [ str(a),
                            str(os.path.dirname(a)),
                            str(os.path.basename(a)),
                            str(os.path.splitext(a)[1][1:].lower()),
@@ -143,7 +256,7 @@ class Dao():
                            str(dt.date.fromtimestamp(os.stat(a).st_mtime).year)+' '+str(dt.date.fromtimestamp(os.stat(a).st_mtime).month),
                            str(os.stat(a).st_size),
                            str(a.count('/')-1),  #level
-                           str(''), ))           #hash
+                           0, ] )                 #hash
 
 
       print('Ende Selektion')
@@ -1025,20 +1138,29 @@ daoB = Dao(DATA_SOURCE_B)
 daoB.selection()
 daoB.count_files()
 daoConfig = DaoConfig()
-Dao.difference(daoA,daoB)
+#Dao.difference(daoA,daoB)
+# A=[3,2,1,7,7]
+# B=[3,2,1]
+# L,M,R = Dao.diff(A,B)
+# print('A=',A,'B=',B)
+# print('L=',L,'M=',M,'R=',R)
+daoL,daoM,daoR = Dao.difference(daoA,daoB)
+print('A=', len(daoA.A), 'B=', len(daoB.A), 'L=',len(daoL.A),'M=',len(daoM.A),'R=',len(daoR.A))
 
 
-#for a in daoo.A:B
+#for a in daoA.A:
 #  f = open(a[FILE],'rb')
+  #h=hash(f.read())
 
-  #h = hashlib.md5()
-  #h.update(f.read())
-  #hash = h.hexdigest()
-  #print(hash)
-  #f.close()
+#  h = hashlib.md5()
+#  h.update(f.read())
+
+#  hash = h.hexdigest()
+  #print(h)
+#  f.close()
 
 
-
+Dao.dedup(daoA)
 
 
 app = QApplication(sys.argv)
