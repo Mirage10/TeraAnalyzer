@@ -160,7 +160,7 @@ class Dao():
                 b[HASH] = h
                 #print('duplicaate',b[SIZE],'hash',h)
 
-        # nach hash sortieren
+        ## nach hash sortieren
         self.A.sort(key=getkeyhash)
 
         # duplicate ermitteln und in ein separates dao abspeichern ...
