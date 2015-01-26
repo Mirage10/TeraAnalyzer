@@ -329,7 +329,7 @@ class Dao():
          self.LE.append((k , len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
 
-      print('Ende Zaehlen')
+      print('Ende Zählen')
       print('Das Ergebnis')
 
     def filter_all(self):
