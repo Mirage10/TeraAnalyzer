@@ -374,24 +374,24 @@ class Dao():
       print('Das Ergebnis')
 
     def filter_all(self):
-        self.FIL=self.A
-        self.FIL.sort(key=getkeysize)
+        self.FIL=[ i for i, a in enumerate (self.A)]
+
     def filter_suffix(self,suffix):
-        self.FIL=[ a for a in self.A if a[SUFFIX] == suffix]
+        self.FIL=[ i for i, a in enumerate(self.A) if a[SUFFIX] == suffix]
     def filter_year(self,year):
-        self.FIL=[ a for a in self.A if a[YEAR] == year]
+        self.FIL=[ i for i, a in enumerate(self.A) if a[YEAR] == year]
     def filter_year_month(self,year,month):
-        self.FIL=[ a for a in self.A if a[YEAR] == year and a[MONTH] == month  ]
+        self.FIL=[ i for i, a in enumerate(self.A) if a[YEAR] == year and a[MONTH] == month  ]
     def filter_suffix_year(self,suffix,year):
-        self.FIL=[ a for a in self.A if a[SUFFIX] == suffix and a[YEAR] == year  ]
+        self.FIL=[ i for i, a in enumerate(self.A) if a[SUFFIX] == suffix and a[YEAR] == year  ]
     def filter_year_suffix(self,year, suffix):
-        self.FIL=[ a for a in self.A if a[YEAR] == year and a[SUFFIX] == suffix  ]
+        self.FIL=[ i for i, a in enumerate(self.A) if a[YEAR] == year and a[SUFFIX] == suffix  ]
     def filter_suffix_year_month(self, suffix, year, month):
-        self.FIL=[ a for a in self.A if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month  ]
+        self.FIL=[ i for i, a in enumerate(self.A) if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month  ]
     def filter_year_month_suffix(self, year, month, suffix):
-        self.FIL=[ a for a in self.A if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix  ]
+        self.FIL=[ i for i, a in enumerate(self.A) if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix  ]
     def filter_level(self,level):
-        self.FIL=[ a for a in self.A if a[LEVEL] == str(level)]
+        self.FIL=[ i for i, a in enumerate(self.A) if a[LEVEL] == str(level)]
 
 
 
@@ -930,7 +930,8 @@ class Files(QTableWidget):
         self.clearContents()
         #self.hide()
         print('clickBegin', len(self.dao.FIL))
-        for i, row in enumerate(self.dao.FIL):
+        for i, fil in enumerate(self.dao.FIL):
+          row=self.dao.A[fil]
           value = QTableWidgetItem(row[SUFFIX])
           value.setText(row[SUFFIX])
           self.setItem(i, 0, value) # spalte suffix
@@ -938,11 +939,11 @@ class Files(QTableWidget):
           value.setBackground(BRUSH_FILE)
           self.setItem(i, 1, value) # spalte file
           value = QTableWidgetItem(row[NAME])
-          value.setData(5,i)   # bei filename wird intern auch file gespeichert zwecks Positionierung in nemo
+          value.setData(5,fil)   # bei filename wird intern auch file gespeichert zwecks Positionierung in nemo
           value.setBackground(BRUSH_FILE)
           self.setItem(i, 2, value) # spalte filename
           value = QTableWidgetItem(str(row[DIRECTORY]))
-          value.setData(5,i)   # beim Directory wird intern auch file gespeichert zwecks Positionierung in nemo
+          value.setData(5,fil)   # beim Directory wird intern auch file gespeichert zwecks Positionierung in nemo
           value.setBackground(BRUSH_DIRECTORY)
           self.setItem(i, 3, value) # spalte directory
 
@@ -982,11 +983,11 @@ class Files(QTableWidget):
           # das File muss in Hochkommata stehen, da der finename ein blank enthalten kann
         if item.column() == 2: # click auf filename
           # Achtung: data enthaelt  filename incl path, damit nemo in dem Directory auf das File positioniert ...
-          command = 'xdg-open '+'\''+self.dao.FIL[index][FILE]+'\''
+          command = 'xdg-open '+'\''+self.dao.A[index][FILE]+'\''
           # das Directory muss in Hochkommata stehen, da der finename ein blank enthalten kann
         if item.column() == 3: # click auf directory
           # Achtung: data enthaelt  filename incl path, damit nemo in dem Directory auf das File positioniert ...
-          command = 'nemo '+'\''+self.dao.FIL[index][FILE]+'\''
+          command = 'nemo '+'\''+self.dao.A[index][FILE]+'\''
 
         # File oder Ordner anzeigen mit dem richtigen Tool ...
         if command: os.system(command)
