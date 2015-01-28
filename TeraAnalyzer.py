@@ -5,6 +5,8 @@
 # PyQt5 examples: http://nullege.com/codes/show/src%40p%40y%40pyqt5-HEAD%40examples%40sql%40cachedtable.py/46/PyQt5.QtWidgets.QTableView/python
 import datetime as dt
 import itertools as it
+import collections as co
+import sys
 
 
 
@@ -58,7 +60,8 @@ def getkeysize(item):
     return int(item[SIZE])
 def getkeyhash(item):
     return item[HASH]
-
+def getkey2(item):
+    return item[2]
 
 
 # format with intermediate points for large numbers...
@@ -139,6 +142,39 @@ class Dao():
         if len(self.A) <= 1:
             return
         # Filelaenge in das Feld hash uebertragen ...
+
+
+
+
+        C=[]
+        for i, a in enumerate(self.A):
+            C.append([i,a[SIZE]])
+        C.sort(key=getkey2)
+
+
+        i=1
+        k=0
+
+        while i<len(C):
+            if C[i] != C[i-1]:
+                i+=1
+                continue
+            k=i-1
+            while k<len(C):
+                pass
+
+
+
+
+
+
+
+
+
+
+
+
+
         for a in self.A:
             a[HASH] = int(a[SIZE])
 
@@ -182,6 +218,11 @@ class Dao():
         return daoDup
 
 ####
+
+
+
+
+
 
 
     def difference(daoa, daob):
@@ -1122,8 +1163,71 @@ class Form(QWidget):
 
 
 
-import sys
-import hashlib
+
+
+
+def dedub(A):
+
+     # keine Duplikate vorhanden wenn nicht mindestens 2 Eintraege vorhanden sind ...
+        if len(A) <= 1:
+            return []
+        # Filelaenge in das Feld hash uebertragen ...
+
+
+
+
+        C=[]
+        for i, a in enumerate(A):
+            C.append([i,a[SIZE]])
+        C.sort(key=getkey2)
+
+
+        i=1
+        k=0
+
+        while i<len(C):
+            if C[i] != C[i-1]:
+                i+=1
+                continue
+            k=i-1
+            while k<len(C):
+                pass
+
+
+
+
+
+def dd(A):
+
+
+    A.sort()
+
+    R=[]
+    i=1
+    k=0
+
+    flag=False
+
+
+    for i in range(1,len(A)):
+        if A[i-1]==A[i]:
+          R.append(A[i-1])
+          flag=True
+          continue
+        if flag:
+           R.append(A[i-1])
+           flag=False
+
+    if flag:
+        R.append(A[-1])
+    return R
+
+
+
+
+
+
+
 
 
 
@@ -1138,39 +1242,39 @@ daoB = Dao(DATA_SOURCE_B)
 daoB.selection()
 daoB.count_files()
 daoConfig = DaoConfig()
-#Dao.difference(daoA,daoB)
+Dao.difference(daoA,daoB)
 # A=[3,2,1,7,7]
 # B=[3,2,1]
 # L,M,R = Dao.diff(A,B)
 # print('A=',A,'B=',B)
 # print('L=',L,'M=',M,'R=',R)
-daoL,daoM,daoR = Dao.difference(daoA,daoB)
-print('A=', len(daoA.A), 'B=', len(daoB.A), 'L=',len(daoL.A),'M=',len(daoM.A),'R=',len(daoR.A))
+#daoL,daoM,daoR = Dao.difference(daoA,daoB)
+#print('A=', len(daoA.A), 'B=', len(daoB.A), 'L=',len(daoL.A),'M=',len(daoM.A),'R=',len(daoR.A))
 
 
-#for a in daoA.A:
-#  f = open(a[FILE],'rb')
-  #h=hash(f.read())
-
-#  h = hashlib.md5()
-#  h.update(f.read())
-
-#  hash = h.hexdigest()
-  #print(h)
-#  f.close()
 
 
-Dao.dedup(daoA)
+
+#Dao.dedup(daoA)
+
+
+
+
+
+
 
 
 app = QApplication(sys.argv)
 screen = Form( daoA, daoB, daoConfig )
 screen.show()
+
+
+
+R=dd([1,2,2,1])
+print('haooooooooooooooooooooooooooooooooooooooooooooooooooooooooooollo')
+print('RR=',R)
+
 sys.exit(app.exec_())
-
-
-
-
 
 
 
