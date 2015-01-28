@@ -3,7 +3,7 @@
 
 
 # PyQt5 examples: http://nullege.com/codes/show/src%40p%40y%40pyqt5-HEAD%40examples%40sql%40cachedtable.py/46/PyQt5.QtWidgets.QTableView/python
-import datetime as dt
+from datetime import date
 import itertools as it
 import collections as co
 import sys
@@ -292,9 +292,9 @@ class Dao():
                            str(os.path.basename(a)),
                            str(os.path.splitext(a)[1][1:].lower()),
                            str(os.stat(a).st_mtime),
-                           str(dt.date.fromtimestamp(os.stat(a).st_mtime).year),
-                           str('0'+str(dt.date.fromtimestamp(os.stat(a).st_mtime).month))[-2:],
-                           str(dt.date.fromtimestamp(os.stat(a).st_mtime).year)+' '+str(dt.date.fromtimestamp(os.stat(a).st_mtime).month),
+                           str(date.fromtimestamp(os.stat(a).st_mtime).year),
+                           str('0'+str(date.fromtimestamp(os.stat(a).st_mtime).month))[-2:],
+                           str(date.fromtimestamp(os.stat(a).st_mtime).year)+' '+str(date.fromtimestamp(os.stat(a).st_mtime).month),
                            str(os.stat(a).st_size),
                            str(a.count('/')-1),  #level
                            0, ] )                 #hash
