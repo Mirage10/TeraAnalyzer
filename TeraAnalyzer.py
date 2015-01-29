@@ -66,6 +66,7 @@ def getkey2(item):
 
 # format with intermediate points for large numbers...
 def frmt(numstr):
+    numstr=str(numstr)
     ret=''
     n = len(numstr)
     k=0
@@ -277,6 +278,47 @@ class Dao():
             self.path = conf.value_get(datasource,'Please enter a Directory')
             print('ein Path: ',self.path)
 
+    def getkeylen(self,item):
+        s=self.A[item][SIZE]
+        return s
+
+
+
+    def dedub(self):
+
+        self.B=[i for i, a in enumerate(self.A)]
+        self.B.sort(key=self.getkeylen)
+
+        R=[]
+
+        flag=False
+
+
+        for i, b in enumerate(self.B):
+            if i==0: continue
+            a=self.A[self.B[i-1]]
+            b=self.A[b]
+            if a==b:
+              R.append(self.B[i-1])
+              flag=True
+              continue
+            if flag:
+               R.append(self.B[i-1])
+               flag=False
+
+        if flag:
+        # falls Gleichheit bis ans Ende besteht, den letzten Eintrag noch mitnehmen
+            R.append(self.B[-1])
+        print('R==',R)
+
+
+
+        print('ERGE:  ',[self.A[b][SIZE] for b in self.B])
+        return R
+
+
+
+
     def selection(self):
       print('Beginn Selektion')
       self.A=[]
@@ -295,8 +337,8 @@ class Dao():
                            str(date.fromtimestamp(os.stat(a).st_mtime).year),
                            str('0'+str(date.fromtimestamp(os.stat(a).st_mtime).month))[-2:],
                            str(date.fromtimestamp(os.stat(a).st_mtime).year)+' '+str(date.fromtimestamp(os.stat(a).st_mtime).month),
-                           str(os.stat(a).st_size),
-                           str(a.count('/')-1),  #level
+                           os.stat(a).st_size,
+                           a.count('/')-1,  #level
                            0, ] )                 #hash
 
 
@@ -1167,70 +1209,6 @@ class Form(QWidget):
 
 
 
-def dedub(A):
-
-     # keine Duplikate vorhanden wenn nicht mindestens 2 Eintraege vorhanden sind ...
-        if len(A) <= 1:
-            return []
-        # Filelaenge in das Feld hash uebertragen ...
-
-
-
-
-        C=[]
-        for i, a in enumerate(A):
-            C.append([i,a[SIZE]])
-        C.sort(key=getkey2)
-
-
-        i=1
-        k=0
-
-        while i<len(C):
-            if C[i] != C[i-1]:
-                i+=1
-                continue
-            k=i-1
-            while k<len(C):
-                pass
-
-
-
-
-
-def dd(A):
-
-
-    A.sort()
-
-    R=[]
-    i=1
-    k=0
-
-    flag=False
-
-
-    for i in range(1,len(A)):
-        if A[i-1]==A[i]:
-          R.append(A[i-1])
-          flag=True
-          continue
-        if flag:
-           R.append(A[i-1])
-           flag=False
-
-    if flag:
-        R.append(A[-1])
-    return R
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1238,6 +1216,7 @@ def dd(A):
 daoA = Dao(DATA_SOURCE_A)
 daoA.selection()
 daoA.count_files()
+daoA.dedub()
 
 daoB = Dao(DATA_SOURCE_B)
 daoB.selection()
@@ -1260,18 +1239,13 @@ Dao.difference(daoA,daoB)
 
 
 
-
-
-
-
-
 app = QApplication(sys.argv)
 screen = Form( daoA, daoB, daoConfig )
 screen.show()
 
 
 
-R=dd([1,2,2,1])
+R=daoA.dedub()
 print('haooooooooooooooooooooooooooooooooooooooooooooooooooooooooooollo')
 print('RR=',R)
 
