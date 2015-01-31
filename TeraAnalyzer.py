@@ -281,14 +281,19 @@ class Dao():
     def getkeylen(self,item):
         s=self.A[item][SIZE]
         return s
-
+    def getkeyhash(self,item):
+        s=self.A[item][HASH]
+        return s
 
 
     def dedub(self):
 
+        # Achtung: Auf A keine Sortierung machen. Alle Pointer erwarten die anfangs gemachte Reihenfolge ...
+
+
         self.B=[i for i, a in enumerate(self.A)]
         self.B.sort(key=self.getkeylen)
-
+        # in R sollen die pointer auf A stehen, die die gleichen Längen haben...
         R=[]
 
         flag=False
@@ -296,8 +301,8 @@ class Dao():
 
         for i, b in enumerate(self.B):
             if i==0: continue
-            a=self.A[self.B[i-1]]
-            b=self.A[b]
+            a=self.A[self.B[i-1]][SIZE]
+            b=self.A[b][SIZE]
             if a==b:
               R.append(self.B[i-1])
               flag=True
@@ -309,12 +314,56 @@ class Dao():
         if flag:
         # falls Gleichheit bis ans Ende besteht, den letzten Eintrag noch mitnehmen
             R.append(self.B[-1])
-        print('R==',R)
+
+        # hash werte fuer genau die Elemente in R berechnen. Hash werte werden auf Ebene von A gespeichert
+        for r in R:
+            if self.A[r][SIZE]==0:
+                self.A[r][HASH] = 0
+                continue
+            with open(self.A[r][FILE],'rb') as f:
+
+                h = hash(f.read())
+                #print(h)
+                if h < 0: h=-h
+                self.A[r][HASH] = h
+                print(self.A[r][HASH])
+
+
+        # Phase II: weitere Einschränkung von R ...
+        # analog wie oben die duplikatermittlung auf hash, statt auf len ...
+
+        R.sort(key=self.getkeyhash)
+        # in S sollen die pointer auf A stehen, die die gleichen hashes(laengen) haben...
+        S=[]
+
+        flag=False
+
+
+        for i, r in enumerate(R):
+            if i==0: continue
+            a=self.A[R[i-1]][HASH]
+            b=self.A[r][HASH]
+            if a==b:
+              S.append(R[i-1])
+              flag=True
+              continue
+            if flag:
+               S.append(R[i-1])
+               flag=False
+
+        if flag:
+        # falls Gleichheit bis ans Ende besteht, den letzten Eintrag noch mitnehmen
+            S.append(R[-1])
+
+
 
 
 
         print('ERGE:  ',[self.A[b][SIZE] for b in self.B])
-        return R
+
+        S.sort(key=self.getkeylen)
+        print('RR= ',[self.A[s][SIZE] for s in S])
+        return S
 
 
 
@@ -1246,8 +1295,7 @@ screen.show()
 
 
 R=daoA.dedub()
-print('haooooooooooooooooooooooooooooooooooooooooooooooooooooooooooollo')
-print('RR=',R)
+
 
 sys.exit(app.exec_())
 
