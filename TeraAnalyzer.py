@@ -301,9 +301,9 @@ class Dao():
 
         for i, b in enumerate(self.B):
             if i==0: continue
-            a=self.A[self.B[i-1]][SIZE]
-            b=self.A[b][SIZE]
-            if a==b:
+            x=self.A[self.B[i-1]][SIZE]
+            y=self.A[b][SIZE]
+            if x==y:
               R.append(self.B[i-1])
               flag=True
               continue
@@ -341,9 +341,9 @@ class Dao():
 
         for i, r in enumerate(R):
             if i==0: continue
-            a=self.A[R[i-1]][HASH]
-            b=self.A[r][HASH]
-            if a==b:
+            x=self.A[R[i-1]][HASH]
+            y=self.A[r][HASH]
+            if x==y:
               S.append(R[i-1])
               flag=True
               continue
