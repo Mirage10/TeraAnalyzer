@@ -272,6 +272,7 @@ class Dao():
 
     def __init__(self, datasource=None):
         self.A=[]
+        self.FIL=[]
         self.path = ''
         if datasource == DATA_SOURCE_A or datasource == DATA_SOURCE_B:
             conf = DaoConfig()
@@ -482,7 +483,7 @@ class Dao():
     def filter_year_month_suffix(self, year, month, suffix):
         self.FIL=[ i for i, a in enumerate(self.A) if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix  ]
     def filter_level(self,level):
-        self.FIL=[ i for i, a in enumerate(self.A) if a[LEVEL] == str(level)]
+        self.FIL=[ i for i, a in enumerate(self.A) if a[LEVEL] == level]
 
 
 
@@ -517,10 +518,10 @@ class QTItem(QTableWidgetItem):
 
 class Matrix(QTabWidget):
 
-    def __init__(self, dao, files, parent=None):
+    def __init__(self, dao, parent=None):
         super(Matrix, self).__init__(parent)
         self.dao = dao
-        self.files = files
+
         tab1 = self.get_tab_cat_all()
         self.addTab(tab1,'all')
         tab2 = self.get_tab_cat_suffixes()
@@ -542,15 +543,15 @@ class Matrix(QTabWidget):
 
 
 
-        tab1.itemClicked.connect(self.on_matrixfiles_clicked_all)
-        tab2.itemClicked.connect(self.on_matrixfiles_clicked_su)
-        tab3.itemClicked.connect(self.on_matrixfiles_clicked_ye)
-        tab4.itemClicked.connect(self.on_matrixfiles_clicked_yemo)
-        tab5.itemClicked.connect(self.on_matrixfiles_clicked_suye)
-        tab6.itemClicked.connect(self.on_matrixfiles_clicked_yesu)
-        tab7.itemClicked.connect(self.on_matrixfiles_clicked_suyemo)
-        tab8.itemClicked.connect(self.on_matrixfiles_clicked_yemosu)
-        tab9.itemClicked.connect(self.on_matrixfiles_clicked_le)
+#        tab1.itemClicked.connect(self.on_matrixfiles_clicked_all)
+#        tab2.itemClicked.connect(self.on_matrixfiles_clicked_su)
+#        tab3.itemClicked.connect(self.on_matrixfiles_clicked_ye)
+#        tab4.itemClicked.connect(self.on_matrixfiles_clicked_yemo)
+#        tab5.itemClicked.connect(self.on_matrixfiles_clicked_suye)
+#        tab6.itemClicked.connect(self.on_matrixfiles_clicked_yesu)
+#        tab7.itemClicked.connect(self.on_matrixfiles_clicked_suyemo)
+#        tab8.itemClicked.connect(self.on_matrixfiles_clicked_yemosu)
+#        tab9.itemClicked.connect(self.on_matrixfiles_clicked_le)
 
 
 
@@ -561,7 +562,24 @@ class Matrix(QTabWidget):
     def get_tab_cat_all(self):
          # all anzeigen
 
+        tab1 = QWidget()
+        layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
+        tab1.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+
         table = QTableWidget()
+        table.itemClicked.connect(self.on_matrixfiles_clicked_all)
+        split.addWidget(table)
+
+        self.files_all = Files(self.dao)
+        split.addWidget( self.files_all)
+
+
+
         table.setSortingEnabled(True)
         table.setColumnCount(30)
         table.setRowCount(100)
@@ -593,11 +611,30 @@ class Matrix(QTabWidget):
           value.setTextAlignment(Qt.AlignRight)
           table.setItem(0, 3, value)
           #table.setSortingEnabled(True)
-        return table
+        return tab1
 
 
     def get_tab_cat_suffixes(self):
+
+
+#tab2.itemClicked.connect(self.on_matrixfiles_clicked_su)
+
+        tab1 = QWidget()
+        layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
+        tab1.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+
         table = QTableWidget()
+        table.itemClicked.connect(self.on_matrixfiles_clicked_su)
+        split.addWidget(table)
+
+        self.files_su = Files(self.dao)
+        split.addWidget( self.files_su)
+
         table.setSortingEnabled(True)
         table.setColumnCount(30)
         table.setRowCount(len(self.dao.SU))
@@ -630,11 +667,31 @@ class Matrix(QTabWidget):
           value.setTextAlignment(Qt.AlignRight)
           table.setItem(i, 3, value)
         #table.setSortingEnabled(True)
-        return table
+        return tab1
 
     def get_tab_cat_years(self):
         # years anzeigen
+
+
+
+        tab1 = QWidget()
+        layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
+        tab1.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+
         table = QTableWidget()
+        table.itemClicked.connect(self.on_matrixfiles_clicked_ye)
+        split.addWidget(table)
+
+        self.files_ye = Files(self.dao)
+        split.addWidget( self.files_ye)
+
+
+
         table.setSortingEnabled(True)
         table.setColumnCount(30)
         table.setRowCount(len(self.dao.YE))
@@ -665,11 +722,32 @@ class Matrix(QTabWidget):
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
           table.setItem(i, 3, value)
-        return table
+        return tab1
 
     def get_tab_cat_year_month(self):
         # year month anzeigen ...
+
+
+
+        tab1 = QWidget()
+        layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
+        tab1.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+
         table = QTableWidget()
+        table.itemClicked.connect(self.on_matrixfiles_clicked_yemo)
+        split.addWidget(table)
+
+        self.files_yemo = Files(self.dao)
+        split.addWidget( self.files_yemo)
+
+
+
+
         table.setSortingEnabled(True)
         table.setColumnCount(30)
         table.setRowCount(len(self.dao.YEMO))
@@ -703,13 +781,32 @@ class Matrix(QTabWidget):
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
-          self.files.setSortingEnabled(False)
+
           table.setItem(i, 4, value)
-        return table
+        return tab1
 
     def get_tab_cat_suffix_year(self):
         # suffix years anzeigen
+
+
+
+        tab1 = QWidget()
+        layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
+        tab1.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+
         table = QTableWidget()
+        table.itemClicked.connect(self.on_matrixfiles_clicked_suye)
+        split.addWidget(table)
+
+        self.files_suye= Files(self.dao)
+        split.addWidget( self.files_suye)
+
+
         table.setSortingEnabled(True)
         table.setColumnCount(30)
         table.setRowCount(len(self.dao.SUYE))
@@ -722,7 +819,7 @@ class Matrix(QTabWidget):
 
         for i,s in enumerate(self.dao.SUYE):
           value = QTableWidgetItem(s[0])
-          self.files.setSortingEnabled(False)
+          # self.files.setSortingEnabled(False)
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
           table.setItem(i, 0, value)
@@ -746,13 +843,28 @@ class Matrix(QTabWidget):
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
           table.setItem(i, 4, value)
-        return table
+        return tab1
 
 
     def get_tab_cat_year_suffix(self):
         # years suffix anzeigen
 
+        tab1 = QWidget()
+        layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
+        tab1.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+
         table = QTableWidget()
+        table.itemClicked.connect(self.on_matrixfiles_clicked_yesu)
+        split.addWidget(table)
+
+        self.files_yesu = Files(self.dao)
+        split.addWidget( self.files_yesu)
+
         table.setSortingEnabled(True)
         table.setColumnCount(30)
         table.setRowCount(len(self.dao.YESU))
@@ -787,11 +899,28 @@ class Matrix(QTabWidget):
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
           table.setItem(i, 4, value)
-        return table
+        return tab1
 
 
     def get_tab_cat_suffix_year_month(self):
+
+
+        tab1 = QWidget()
+        layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
+        tab1.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+
         table = QTableWidget()
+        table.itemClicked.connect(self.on_matrixfiles_clicked_suyemo)
+        split.addWidget(table)
+
+        self.files_suyemo = Files(self.dao)
+        split.addWidget( self.files_suyemo)
+
         table.setSortingEnabled(True)
         table.setColumnCount(30)
         table.setRowCount(len(self.dao.SUYEMO))
@@ -833,11 +962,28 @@ class Matrix(QTabWidget):
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
           table.setItem(i, 5, value)
-        return table
+        return tab1
 
     def get_tab_cat_year_month_suffix(self):
         # years month suffix anzeigen
+
+        tab1 = QWidget()
+        layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
+        tab1.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+
         table = QTableWidget()
+        table.itemClicked.connect(self.on_matrixfiles_clicked_yemosu)
+        split.addWidget(table)
+
+        self.files_yemosu = Files(self.dao)
+        split.addWidget( self.files_yemosu)
+
+
         table.setSortingEnabled(True)
         table.setColumnCount(30)
         table.setRowCount(len(self.dao.YEMOSU))
@@ -877,11 +1023,27 @@ class Matrix(QTabWidget):
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
           table.setItem(i, 5, value)
-        return table
+        return tab1
 
     def get_tab_cat_level(self):
         # years month suffix anzeigen
+
+        tab1 = QWidget()
+        layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
+        tab1.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+
         table = QTableWidget()
+        table.itemClicked.connect(self.on_matrixfiles_clicked_le)
+        split.addWidget(table)
+
+        self.files_le = Files(self.dao)
+        split.addWidget( self.files_le)
+
         table.setSortingEnabled(True)
         table.setColumnCount(30)
         table.setRowCount(len(self.dao.LE))
@@ -914,7 +1076,7 @@ class Matrix(QTabWidget):
           value.setTextAlignment(Qt.AlignRight)
           table.setItem(i, 3, value)
 
-        return table
+        return tab1
 
 
 
@@ -922,81 +1084,81 @@ class Matrix(QTabWidget):
 
     def on_matrixfiles_clicked_all(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files.setSortingEnabled(False)
+        self.files_all.setSortingEnabled(False)
         index = item.data(5)
         s = self.dao.ALL[index]
         self.dao.filter_all()
-        self.files.display()
+        self.files_all.display()
         #self.files.setSortingEnabled(True)
 
     def on_matrixfiles_clicked_su(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files.setSortingEnabled(False)
+        self.files_su.setSortingEnabled(False)
         index = item.data(5)
         s = self.dao.SU[index]
         self.dao.filter_suffix(s[0])
-        self.files.display()
+        self.files_su.display()
         #self.files.setSortingEnabled(True)
 
     def on_matrixfiles_clicked_ye(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files.setSortingEnabled(False)
+        self.files_ye.setSortingEnabled(False)
         index = item.data(5)
         s = self.dao.YE[index]
         self.dao.filter_year(s[0])
-        self.files.display()
+        self.files_ye.display()
         #self.files.setSortingEnabled(True)
     def on_matrixfiles_clicked_yemo(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files.setSortingEnabled(False)
+        self.files_yemo.setSortingEnabled(False)
         index = item.data(5)
         s = self.dao.YEMO[index]
         self.dao.filter_year_month(s[0],s[1])
-        self.files.display()
+        self.files_yemo.display()
         #self.files.setSortingEnabled(True)
 
     def on_matrixfiles_clicked_suye(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files.setSortingEnabled(False)
+        self.files_suye.setSortingEnabled(False)
         index = item.data(5)
         s = self.dao.SUYE[index]
         self.dao.filter_suffix_year(s[0],s[1])
-        self.files.display()
+        self.files_suye.display()
         #self.files.setSortingEnabled(True)
 
     def on_matrixfiles_clicked_yesu(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files.setSortingEnabled(False)
+        self.files_yesu.setSortingEnabled(False)
         index = item.data(5)
         s = self.dao.YESU[index]
         self.dao.filter_year_suffix(s[0],s[1])
-        self.files.display()
+        self.files_yesu.display()
         #self.files.setSortingEnabled(True)
     def on_matrixfiles_clicked_suyemo(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files.setSortingEnabled(False)
+        self.files_suyemo.setSortingEnabled(False)
         index = item.data(5)
         s = self.dao.SUYEMO[index]
         self.dao.filter_suffix_year_month(s[0],s[1],s[2])
-        self.files.display()
+        self.files_suyemo.display()
         #self.files.setSortingEnabled(True)
 
     def on_matrixfiles_clicked_yemosu(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files.setSortingEnabled(False)
+        self.files_yemosu.setSortingEnabled(False)
         index = item.data(5)
         s = self.dao.YEMOSU[index]
         self.dao.filter_year_month_suffix(s[0],s[1],s[2])
-        self.files.display()
+        self.files_yemosu.display()
         #self.files.setSortingEnabled(True)
 
     def on_matrixfiles_clicked_le(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files.setSortingEnabled(False)
+        self.files_le.setSortingEnabled(False)
         index = item.data(5)
         s = self.dao.LE[index]
         self.dao.filter_level(s[0])
-        self.files.display()
+        self.files_le.display()
         #self.files.setSortingEnabled(True)
 
 
@@ -1012,8 +1174,6 @@ class Files(QTableWidget):
 
 #
     def display(self):
-
-
 
         self.setColumnCount(9)
         self.setRowCount(len(self.dao.FIL))
@@ -1110,11 +1270,9 @@ class Form(QWidget):
         split.setOrientation( Qt.Vertical )
         layouttab.addWidget(split) # split als einzige Komponente
 
-        files = Files(daoA)
-        matrix = Matrix(daoA,files)
-
+        matrix = Matrix(daoA)
         split.addWidget(matrix)
-        split.addWidget(files)
+
 
 
 
@@ -1128,11 +1286,10 @@ class Form(QWidget):
         split.setOrientation( Qt.Vertical )
         layouttab.addWidget(split) # split als einzige Komponente
 
-        files = Files(daoB)
-        matrix = Matrix(daoB,files)
 
+        matrix = Matrix(daoB)
         split.addWidget(matrix)
-        split.addWidget(files)
+
 
 
 
