@@ -135,34 +135,6 @@ class Dao():
 
 
 
-    def dedup( self ):
-
-        daoDup = Dao()
-
-        # keine Duplikate vorhanden wenn nicht mindestens 2 Eintraege vorhanden sind ...
-        if len(self.A) <= 1:
-            return
-        # Filelaenge in das Feld hash uebertragen ...
-
-
-
-
-        C=[]
-        for i, a in enumerate(self.A):
-            C.append([i,a[SIZE]])
-        C.sort(key=getkey2)
-
-
-        i=1
-        k=0
-
-        while i<len(C):
-            if C[i] != C[i-1]:
-                i+=1
-                continue
-            k=i-1
-            while k<len(C):
-                pass
 
 
 
@@ -173,52 +145,6 @@ class Dao():
 
 
 
-
-
-
-        for a in self.A:
-            a[HASH] = int(a[SIZE])
-
-        # nach size sortieren
-        self.A.sort(key=getkeysize)
-
-        for i, a in enumerate(self.A[:-1]):
-            b=self.A[i+1]
-            if a[SIZE] == b[SIZE]:
-                f=open(a[FILE],'rb')
-                h=hash(f.read())
-                if h < 0: h=-h
-                a[HASH] = h
-
-                # Achtung dies koennte effizienter sein, da hash werte doppelt berechnet werden ...
-                f=open(b[FILE],'rb')
-                h=hash(f.read())
-                if h < 0: h=-h
-                b[HASH] = h
-                #print('duplicaate',b[SIZE],'hash',h)
-
-        # nach hash sortieren
-        self.A.sort(key=getkeyhash)
-
-        # duplicate ermitteln und in ein separates dao abspeichern ...
-        i=len(self.A)-1
-        while i>0:
-            a=self.A[i-1]
-            b=self.A[i]
-            if a[HASH]==b[HASH]:
-                daoDup.A.append(b)
-                del self.A[i]
-            i=i-1
-        #print('Duplicate:', len(daoDup.A)+len(self.A))
-        s=[]
-        for a in self.A:
-            s.append(a[HASH])
-
-        # ab hier sind die HASH-Werte in A unique; alle duplicate sind eliminiert ...
-        # Achtung in daoDup stehen nicht mehr der Eintrag aus A, zu dem sie duplikat sind ...
-        return daoDup
-
-####
 
 
 
@@ -296,6 +222,7 @@ class Dao():
         self.B.sort(key=self.getkeylen)
         # in R sollen die pointer auf A stehen, die die gleichen Längen haben...
         R=[]
+        F=[]
 
         flag=False
 
@@ -308,6 +235,7 @@ class Dao():
               R.append(self.B[i-1])
               flag=True
               continue
+
             if flag:
                R.append(self.B[i-1])
                flag=False
@@ -358,7 +286,7 @@ class Dao():
 
 
 
-
+        # Achtung: hier F aufbauen, die aus Unikaten besteht
 
         print('ERGE:  ',[self.A[b][SIZE] for b in self.B])
 
@@ -543,22 +471,8 @@ class Matrix(QTabWidget):
 
 
 
-#        tab1.itemClicked.connect(self.on_matrixfiles_clicked_all)
-#        tab2.itemClicked.connect(self.on_matrixfiles_clicked_su)
-#        tab3.itemClicked.connect(self.on_matrixfiles_clicked_ye)
-#        tab4.itemClicked.connect(self.on_matrixfiles_clicked_yemo)
-#        tab5.itemClicked.connect(self.on_matrixfiles_clicked_suye)
-#        tab6.itemClicked.connect(self.on_matrixfiles_clicked_yesu)
-#        tab7.itemClicked.connect(self.on_matrixfiles_clicked_suyemo)
-#        tab8.itemClicked.connect(self.on_matrixfiles_clicked_yemosu)
-#        tab9.itemClicked.connect(self.on_matrixfiles_clicked_le)
 
 
-
-
-
-
-        # self.setSortingEnabled(True)
     def get_tab_cat_all(self):
          # all anzeigen
 
