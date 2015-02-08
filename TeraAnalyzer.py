@@ -1223,8 +1223,8 @@ class Form(QWidget):
         split.setOrientation( Qt.Vertical )
         layouttab.addWidget(split) # split als einzige Komponente
 
-        self.matrix = Matrix(daoA)
-        split.addWidget(self.matrix)
+        self.matrixA = Matrix(daoA)
+        split.addWidget(self.matrixA)
 
 
 
@@ -1240,8 +1240,8 @@ class Form(QWidget):
         layouttab.addWidget(split) # split als einzige Komponente
 
 
-        matrix = Matrix(daoB)
-        split.addWidget(matrix)
+        self.matrixB = Matrix(daoB)
+        split.addWidget(self.matrixB)
 
 
 
@@ -1343,7 +1343,7 @@ class Form(QWidget):
           self.daoA.path = ss
           self.daoA.selection()
           self.daoA.count_files()
-          self.matrix.tab_all.set_content()
+          self.matrixA.tab_all.set_content()
 
     def on_button_clickedB(self):
         ss = QFileDialog(self,'Bitte Directory auswaehlen','/home/user').getExistingDirectory(self)
@@ -1354,7 +1354,7 @@ class Form(QWidget):
           self.daoB.path = ss
           self.daoB.selection()
           self.daoB.count_files()
-          self.matrix.tab_all.set_content()
+          self.matrixB.tab_all.set_content()
 
     ################################################################
 
@@ -1365,7 +1365,7 @@ class Form(QWidget):
             self.daoA.A=self.daoA.dedub()
             self.daoA.count_files()
 
-            self.matrix.tab_all.set_content()
+            self.matrixA.tab_all.set_content()
             #self.matrix.tab_all.table.update()
 
         #if name == "":
