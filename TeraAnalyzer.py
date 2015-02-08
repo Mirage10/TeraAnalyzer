@@ -1339,14 +1339,22 @@ class Form(QWidget):
         if ss:
           self.editA.setText(ss)
           self.daoConfig.value_set('sourceA',ss)
+          # Tabs der Matrix von SpaceA werden neu aufgebaut ...
+          self.daoA.path = ss
+          self.daoA.selection()
+          self.daoA.count_files()
+          self.matrix.tab_all.set_content()
 
     def on_button_clickedB(self):
         ss = QFileDialog(self,'Bitte Directory auswaehlen','/home/user').getExistingDirectory(self)
         if ss:
           self.editB.setText(ss)
           self.daoConfig.value_set('sourceB',ss)
-
-
+          # Tabs der Matrix von SpaceB werden neu aufgebaut ...
+          self.daoB.path = ss
+          self.daoB.selection()
+          self.daoB.count_files()
+          self.matrix.tab_all.set_content()
 
     ################################################################
 
