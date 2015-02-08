@@ -33,6 +33,7 @@ YEARMONTH   = 7
 SIZE        = 8
 LEVEL       = 9
 HASH        = 10
+DUPCLUSTER  = 11
 
 
 ASTERIX     = '*'
@@ -209,6 +210,7 @@ class Dao():
     def getkeylen(self,item):
         s=self.A[item][SIZE]
         return s
+
     def getkeyhash(self,item):
         s=self.A[item][HASH]
         return s
@@ -223,7 +225,7 @@ class Dao():
         self.B.sort(key=self.getkeylen)
         # in R sollen die pointer auf A stehen, die die gleichen Längen haben...
         R=[]
-        F=[]
+
 
         flag=False
 
@@ -245,9 +247,10 @@ class Dao():
         # falls Gleichheit bis ans Ende besteht, den letzten Eintrag noch mitnehmen
             R.append(self.B[-1])
 
-        # hash werte fuer genau die Elemente in R berechnen. Hash werte werden auf Ebene von A gespeichert
+        # hash werte fuer genau die Elemente in R berechnen. Hash werte werden auf Ebene von A gespeichert...
         for r in R:
             if self.A[r][SIZE]==0:
+                # Files mit Länge 0 bekommen 0 als Hashwert ...
                 self.A[r][HASH] = 0
                 continue
             with open(self.A[r][FILE],'rb') as f:
@@ -293,7 +296,11 @@ class Dao():
 
         S.sort(key=self.getkeylen)
         print('RR= ',[self.A[s][SIZE] for s in S])
-        print(S)
+
+        # duplicate cluster in A setzen ...
+        for s in S: self.A[s][DUPCLUSTER] = self.A[s][HASH]
+        print('HH= ',[self.A[s][HASH] for s in S])
+        #print(S)
         R= [self.A[s] for s in S]
         return R
 
@@ -320,7 +327,8 @@ class Dao():
                            str(date.fromtimestamp(os.stat(a).st_mtime).year)+' '+str(date.fromtimestamp(os.stat(a).st_mtime).month),
                            os.stat(a).st_size,
                            a.count('/')-1,  #level
-                           0, ] )                 #hash
+                           0,               #hash
+                           -1, ] )          #duplicate cluster, default = -1
 
 
       print('Ende Selektion')
