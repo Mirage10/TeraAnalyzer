@@ -33,11 +33,11 @@ YEARMONTH   = 7
 SIZE        = 8
 LEVEL       = 9
 HASH        = 10
-DUPCLUSTER  = 11
+DUBGROUP  = 11
 
 
 ASTERIX     = '*'
-
+NOCLUSTER   = -1
 
 
 
@@ -219,6 +219,7 @@ class Dao():
     def dedub(self):
 
         # Achtung: Auf A keine Sortierung machen. Alle Pointer erwarten die anfangs gemachte Reihenfolge ...
+        # Achtung Nebeneffekt: Dedub setzt die dedubgroup in A ...
 
 
         self.B=[i for i, a in enumerate(self.A)]
@@ -297,11 +298,14 @@ class Dao():
         S.sort(key=self.getkeylen)
         print('RR= ',[self.A[s][SIZE] for s in S])
 
-        # duplicate cluster in A setzen ...
-        for s in S: self.A[s][DUPCLUSTER] = self.A[s][HASH]
+        # duplicate group in A setzen ...
+        for s in S: self.A[s][DUBGROUP] = self.A[s][HASH]
         print('HH= ',[self.A[s][HASH] for s in S])
         #print(S)
         R= [self.A[s] for s in S]
+
+        print('DDUB', {self.A[s][DUBGROUP] for s in S})
+
         return R
 
 
@@ -328,7 +332,7 @@ class Dao():
                            os.stat(a).st_size,
                            a.count('/')-1,  #level
                            0,               #hash
-                           -1, ] )          #duplicate cluster, default = -1
+                           NOCLUSTER, ] )          #duplicate cluster, default = -1
 
 
       print('Ende Selektion')
@@ -337,14 +341,16 @@ class Dao():
 
     def count_files(self):
       print('Beginn zaehlen')
+      # Achtung: hier wird A sortiert; Die Sortierreihenfolge von A darf wegen Referenzen auf derselbigen nicht veraendert werden ...
 
-    # Summe der Dateigroessen ermitteln ...
+      # Summe der Dateigroessen ermitteln ...
       size_all=0
       for a in self.A:
         size_all+=int(a[SIZE])
 
       self.ALL=[]
-      self.ALL.append((ASTERIX ,str(len(self.A)), str(len({a[DIRECTORY]for a in self.A})), str(size_all)))
+      self.ALL.append((ASTERIX ,str(len(self.A)), str(len({a[DIRECTORY]for a in self.A})),
+                                str(len({a[DUBGROUP] for a in self.A  if a[DUBGROUP] != NOCLUSTER}) ) , str(len([a[DUBGROUP] for a in self.A  if a[DUBGROUP] != NOCLUSTER]) )    , str(size_all), 0))
 
 
       self.SU = []
@@ -481,7 +487,7 @@ class Tab_All(QWidget):
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
         self.table.setRowCount(100)
-        self.table.setHorizontalHeaderLabels(['all', '# file', '# directory','# size'])
+        self.table.setHorizontalHeaderLabels(['all', '# file', '# directory','# dubgroup', '# dubfiles', '# size','# waste'])
         self.set_content()
         #self.set_tab_content_all(tab)
         #tab.xxx=self.set_tab_content_all
@@ -489,9 +495,12 @@ class Tab_All(QWidget):
 
 
     def set_content(self):
-        CNTFILE = 1
-        CNTDIR  = 2
-        CNTSIZE = 3
+        CNTFILE      = 1
+        CNTDIR       = 2
+        CNTDUPGROUP  = 3
+        CNTDUPFILES  = 4
+        CNTSIZE      = 5
+        CNTWASTE     = 6
 
         for i,s in enumerate(self.dao.ALL):
           value = QTableWidgetItem(s[0])
@@ -508,12 +517,33 @@ class Tab_All(QWidget):
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(0, 2, value)
+          value = QTItem(str(s[CNTDUPGROUP]),s[CNTDUPGROUP])
+          value.setData(5,i) ##########################
+          # zelle pastell rot ...
+          value.setBackground(BRUSH_TARGET)
+          self.table.setItem(0, 3, value)
+          value = QTItem(str(s[CNTDUPFILES]),s[CNTDUPFILES])
+          value.setData(5,i) ##########################
+          # zelle pastell rot ...
+          value.setBackground(BRUSH_TARGET)
+          self.table.setItem(0, 4, value)
+
           value = QTItem(frmt(s[CNTSIZE]),s[CNTSIZE]  )
           value.setData(5,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
-          self.table.setItem(0, 3, value)
+          self.table.setItem(0, 5, value)
+          value = QTItem(frmt(s[CNTWASTE]),s[CNTWASTE]  )
+          value.setData(5,i) ##########################
+          # zelle pastell rot ...
+          value.setBackground(BRUSH_SIZE)
+          value.setTextAlignment(Qt.AlignRight)
+          self.table.setItem(0, 6, value)
+
+
+
+
           #table.setSortingEnabled(True)
 
     def on_kpi_clicked(self,item):
@@ -1369,16 +1399,25 @@ class Form(QWidget):
 
     ################################################################
     def submitContact(self):
-        #name = self.nameLine.text()
-            self.daoA.A=self.daoA.dedub()
-            self.daoA.count_files()
 
+
+            self.daoA.dedub()
+            self.daoA.count_files()
             self.matrixA.tab_all.set_content()
-            #self.matrix.tab_all.table.update()
+
+            self.daoB.dedub()
+            self.daoB.count_files()
+            self.matrixB.tab_all.set_content()
+
+
+
+
+
+
 
         #if name == "":
-            QMessageBox.information( self, "Empty Field",
-                                    "Please enter a name and address.")
+            #QMessageBox.information( self, "Empty Field",
+            #                        "Please enter a name and address.")
             return
         #else:
          #   QMessageBox.information(self, "Success!",
@@ -1396,7 +1435,7 @@ class Form(QWidget):
 daoA = Dao(DATA_SOURCE_A)
 daoA.selection()
 daoA.count_files()
-daoA.dedub()
+#daoA.dedub()
 
 daoB = Dao(DATA_SOURCE_B)
 daoB.selection()
@@ -1425,7 +1464,7 @@ screen.show()
 
 
 
-R=daoA.dedub()
+#R=daoA.dedub()
 
 
 sys.exit(app.exec_())
