@@ -1329,11 +1329,11 @@ class Form(QWidget):
 #
 #
 
-        action_scope       = QAction('Scope', self)
-        action_retrieve    = QAction('Retrieve', self)
-        action_indexing    = QAction('Indexing', self)
-        action_duplicates  = QAction('Duplicates', self)
-        action_trash       = QAction('Trash', self)
+        action_scope       = QAction('Dedup A', self)
+        action_retrieve    = QAction('Reduce A', self)
+        action_indexing    = QAction('Dedup B', self)
+        action_duplicates  = QAction('Reduce B', self)
+        action_trash       = QAction('Calc A - B', self)
         action_advanced    = QAction('Advanced', self)
         action_scope.triggered.connect(self.submitContact)
 #       operations.addAction(action_scope)
