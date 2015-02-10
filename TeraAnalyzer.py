@@ -33,11 +33,12 @@ YEARMONTH   = 7
 SIZE        = 8
 LEVEL       = 9
 HASH        = 10
-DUBGROUP  = 11
+DUBGROUP    = 11
 
 
 ASTERIX     = '*'
 NOCLUSTER   = -1
+DATCOMP     = 5
 
 
 
@@ -509,33 +510,33 @@ class Tab_All(QWidget):
           self.table.setItem(0, 0, value)
           value = QTItem(str(s[CNTFILE]), s[CNTFILE] )
           # zelle pastell rot ...
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(0, 1, value)
           value = QTItem(str(s[CNTDIR]),s[CNTDIR])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(0, 2, value)
           value = QTItem(str(s[CNTDUPGROUP]),s[CNTDUPGROUP])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(0, 3, value)
           value = QTItem(str(s[CNTDUPFILES]),s[CNTDUPFILES])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(0, 4, value)
 
           value = QTItem(frmt(s[CNTSIZE]),s[CNTSIZE]  )
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
           self.table.setItem(0, 5, value)
           value = QTItem(frmt(s[CNTWASTE]),s[CNTWASTE]  )
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
@@ -549,7 +550,7 @@ class Tab_All(QWidget):
     def on_kpi_clicked(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
         self.files_all.setSortingEnabled(False)
-        index = item.data(5)
+        index = item.data(DATCOMP)
         s = self.dao.ALL[index]
         self.dao.filter_all()
         self.files_all.display()
@@ -595,18 +596,18 @@ class Tab_SU(QWidget):
           value.setBackground(BRUSH_COMBI)
           self.table.setItem(i, 0, value)
           value = QTItem(str(s[CNTFILE]),s[CNTFILE]  )
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 1, value)
           value = QTItem(str(s[CNTDIR]), s[CNTDIR]    )
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
 
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 2, value)
           value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
@@ -617,7 +618,7 @@ class Tab_SU(QWidget):
     def on_kpi_clicked(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
         self.files_su.setSortingEnabled(False)
-        index = item.data(5)
+        index = item.data(DATCOMP)
         s = self.dao.SU[index]
         self.dao.filter_suffix(s[0])
         self.files_su.display()
@@ -662,17 +663,17 @@ class Tab_YE(QWidget):
           value.setBackground(BRUSH_COMBI)
           self.table.setItem(i, 0, value)
           value = QTItem(str(s[CNTFILE]),s[CNTFILE]        )
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 1, value)
           value = QTItem(str(s[CNTDIR]),s[CNTDIR]   )
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 2, value)
           value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
@@ -681,7 +682,7 @@ class Tab_YE(QWidget):
     def on_kpi_clicked(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
         self.files_ye.setSortingEnabled(False)
-        index = item.data(5)
+        index = item.data(DATCOMP)
         s = self.dao.YE[index]
         self.dao.filter_year(s[0])
         self.files_ye.display()
@@ -732,17 +733,17 @@ class Tab_YEMO(QWidget):
           value.setBackground(BRUSH_COMBI)
           self.table.setItem(i, 1, value)
           value = QTItem(str(s[CNTFILE]),s[CNTFILE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 2, value)
           value = QTItem(str(s[CNTDIR]), s[CNTDIR])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...dao.YEMO[k][CNTDIR]
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 3, value)
           value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
@@ -752,7 +753,7 @@ class Tab_YEMO(QWidget):
     def on_kpi_clicked(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
         self.files_yemo.setSortingEnabled(False)
-        index = item.data(5)
+        index = item.data(DATCOMP)
         s = self.dao.YEMO[index]
         self.dao.filter_year_month(s[0],s[1])
         self.files_yemo.display()
@@ -805,17 +806,17 @@ class Tab_SUYE(QWidget):
           value.setBackground(BRUSH_COMBI)
           self.table.setItem(i, 1, value)
           value = QTItem(str(s[CNTFILE]),s[CNTFILE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 2, value)
           value = QTItem(str(s[CNTDIR]),s[CNTDIR])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 3, value)
           value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
@@ -825,7 +826,7 @@ class Tab_SUYE(QWidget):
     def on_kpi_clicked(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
         self.files_suye.setSortingEnabled(False)
-        index = item.data(5)
+        index = item.data(DATCOMP)
         s = self.dao.SUYE[index]
         self.dao.filter_suffix_year(s[0],s[1])
         self.files_suye.display()
@@ -877,17 +878,17 @@ class Tab_YESU(QWidget):
           value.setBackground(BRUSH_COMBI)
           self.table.setItem(i, 1, value)
           value = QTItem(str(s[CNTFILE]),s[CNTFILE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 2, value)
           value = QTItem(str(s[CNTDIR]),s[CNTDIR])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 3, value)
           value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
@@ -897,7 +898,7 @@ class Tab_YESU(QWidget):
     def on_kpi_clicked(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
         self.files_yesu.setSortingEnabled(False)
-        index = item.data(5)
+        index = item.data(DATCOMP)
         s = self.dao.YESU[index]
         self.dao.filter_year_suffix(s[0],s[1])
         self.files_yesu.display()
@@ -955,17 +956,17 @@ class Tab_SUYEMO(QWidget):
           value.setBackground(BRUSH_COMBI)
           self.table.setItem(i, 2, value)
           value = QTItem(str(s[CNTFILE]),s[CNTFILE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 3, value)
           value = QTItem(str(s[CNTDIR]),s[CNTDIR])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 4, value)
           value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
@@ -974,7 +975,7 @@ class Tab_SUYEMO(QWidget):
     def on_kpi_clicked(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
         self.files_suyemo.setSortingEnabled(False)
-        index = item.data(5)
+        index = item.data(DATCOMP)
         s = self.dao.SUYEMO[index]
         self.dao.filter_suffix_year_month(s[0],s[1],s[2])
         self.files_suyemo.display()
@@ -1030,17 +1031,17 @@ class Tab_YEMOSU(QWidget):
           value.setBackground(BRUSH_COMBI)
           self.table.setItem(i, 2, value)
           value = QTItem(str(s[CNTFILE]),s[CNTFILE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 3, value)
           value = QTItem(str(s[CNTDIR]),s[CNTDIR])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 4, value)
           value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
@@ -1049,7 +1050,7 @@ class Tab_YEMOSU(QWidget):
     def on_kpi_clicked(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
         self.files_yemosu.setSortingEnabled(False)
-        index = item.data(5)
+        index = item.data(DATCOMP)
         s = self.dao.YEMOSU[index]
         self.dao.filter_year_month_suffix(s[0],s[1],s[2])
         self.files_yemosu.display()
@@ -1100,17 +1101,17 @@ class Tab_LE(QWidget):
           value.setBackground(BRUSH_COMBI)
           self.table.setItem(i, 0, value)
           value = QTItem(str(s[CNTFILE]),s[CNTFILE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 1, value)
           value = QTItem(str(s[CNTDIR]),s[CNTDIR])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 2, value)
           value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
@@ -1119,7 +1120,7 @@ class Tab_LE(QWidget):
     def on_kpi_clicked(self,item):
         # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
         self.files_le.setSortingEnabled(False)
-        index = item.data(5)
+        index = item.data(DATCOMP)
         s = self.dao.LE[index]
         self.dao.filter_level(s[0])
         self.files_le.display()
@@ -1166,7 +1167,7 @@ class Files(QTableWidget):
 
     def display(self):
 
-        self.setColumnCount(9)
+        self.setColumnCount(10)
         self.setRowCount(len(self.dao.FIL))
         self.clear()
         self.clearContents()
@@ -1181,11 +1182,11 @@ class Files(QTableWidget):
           value.setBackground(BRUSH_FILE)
           self.setItem(i, 1, value) # spalte file
           value = QTableWidgetItem(row[NAME])
-          value.setData(5,fil)   # bei filename wird intern auch file gespeichert zwecks Positionierung in nemo
+          value.setData(DATCOMP,fil)   # bei filename wird intern auch file gespeichert zwecks Positionierung in nemo
           value.setBackground(BRUSH_FILE)
           self.setItem(i, 2, value) # spalte filename
           value = QTableWidgetItem(str(row[DIRECTORY]))
-          value.setData(5,fil)   # beim Directory wird intern auch file gespeichert zwecks Positionierung in nemo
+          value.setData(DATCOMP,fil)   # beim Directory wird intern auch file gespeichert zwecks Positionierung in nemo
           value.setBackground(BRUSH_DIRECTORY)
           self.setItem(i, 3, value) # spalte directory
 
@@ -1202,13 +1203,17 @@ class Files(QTableWidget):
           value.setTextAlignment(Qt.AlignRight)
           self.setItem(i, 7, value)
 
-          value = QTItem(frmt(row[SIZE]), int(row[SIZE]))
+          value = QTableWidgetItem(str(row[DUBGROUP]))
           value.setTextAlignment(Qt.AlignRight)
           self.setItem(i, 8, value)
 
+          value = QTItem(frmt(row[SIZE]), int(row[SIZE]))
+          value.setTextAlignment(Qt.AlignRight)
+          self.setItem(i, 9, value)
 
-          # Spaltennamen der Filetabelle setzen
-        self.setHorizontalHeaderLabels( ['suffix','file', 'name', 'directory', 'year','month','timestamp' , 'level', 'size'])
+
+        # Spaltennamen der Filetabelle setzen
+        self.setHorizontalHeaderLabels( ['suffix','file', 'name', 'directory', 'year','month','timestamp' , 'level', 'dubgroup' ,'size'])
         print('clickEND')
         self.setSortingEnabled(True)
         # spalte filename vollständig anzeigen ...
@@ -1218,7 +1223,7 @@ class Files(QTableWidget):
 
     def on_file_clicked(self, item):
 
-        index = item.data(5)
+        index = item.data(DATCOMP)
         command=''
         if item.column() == 1: # click auf file
           command = 'xdg-open '+'\''+item.text()+'\''
@@ -1251,11 +1256,10 @@ class Form(QWidget):
 
 
 
-
-# assemble tab 1 ...
-        tab1 = QWidget()
-        layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
-        tab1.setLayout(layouttab)
+# assemble tab space A ...
+        tab_spaceA = QWidget()
+        layouttab = QVBoxLayout()
+        tab_spaceA.setLayout(layouttab)
 
         split = QSplitter()
         split.setOrientation( Qt.Vertical )
@@ -1266,12 +1270,10 @@ class Form(QWidget):
 
 
 
-
-
- # assemble tab 2 ...
-        tab2 = QWidget()
-        layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
-        tab2.setLayout(layouttab)
+ # assemble tab space B ...
+        tab_spaceB = QWidget()
+        layouttab = QVBoxLayout()
+        tab_spaceB.setLayout(layouttab)
 
         split = QSplitter()
         split.setOrientation( Qt.Vertical )
@@ -1282,16 +1284,10 @@ class Form(QWidget):
         split.addWidget(self.matrixB)
 
 
-
-
-
-
-
-
-# assemble tab 3 ...
-        tab3 = QWidget()
+# assemble tab space Config ...
+        tab_spaceConfig = QWidget()
         layouttab3 = QFormLayout()
-        tab3.setLayout(layouttab3)
+        tab_spaceConfig.setLayout(layouttab3)
 
 
         self.editA = QLineEdit()
@@ -1329,25 +1325,28 @@ class Form(QWidget):
 #
 #
 
-        action_scope       = QAction('Dedup A', self)
-        action_retrieve    = QAction('Reduce A', self)
-        action_indexing    = QAction('Dedup B', self)
-        action_duplicates  = QAction('Reduce B', self)
-        action_trash       = QAction('Calc A - B', self)
-        action_advanced    = QAction('Advanced', self)
-        action_scope.triggered.connect(self.submitContact)
-#       operations.addAction(action_scope)
+        action_DedupSpaceA    = QAction('Dedup A', self)
+        action_reduceA        = QAction('Reduce A', self)
+        action_DedupSpaceB    = QAction('Dedup B', self)
+        action_reduceB        = QAction('Reduce B', self)
+        action_trash          = QAction('Calc A - B', self)
+        action_advanced       = QAction('Advanced', self)
+        action_DedupSpaceA.triggered.connect(self.submitDedupSapceA)
+        action_DedupSpaceB.triggered.connect(self.submitDedupSapceB)
+        action_reduceA.triggered.connect(self.submitReduceA)
+        action_reduceB.triggered.connect(self.submitReduceB)
+#       operations.addAction(action_DedupSpaceA)
 #       operations.addAction(action_indexing)
-#       operations.addAction(action_duplicates)
+#       operations.addAction(action_reduceB)
 #       operations.addAction(action_trash)
 
 
 
         toolbar = QToolBar()
-        toolbar.addAction(action_scope)
-        toolbar.addAction(action_retrieve)
-        toolbar.addAction(action_indexing)
-        toolbar.addAction(action_duplicates)
+        toolbar.addAction(action_DedupSpaceA)
+        toolbar.addAction(action_reduceA)
+        toolbar.addAction(action_DedupSpaceB)
+        toolbar.addAction(action_reduceB)
         toolbar.addAction(action_trash)
         toolbar.addAction(action_advanced)
 
@@ -1355,9 +1354,9 @@ class Form(QWidget):
         tabwid = QTabWidget()
 
 
-        tabwid.addTab(tab1,'Space A')
-        tabwid.addTab(tab2,'Space B')
-        tabwid.addTab(tab3,'Config')
+        tabwid.addTab(tab_spaceA,'Space A')
+        tabwid.addTab(tab_spaceB,'Space B')
+        tabwid.addTab(tab_spaceConfig,'Config')
 
 
         toplayout = QVBoxLayout(self)
@@ -1398,19 +1397,24 @@ class Form(QWidget):
 
 
     ################################################################
-    def submitContact(self):
-
-
+    def submitDedupSapceA(self):
             self.daoA.dedub()
             self.daoA.count_files()
             self.matrixA.tab_all.set_content()
 
+
+
+
+    def submitDedupSapceB(self):
             self.daoB.dedub()
             self.daoB.count_files()
             self.matrixB.tab_all.set_content()
 
+    def submitReduceA(self):
+        pass
 
-
+    def submitReduceB(self):
+        pass
 
 
 
@@ -1418,10 +1422,7 @@ class Form(QWidget):
         #if name == "":
             #QMessageBox.information( self, "Empty Field",
             #                        "Please enter a name and address.")
-            return
-        #else:
-         #   QMessageBox.information(self, "Success!",
-          #                          "Hello %s !" % name)
+
 
 
 
