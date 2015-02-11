@@ -212,6 +212,11 @@ class Dao():
         s=self.A[item][SIZE]
         return s
 
+    def getkeydubgroup(self,item):
+        s=self.A[item][DUBGROUP]
+        return s
+
+
     def getkeyhash(self,item):
         s=self.A[item][HASH]
         return s
@@ -303,11 +308,40 @@ class Dao():
         for s in S: self.A[s][DUBGROUP] = self.A[s][HASH]
         print('HH= ',[self.A[s][HASH] for s in S])
         #print(S)
+
+
+        # ab hier sollen die dubroups statt hash werte normale integer sein ...
+        S.sort(key=self.getkeydubgroup)
+
+
+
         R= [self.A[s] for s in S]
 
-        print('DDUB', {self.A[s][DUBGROUP] for s in S})
+        print('DDUB', [self.A[s][DUBGROUP] for s in S])
 
-        return R
+
+        i = 1
+        x = self.A[0][DUBGROUP]
+        self.A[0][DUBGROUP] = 1        # Achtung die Sequenz verweist anfangs auf mindestens zwei gleiche Elemente. Zaehlung beginnt bei 1 ...
+        for s in S[1:]:
+            y = self.A[s][DUBGROUP]
+            if x==y:
+                self.A[s][DUBGROUP] = i
+                continue
+            if x!=y:
+                x=y
+                i+=1
+                self.A[s][DUBGROUP] = i
+
+
+
+        print('DDUB_Int', [self.A[s][DUBGROUP] for s in S])
+
+        # alle -1 Werrte, d.h. es gibt keine Duplikate, auf 0 setzen...
+        for a in self.A:
+            if a[DUBGROUP] == NOCLUSTER: a[DUBGROUP] = 0
+
+        #return R
 
 
 
@@ -333,7 +367,7 @@ class Dao():
                            os.stat(a).st_size,
                            a.count('/')-1,  #level
                            0,               #hash
-                           NOCLUSTER, ] )          #duplicate cluster, default = -1
+                           NOCLUSTER ] )          #duplicate cluster, default = -1
 
 
       print('Ende Selektion')
@@ -1199,11 +1233,16 @@ class Files(QTableWidget):
           value = QTableWidgetItem(row[TIMESTAMP])
           self.setItem(i, 6, value)
 
-          value = QTItem(frmt(row[LEVEL]), int(row[LEVEL]))
+          value = QTItem(str(row[LEVEL]), int(row[LEVEL]))
           value.setTextAlignment(Qt.AlignRight)
           self.setItem(i, 7, value)
 
-          value = QTableWidgetItem(str(row[DUBGROUP]))
+          #value = QTableWidgetItem(row[DUBGROUP])
+          if row[DUBGROUP] == 0:
+              stri = ''
+          else:
+              stri = str(row[DUBGROUP])
+          value = QTItem(stri, int(row[DUBGROUP]))
           value.setTextAlignment(Qt.AlignRight)
           self.setItem(i, 8, value)
 
