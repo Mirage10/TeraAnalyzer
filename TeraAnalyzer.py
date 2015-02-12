@@ -39,6 +39,7 @@ DUBGROUP    = 11
 ASTERIX     = '*'
 NOCLUSTER   = -1
 DATCOMP     = 5
+RWCNT       = 40
 
 
 
@@ -107,7 +108,7 @@ class Dao():
         M =[]
         R =[]
         A.sort()
-        B.sort()
+
         i = 0
         j = 0
 
@@ -202,6 +203,16 @@ class Dao():
     def __init__(self, datasource=None):
         self.A=[]
         self.FIL=[]
+        self.ALL=[]
+        self.SU=[]
+        self.YE= []
+        self.YEMO=[]
+        self.YESU=[]
+        self.YEMOSU=[]
+        self.SUYEMO=[]
+        self.LE=[]
+        self.SUYE=[]
+
         self.path = ''
         if datasource == DATA_SOURCE_A or datasource == DATA_SOURCE_B:
             conf = DaoConfig()
@@ -260,13 +271,17 @@ class Dao():
                 # Files mit Länge 0 bekommen 0 als Hashwert ...
                 self.A[r][HASH] = 0
                 continue
-            with open(self.A[r][FILE],'rb') as f:
 
-                h = hash(f.read())
-                #print(h)
-                if h < 0: h=-h
-                self.A[r][HASH] = h
-                print(self.A[r][HASH])
+            try:
+                # Fehlerbehandlung erforderlich bei fehlender Berechtigung ...
+                with open(self.A[r][FILE],'rb') as f:
+                    h = hash(f.read())
+                    #print(h)
+                    if h < 0: h=-h
+                    self.A[r][HASH] = h
+                    #print(self.A[r][HASH])
+            except:
+                pass
 
 
         # Phase II: weitere Einschränkung von R ...
@@ -299,14 +314,14 @@ class Dao():
 
         # Achtung: hier F aufbauen, die aus Unikaten besteht
 
-        print('ERGE:  ',[self.A[b][SIZE] for b in self.B])
+        #print('ERGE:  ',[self.A[b][SIZE] for b in self.B])
 
         S.sort(key=self.getkeylen)
-        print('RR= ',[self.A[s][SIZE] for s in S])
+        #print('RR= ',[self.A[s][SIZE] for s in S])
 
         # duplicate group in A setzen ...
         for s in S: self.A[s][DUBGROUP] = self.A[s][HASH]
-        print('HH= ',[self.A[s][HASH] for s in S])
+        #print('HH= ',[self.A[s][HASH] for s in S])
         #print(S)
 
 
@@ -317,25 +332,26 @@ class Dao():
 
         R= [self.A[s] for s in S]
 
-        print('DDUB', [self.A[s][DUBGROUP] for s in S])
+        #print('DDUB', [self.A[s][DUBGROUP] for s in S])
+
+        if len(self.A) > 1:
+          # Gruppenbildung macht nur Sinn, wenn mindestens 2 Files vorhanden sind ...
+          i = 1
+          x = self.A[0][DUBGROUP]
+          self.A[0][DUBGROUP] = 1        # Achtung die Sequenz verweist anfangs auf mindestens zwei gleiche Elemente. Zaehlung beginnt bei 1 ...
+          for s in S[1:]:
+              y = self.A[s][DUBGROUP]
+              if x==y:
+                  self.A[s][DUBGROUP] = i
+                  continue
+              if x!=y:
+                  x=y
+                  i+=1
+                  self.A[s][DUBGROUP] = i
 
 
-        i = 1
-        x = self.A[0][DUBGROUP]
-        self.A[0][DUBGROUP] = 1        # Achtung die Sequenz verweist anfangs auf mindestens zwei gleiche Elemente. Zaehlung beginnt bei 1 ...
-        for s in S[1:]:
-            y = self.A[s][DUBGROUP]
-            if x==y:
-                self.A[s][DUBGROUP] = i
-                continue
-            if x!=y:
-                x=y
-                i+=1
-                self.A[s][DUBGROUP] = i
 
-
-
-        print('DDUB_Int', [self.A[s][DUBGROUP] for s in S])
+        #print('DDUB_Int', [self.A[s][DUBGROUP] for s in S])
 
         # alle -1 Werrte, d.h. es gibt keine Duplikate, auf 0 setzen...
         for a in self.A:
@@ -385,7 +401,7 @@ class Dao():
 
       self.ALL=[]
       self.ALL.append((ASTERIX ,str(len(self.A)), str(len({a[DIRECTORY]for a in self.A})),
-                                str(len({a[DUBGROUP] for a in self.A  if a[DUBGROUP] != NOCLUSTER}) ) , str(len([a[DUBGROUP] for a in self.A  if a[DUBGROUP] != NOCLUSTER]) )    , str(size_all), 0))
+                                str(len({a[DUBGROUP] for a in self.A  if a[DUBGROUP] != NOCLUSTER}) ) , str(len([a[DUBGROUP] for a in self.A  if a[DUBGROUP] != NOCLUSTER]) -1 )    , str(size_all), 0))
 
 
       self.SU = []
@@ -468,7 +484,6 @@ class Dao():
 
 
 
-#
 
 ##########################################################################
 ################### UI Entwicklung #######################################
@@ -521,7 +536,6 @@ class Tab_All(QWidget):
 
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
-        self.table.setRowCount(100)
         self.table.setHorizontalHeaderLabels(['all', '# file', '# directory','# dubgroup', '# dubfiles', '# size','# waste'])
         self.set_content()
         #self.set_tab_content_all(tab)
@@ -536,6 +550,8 @@ class Tab_All(QWidget):
         CNTDUPFILES  = 4
         CNTSIZE      = 5
         CNTWASTE     = 6
+        # rows are changing ...
+        self.table.setRowCount(len(self.dao.ALL)+RWCNT)
 
         for i,s in enumerate(self.dao.ALL):
           value = QTableWidgetItem(s[0])
@@ -614,7 +630,6 @@ class Tab_SU(QWidget):
 
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
-        self.table.setRowCount(len(self.dao.SU))
         self.table.setHorizontalHeaderLabels([ 'suffix','# file', '# directory', '# size'])
         self.set_content()
 
@@ -623,6 +638,8 @@ class Tab_SU(QWidget):
         CNTFILE = 1
         CNTDIR  = 2
         CNTSIZE = 3
+        # rows are changing ...
+        self.table.setRowCount(len(self.dao.SU)+RWCNT)
 
         for i,s in enumerate(self.dao.SU):
           value = QTableWidgetItem(s[0])
@@ -681,7 +698,6 @@ class Tab_YE(QWidget):
 
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
-        self.table.setRowCount(len(self.dao.YE))
         self.set_content()
 
     def set_content(self):
@@ -689,6 +705,8 @@ class Tab_YE(QWidget):
         CNTFILE = 1
         CNTDIR  = 2
         CNTSIZE = 3
+        # rows are changing ...
+        self.table.setRowCount(len(self.dao.YE)+RWCNT)
 
         self.table.setHorizontalHeaderLabels([ 'year','# file', '# directory', '# size'])
         for i,s in enumerate(self.dao.YE):
@@ -747,7 +765,7 @@ class Tab_YEMO(QWidget):
 
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
-        self.table.setRowCount(len(self.dao.YEMO))
+
         self.table.setHorizontalHeaderLabels([ 'year', 'month','# file', '# directory', '# size'])
         self.set_content()
 
@@ -756,6 +774,8 @@ class Tab_YEMO(QWidget):
         CNTDIR  = 3
         CNTSIZE = 4
 
+        # rows are changing ...
+        self.table.setRowCount(len(self.dao.YEMO)+RWCNT)
 
         for i,s in enumerate(self.dao.YEMO):
           value = QTableWidgetItem(s[0])
@@ -819,7 +839,6 @@ class Tab_SUYE(QWidget):
 
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
-        self.table.setRowCount(len(self.dao.SUYE))
         self.table.setHorizontalHeaderLabels([ 'suffix', 'year','# file', '# directory', '# size'])
         self.set_content()
 
@@ -828,6 +847,9 @@ class Tab_SUYE(QWidget):
         CNTDIR  = 3
         CNTSIZE = 4
 
+
+        # rows are changing ...
+        self.table.setRowCount(len(self.dao.SUYE)+RWCNT)
 
         for i,s in enumerate(self.dao.SUYE):
           value = QTableWidgetItem(s[0])
@@ -893,7 +915,6 @@ class Tab_YESU(QWidget):
 
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
-        self.table.setRowCount(len(self.dao.YESU))
         self.table.setHorizontalHeaderLabels([ 'year', 'suffix','# file', '# directory', '# size'])
         self.set_content()
 
@@ -901,6 +922,10 @@ class Tab_YESU(QWidget):
         CNTFILE = 2
         CNTDIR  = 3
         CNTSIZE = 4
+
+
+        # rows are changing ...
+        self.table.setRowCount(len(self.dao.YESU)+RWCNT)
 
         for i,s in enumerate(self.dao.YESU):
           value = QTableWidgetItem(s[0])
@@ -964,7 +989,6 @@ class Tab_SUYEMO(QWidget):
 
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
-        self.table.setRowCount(len(self.dao.SUYEMO))
         self.table.setHorizontalHeaderLabels([ 'suffix', 'year', 'month','# file', '# directory', '# size'])
         self.set_content()
 
@@ -975,6 +999,9 @@ class Tab_SUYEMO(QWidget):
 
 
         # suffix years month anzeigen
+
+        # rows are changing ...
+        self.table.setRowCount(len(self.dao.SUYEMO)+RWCNT)
 
         for i,s in enumerate(self.dao.SUYEMO):
           value = QTableWidgetItem(s[0])
@@ -1041,7 +1068,6 @@ class Tab_YEMOSU(QWidget):
 
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
-        self.table.setRowCount(len(self.dao.YEMOSU))
         self.table.setHorizontalHeaderLabels([ 'year', 'month','suffix','# file', '# directory', '# size'])
         self.set_content()
 
@@ -1050,6 +1076,8 @@ class Tab_YEMOSU(QWidget):
         CNTDIR  = 4
         CNTSIZE = 5
 
+        # rows are changing ...
+        self.table.setRowCount(len(self.dao.YEMOSU)+RWCNT)
 
         for i,s in enumerate(self.dao.YEMOSU):
           value = QTableWidgetItem(s[0])
@@ -1119,7 +1147,6 @@ class Tab_LE(QWidget):
 
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
-        self.table.setRowCount(len(self.dao.LE))
         self.table.setHorizontalHeaderLabels([ 'level','# file', '# directory', '# size'])
         self.set_content()
 
@@ -1128,6 +1155,8 @@ class Tab_LE(QWidget):
         CNTDIR  = 2
         CNTSIZE = 3
 
+        # rows are changing ...
+        self.table.setRowCount(len(self.dao.LE)+RWCNT)
 
         for i,s in enumerate(self.dao.LE):
           value=QTItem(frmt(str(s[0])),s[0])
@@ -1167,30 +1196,36 @@ class Matrix(QTabWidget):
     def __init__(self, dao, parent=None):
         super(Matrix, self).__init__(parent)
         self.dao = dao
-
-        self.tab_all = Tab_All( dao )
+        self.tab_all = Tab_All( self.dao )
         self.addTab(self.tab_all,'all')
-        self.tab_su = Tab_SU( dao )
+        self.tab_su = Tab_SU( self.dao )
         self.addTab(self.tab_su,'suffix')
-        self.tab_ye = Tab_YE( dao )
+        self.tab_ye = Tab_YE( self.dao )
         self.addTab(self.tab_ye,'year')
-        self.tab_yemo = Tab_YEMO( dao )
+        self.tab_yemo = Tab_YEMO( self.dao )
         self.addTab(self.tab_yemo,'year month')
-        self.tab_suye = Tab_SUYE( dao )
+        self.tab_suye = Tab_SUYE( self.dao )
         self.addTab(self.tab_suye,'suffix year')
-        self.tab_yesu = Tab_YESU( dao )
+        self.tab_yesu = Tab_YESU( self.dao )
         self.addTab(self.tab_yesu,'year suffix')
-        self.tab_suyemo= Tab_SUYEMO( dao )
+        self.tab_suyemo= Tab_SUYEMO( self.dao )
         self.addTab(self.tab_suyemo,'suffix year month')
-        self.tab_yemosu= Tab_YEMOSU( dao )
+        self.tab_yemosu= Tab_YEMOSU( self.dao )
         self.addTab(self.tab_yemosu,'year month suffix')
-        self.tab_le= Tab_LE( dao )
+        self.tab_le= Tab_LE( self.dao )
         self.addTab(self.tab_le,'level')
 
-
-
-
-
+    def display(self):
+        # update the tabs with fresh data ...
+        self.tab_all.set_content()
+        self.tab_su.set_content()
+        self.tab_ye.set_content()
+        self.tab_yemo.set_content()
+        self.tab_suye.set_content()
+        self.tab_yesu.set_content()
+        self.tab_suyemo.set_content()
+        self.tab_yemosu.set_content()
+        self.tab_le.set_content()
 
 class Files(QTableWidget):
     def __init__(self, dao, parent=None):
@@ -1207,6 +1242,9 @@ class Files(QTableWidget):
         self.clearContents()
         #self.hide()
         print('clickBegin', len(self.dao.FIL))
+        # Zeilen Aendern sich ...
+        self.setRowCount(len(self.dao.FIL))
+
         for i, fil in enumerate(self.dao.FIL):
           row=self.dao.A[fil]
           value = QTableWidgetItem(row[SUFFIX])
@@ -1233,7 +1271,7 @@ class Files(QTableWidget):
           value = QTableWidgetItem(row[TIMESTAMP])
           self.setItem(i, 6, value)
 
-          value = QTItem(str(row[LEVEL]), int(row[LEVEL]))
+          value = QTItem(str(row[LEVEL]), row[LEVEL])
           value.setTextAlignment(Qt.AlignRight)
           self.setItem(i, 7, value)
 
@@ -1242,11 +1280,11 @@ class Files(QTableWidget):
               stri = ''
           else:
               stri = str(row[DUBGROUP])
-          value = QTItem(stri, int(row[DUBGROUP]))
+          value = QTItem(stri, row[DUBGROUP])
           value.setTextAlignment(Qt.AlignRight)
           self.setItem(i, 8, value)
 
-          value = QTItem(frmt(row[SIZE]), int(row[SIZE]))
+          value = QTItem(frmt(row[SIZE]), row[SIZE])
           value.setTextAlignment(Qt.AlignRight)
           self.setItem(i, 9, value)
 
@@ -1345,6 +1383,8 @@ class Form(QWidget):
         butB.clicked.connect(self.on_button_clickedB)
         layouttab3.addRow(butB, self.editB)
 
+        self.matrixA.display()
+        self.matrixB.display()
 
 
 
@@ -1363,17 +1403,21 @@ class Form(QWidget):
 #        help       = menu_bar.addMenu("&Help")
 #
 #
-
+        action_Indexing       = QAction('Indexing', self)
         action_DedupSpaceA    = QAction('Dedup A', self)
         action_reduceA        = QAction('Reduce A', self)
         action_DedupSpaceB    = QAction('Dedup B', self)
         action_reduceB        = QAction('Reduce B', self)
         action_trash          = QAction('Calc A - B', self)
         action_advanced       = QAction('Advanced', self)
+        action_Indexing.triggered.connect(self.submitIndexing)
         action_DedupSpaceA.triggered.connect(self.submitDedupSapceA)
         action_DedupSpaceB.triggered.connect(self.submitDedupSapceB)
         action_reduceA.triggered.connect(self.submitReduceA)
         action_reduceB.triggered.connect(self.submitReduceB)
+
+
+
 #       operations.addAction(action_DedupSpaceA)
 #       operations.addAction(action_indexing)
 #       operations.addAction(action_reduceB)
@@ -1382,6 +1426,7 @@ class Form(QWidget):
 
 
         toolbar = QToolBar()
+        toolbar.addAction(action_Indexing)
         toolbar.addAction(action_DedupSpaceA)
         toolbar.addAction(action_reduceA)
         toolbar.addAction(action_DedupSpaceB)
@@ -1404,8 +1449,10 @@ class Form(QWidget):
 
 
 #       self.matrix.itemClicked.connect(self.on_matrixfiles_clicked)
-#        self.files.itemClicked.connect(self.on_file_clicked)
+#       self.files.itemClicked.connect(self.on_file_clicked)
         self.setWindowTitle("Tera-Analyzer")
+
+
 
 
 
@@ -1417,9 +1464,9 @@ class Form(QWidget):
           self.daoConfig.value_set('sourceA',ss)
           # Tabs der Matrix von SpaceA werden neu aufgebaut ...
           self.daoA.path = ss
-          self.daoA.selection()
-          self.daoA.count_files()
-          self.matrixA.tab_all.set_content()
+          #self.daoA.selection()
+          #self.daoA.count_files()
+          #self.matrixA.tab_all.set_content()
 
     def on_button_clickedB(self):
         ss = QFileDialog(self,'Bitte Directory auswaehlen','/home/user').getExistingDirectory(self)
@@ -1428,18 +1475,23 @@ class Form(QWidget):
           self.daoConfig.value_set('sourceB',ss)
           # Tabs der Matrix von SpaceB werden neu aufgebaut ...
           self.daoB.path = ss
-          self.daoB.selection()
-          self.daoB.count_files()
-          self.matrixB.tab_all.set_content()
-
-    ################################################################
 
 
-    ################################################################
+
+    def submitIndexing(self):
+        self.daoA.selection()
+        self.daoA.count_files()
+        self.matrixA.display()
+
+        self.daoB.selection()
+        self.daoB.count_files()
+        self.matrixB.display()
+        print('hallo')
+
     def submitDedupSapceA(self):
             self.daoA.dedub()
             self.daoA.count_files()
-            self.matrixA.tab_all.set_content()
+            #self.matrixA.tab_all.set_content()
 
 
 
@@ -1447,7 +1499,7 @@ class Form(QWidget):
     def submitDedupSapceB(self):
             self.daoB.dedub()
             self.daoB.count_files()
-            self.matrixB.tab_all.set_content()
+            #self.matrixB.tab_all.set_content()
 
     def submitReduceA(self):
         pass
@@ -1473,15 +1525,15 @@ class Form(QWidget):
 
 
 daoA = Dao(DATA_SOURCE_A)
-daoA.selection()
-daoA.count_files()
+#daoA.selection()
+#daoA.count_files()
 #daoA.dedub()
 
 daoB = Dao(DATA_SOURCE_B)
-daoB.selection()
-daoB.count_files()
+#daoB.selection()
+#daoB.count_files()
 daoConfig = DaoConfig()
-Dao.difference(daoA,daoB)
+#Dao.difference(daoA,daoB)
 # A=[3,2,1,7,7]
 # B=[3,2,1]
 # L,M,R = Dao.diff(A,B)
