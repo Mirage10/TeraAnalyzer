@@ -79,7 +79,7 @@ def frmt(numstr):
         ret = numstr[n-1]+ret
         if (k % 3) == 0 and n != 1 :
             ret='.'+ret
-        n=n-1
+        n-=1
     return ret
 
 
@@ -337,8 +337,8 @@ class Dao():
         if len(self.A) > 1:
           # Gruppenbildung macht nur Sinn, wenn mindestens 2 Files vorhanden sind ...
           i = 1
-          x = self.A[0][DUBGROUP]
-          self.A[0][DUBGROUP] = 1        # Achtung die Sequenz verweist anfangs auf mindestens zwei gleiche Elemente. Zaehlung beginnt bei 1 ...
+          x = self.A[S[0]][DUBGROUP]
+          self.A[S[0]][DUBGROUP] = 1        # Achtung die Sequenz verweist anfangs auf mindestens zwei gleiche Elemente. Zaehlung beginnt bei 1 ...
           for s in S[1:]:
               y = self.A[s][DUBGROUP]
               if x==y:
@@ -401,7 +401,7 @@ class Dao():
 
       self.ALL=[]
       self.ALL.append((ASTERIX ,str(len(self.A)), str(len({a[DIRECTORY]for a in self.A})),
-                                str(len({a[DUBGROUP] for a in self.A  if a[DUBGROUP] != NOCLUSTER}) ) , str(len([a[DUBGROUP] for a in self.A  if a[DUBGROUP] != NOCLUSTER]) -1 )    , str(size_all), 0))
+                                str(len({a[DUBGROUP] for a in self.A  if a[DUBGROUP] >= 1} ) ) , str(len([a[DUBGROUP] for a in self.A  if a[DUBGROUP] >= 1]  ) )    , str(size_all), 0))
 
 
       self.SU = []
@@ -1491,7 +1491,7 @@ class Form(QWidget):
     def submitDedupSapceA(self):
             self.daoA.dedub()
             self.daoA.count_files()
-            #self.matrixA.tab_all.set_content()
+            self.matrixA.display()
 
 
 
@@ -1499,7 +1499,7 @@ class Form(QWidget):
     def submitDedupSapceB(self):
             self.daoB.dedub()
             self.daoB.count_files()
-            #self.matrixB.tab_all.set_content()
+            self.matrixB.display()
 
     def submitReduceA(self):
         pass
