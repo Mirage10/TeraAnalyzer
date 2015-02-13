@@ -1,6 +1,7 @@
 
 
-
+# todo suffixes tab: deduplicate statistics
+# todo in files tab rename dedupgroups by filesize
 
 # PyQt5 examples: http://nullege.com/codes/show/src%40p%40y%40pyqt5-HEAD%40examples%40sql%40cachedtable.py/46/PyQt5.QtWidgets.QTableView/python
 from datetime import date
@@ -1404,21 +1405,19 @@ class Form(QWidget):
 #
 #
         action_Indexing       = QAction('Indexing', self)
-        action_DedupSpaceA    = QAction('Dedup A', self)
-        action_reduceA        = QAction('Reduce A', self)
-        action_DedupSpaceB    = QAction('Dedup B', self)
-        action_reduceB        = QAction('Reduce B', self)
-        action_trash          = QAction('Calc A - B', self)
+        action_DedupSpace     = QAction('Dedup', self)
+        action_reduce         = QAction('Reduce', self)
+        action_trash          = QAction('Calculate', self)
         action_advanced       = QAction('Advanced', self)
         action_Indexing.triggered.connect(self.submitIndexing)
-        action_DedupSpaceA.triggered.connect(self.submitDedupSapceA)
-        action_DedupSpaceB.triggered.connect(self.submitDedupSapceB)
-        action_reduceA.triggered.connect(self.submitReduceA)
-        action_reduceB.triggered.connect(self.submitReduceB)
+        action_DedupSpace.triggered.connect(self.submitDedupSapce)
+
+        action_reduce.triggered.connect(self.submitReduce)
 
 
 
-#       operations.addAction(action_DedupSpaceA)
+
+#       operations.addAction(action_DedupSpace)
 #       operations.addAction(action_indexing)
 #       operations.addAction(action_reduceB)
 #       operations.addAction(action_trash)
@@ -1427,10 +1426,8 @@ class Form(QWidget):
 
         toolbar = QToolBar()
         toolbar.addAction(action_Indexing)
-        toolbar.addAction(action_DedupSpaceA)
-        toolbar.addAction(action_reduceA)
-        toolbar.addAction(action_DedupSpaceB)
-        toolbar.addAction(action_reduceB)
+        toolbar.addAction(action_DedupSpace)
+        toolbar.addAction(action_reduce)
         toolbar.addAction(action_trash)
         toolbar.addAction(action_advanced)
 
@@ -1488,20 +1485,21 @@ class Form(QWidget):
         self.matrixB.display()
         print('hallo')
 
-    def submitDedupSapceA(self):
+    def submitDedupSapce(self):
+            print('Begin Dedup A ')
             self.daoA.dedub()
             self.daoA.count_files()
             self.matrixA.display()
-
-
-
-
-    def submitDedupSapceB(self):
+            print('End Dedup A')
+            print('Begin Dedup B')
             self.daoB.dedub()
             self.daoB.count_files()
             self.matrixB.display()
+            print('End Dedup B')
 
-    def submitReduceA(self):
+
+
+    def submitReduce(self):
         pass
 
     def submitReduceB(self):
