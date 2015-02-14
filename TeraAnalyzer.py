@@ -537,7 +537,7 @@ class Tab_All(QWidget):
 
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
-        self.table.setHorizontalHeaderLabels(['all', '# file', '# directory','# dubgroup', '# dubfiles', '# size','# waste'])
+        self.table.setHorizontalHeaderLabels(['all', '# file', '# directory','# dubgroup', '# dubfiles', 'size','waste'])
         self.set_content()
         #self.set_tab_content_all(tab)
         #tab.xxx=self.set_tab_content_all
@@ -631,7 +631,7 @@ class Tab_SU(QWidget):
 
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
-        self.table.setHorizontalHeaderLabels([ 'suffix','# file', '# directory', '# size'])
+        self.table.setHorizontalHeaderLabels([ 'suffix','# file', '# directory', 'size'])
         self.set_content()
 
     def set_content(self):
@@ -709,7 +709,7 @@ class Tab_YE(QWidget):
         # rows are changing ...
         self.table.setRowCount(len(self.dao.YE)+RWCNT)
 
-        self.table.setHorizontalHeaderLabels([ 'year','# file', '# directory', '# size'])
+        self.table.setHorizontalHeaderLabels([ 'year','# file', '# directory', 'size'])
         for i,s in enumerate(self.dao.YE):
           value = QTableWidgetItem(s[0])
           # zelle hell violett ...
@@ -767,7 +767,7 @@ class Tab_YEMO(QWidget):
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
 
-        self.table.setHorizontalHeaderLabels([ 'year', 'month','# file', '# directory', '# size'])
+        self.table.setHorizontalHeaderLabels([ 'year', 'month','# file', '# directory', 'size'])
         self.set_content()
 
     def set_content(self):
@@ -840,7 +840,7 @@ class Tab_SUYE(QWidget):
 
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
-        self.table.setHorizontalHeaderLabels([ 'suffix', 'year','# file', '# directory', '# size'])
+        self.table.setHorizontalHeaderLabels([ 'suffix', 'year','# file', '# directory', 'size'])
         self.set_content()
 
     def set_content(self):
@@ -990,7 +990,7 @@ class Tab_SUYEMO(QWidget):
 
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
-        self.table.setHorizontalHeaderLabels([ 'suffix', 'year', 'month','# file', '# directory', '# size'])
+        self.table.setHorizontalHeaderLabels([ 'suffix', 'year', 'month','# file', '# directory', 'size'])
         self.set_content()
 
     def set_content(self):
@@ -1069,7 +1069,7 @@ class Tab_YEMOSU(QWidget):
 
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
-        self.table.setHorizontalHeaderLabels([ 'year', 'month','suffix','# file', '# directory', '# size'])
+        self.table.setHorizontalHeaderLabels([ 'year', 'month','suffix','# file', '# directory', 'size'])
         self.set_content()
 
     def set_content(self):
@@ -1148,7 +1148,7 @@ class Tab_LE(QWidget):
 
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
-        self.table.setHorizontalHeaderLabels([ 'level','# file', '# directory', '# size'])
+        self.table.setHorizontalHeaderLabels([ 'level','# file', '# directory', 'size'])
         self.set_content()
 
     def set_content(self):
