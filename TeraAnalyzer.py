@@ -6,7 +6,7 @@
 # PyQt5 examples: http://nullege.com/codes/show/src%40p%40y%40pyqt5-HEAD%40examples%40sql%40cachedtable.py/46/PyQt5.QtWidgets.QTableView/python
 from datetime import date
 import itertools as it
-import collections as co
+#import collections as co
 import os
 import sys
 
@@ -35,6 +35,7 @@ SIZE        = 8
 LEVEL       = 9
 HASH        = 10
 DUBGROUP    = 11
+DUPLICATE   = 12
 
 
 ASTERIX     = '*'
@@ -339,15 +340,18 @@ class Dao():
           # Gruppenbildung macht nur Sinn, wenn mindestens 2 Files vorhanden sind ...
           i = 1
           x = self.A[S[0]][DUBGROUP]
+          nowaste = 0
           self.A[S[0]][DUBGROUP] = 1        # Achtung die Sequenz verweist anfangs auf mindestens zwei gleiche Elemente. Zaehlung beginnt bei 1 ...
           for s in S[1:]:
               y = self.A[s][DUBGROUP]
               if x==y:
                   self.A[s][DUBGROUP] = i
+                  self.A[s][DUPLICATE] = 1   # wenn kein Gruppenstufenwechsel, dann liegt waste vor. achtung zu Beginn einer Gruppenstufe ist waste =0 (Originaleintrag)
                   continue
               if x!=y:
                   x=y
                   i+=1
+
                   self.A[s][DUBGROUP] = i
 
 
@@ -355,8 +359,11 @@ class Dao():
         #print('DDUB_Int', [self.A[s][DUBGROUP] for s in S])
 
         # alle -1 Werrte, d.h. es gibt keine Duplikate, auf 0 setzen...
+
         for a in self.A:
             if a[DUBGROUP] == NOCLUSTER: a[DUBGROUP] = 0
+
+
 
         #return R
 
@@ -384,7 +391,8 @@ class Dao():
                            os.stat(a).st_size,
                            a.count('/')-1,  #level
                            0,               #hash
-                           NOCLUSTER ] )          #duplicate cluster, default = -1
+                           NOCLUSTER,       #duplicate cluster, default = -1
+                           0] )             #duplicate   (as waste)  originaleintrag bleibt erhalten und ist ein duplicate
 
 
       print('Ende Selektion')
@@ -397,12 +405,15 @@ class Dao():
 
       # Summe der Dateigroessen ermitteln ...
       size_all=0
+      waste = 0
       for a in self.A:
         size_all+=int(a[SIZE])
+        if a[DUPLICATE]: waste+=int(a[SIZE])
+
 
       self.ALL=[]
       self.ALL.append((ASTERIX ,str(len(self.A)), str(len({a[DIRECTORY]for a in self.A})),
-                                str(len({a[DUBGROUP] for a in self.A  if a[DUBGROUP] >= 1} ) ) , str(len([a[DUBGROUP] for a in self.A  if a[DUBGROUP] >= 1]  ) )    , str(size_all), 0))
+                                str(len({a[DUBGROUP] for a in self.A  if a[DUBGROUP] >= 1} ) ) , str(len([a[DUBGROUP] for a in self.A  if a[DUBGROUP] >= 1]  ) )    , str(size_all), waste))
 
 
       self.SU = []
@@ -533,11 +544,9 @@ class Tab_All(QWidget):
         self.files_all = Files(dao)
         split.addWidget( self.files_all)
 
-
-
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
-        self.table.setHorizontalHeaderLabels(['all', '# file', '# directory','# dubgroup', '# dubfiles', 'size','waste'])
+        self.table.setHorizontalHeaderLabels(['all', '# file', '# directory', '# dubfiles', '# dubgroup', 'size','waste'])
         self.set_content()
         #self.set_tab_content_all(tab)
         #tab.xxx=self.set_tab_content_all
@@ -569,16 +578,20 @@ class Tab_All(QWidget):
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(0, 2, value)
-          value = QTItem(str(s[CNTDUPGROUP]),s[CNTDUPGROUP])
-          value.setData(DATCOMP,i) ##########################
-          # zelle pastell rot ...
-          value.setBackground(BRUSH_TARGET)
-          self.table.setItem(0, 3, value)
+
           value = QTItem(str(s[CNTDUPFILES]),s[CNTDUPFILES])
           value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
+          self.table.setItem(0, 3, value)
+
+
+          value = QTItem(str(s[CNTDUPGROUP]),s[CNTDUPGROUP])
+          value.setData(DATCOMP,i) ##########################
+          # zelle pastell rot ...
+          value.setBackground(BRUSH_TARGET)
           self.table.setItem(0, 4, value)
+
 
           value = QTItem(frmt(s[CNTSIZE]),s[CNTSIZE]  )
           value.setData(DATCOMP,i) ##########################
