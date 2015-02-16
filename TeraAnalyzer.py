@@ -2,6 +2,7 @@
 
 # todo suffixes tab: deduplicate statistics
 # todo in files tab rename dedupgroups by filesize
+# todo after reducing erneute Dedup -> dump
 
 # PyQt5 examples: http://nullege.com/codes/show/src%40p%40y%40pyqt5-HEAD%40examples%40sql%40cachedtable.py/46/PyQt5.QtWidgets.QTableView/python
 from datetime import date
@@ -35,7 +36,7 @@ SIZE        = 8
 LEVEL       = 9
 HASH        = 10
 DUBGROUP    = 11
-DUPLICATE   = 12
+WASTE       = 12
 
 
 ASTERIX     = '*'
@@ -214,6 +215,7 @@ class Dao():
         self.SUYEMO=[]
         self.LE=[]
         self.SUYE=[]
+        self.Expand=[]
 
         self.path = ''
         if datasource == DATA_SOURCE_A or datasource == DATA_SOURCE_B:
@@ -346,7 +348,7 @@ class Dao():
               y = self.A[s][DUBGROUP]
               if x==y:
                   self.A[s][DUBGROUP] = i
-                  self.A[s][DUPLICATE] = 1   # wenn kein Gruppenstufenwechsel, dann liegt waste vor. achtung zu Beginn einer Gruppenstufe ist waste =0 (Originaleintrag)
+                  self.A[s][WASTE] = 1   # wenn kein Gruppenstufenwechsel, dann liegt waste vor. achtung zu Beginn einer Gruppenstufe ist waste =0 (Originaleintrag)
                   continue
               if x!=y:
                   x=y
@@ -399,7 +401,19 @@ class Dao():
 
 
 
-    def count_files(self):
+    def count_files(self, reduc=False):
+
+      if reduc:
+          # redundante Eintraege zwischenspeichern ...
+          self.Expand = [a for a in self.A if a[WASTE]]
+          # Redundanzbefreiung ...
+          self.A = [a for a in self.A if not a[WASTE]]
+      else:
+          if len(self.Expand):
+              self.A.extend(self.Expand)
+              self.Expand=[]
+
+
       print('Beginn zaehlen')
       # Achtung: hier wird A sortiert; Die Sortierreihenfolge von A darf wegen Referenzen auf derselbigen nicht veraendert werden ...
 
@@ -408,7 +422,7 @@ class Dao():
       waste = 0
       for a in self.A:
         size_all+=int(a[SIZE])
-        if a[DUPLICATE]: waste+=int(a[SIZE])
+        if a[WASTE]: waste+=int(a[SIZE])
 
 
       self.ALL=[]
@@ -472,6 +486,13 @@ class Dao():
 
       print('Ende Zählen')
       print('Das Ergebnis')
+
+
+
+
+
+
+
 
     def filter_all(self):
         self.FIL=[ i for i, a in enumerate (self.A)]
@@ -1420,13 +1441,14 @@ class Form(QWidget):
         action_Indexing       = QAction('Indexing', self)
         action_DedupSpace     = QAction('Dedup', self)
         action_reduce         = QAction('Reduce', self)
+        action_expand         = QAction('Expand', self)
         action_trash          = QAction('Calculate', self)
         action_advanced       = QAction('Advanced', self)
         action_Indexing.triggered.connect(self.submitIndexing)
         action_DedupSpace.triggered.connect(self.submitDedupSapce)
 
         action_reduce.triggered.connect(self.submitReduce)
-
+        action_expand.triggered.connect(self.submitExpand)
 
 
 
@@ -1441,6 +1463,7 @@ class Form(QWidget):
         toolbar.addAction(action_Indexing)
         toolbar.addAction(action_DedupSpace)
         toolbar.addAction(action_reduce)
+        toolbar.addAction(action_expand)
         toolbar.addAction(action_trash)
         toolbar.addAction(action_advanced)
 
@@ -1513,10 +1536,25 @@ class Form(QWidget):
 
 
     def submitReduce(self):
-        pass
 
-    def submitReduceB(self):
-        pass
+            print('Begin Reduce A ')
+            self.daoA.count_files(True)
+            self.matrixA.display()
+            print('End Reduce A')
+            print('Begin Reduce B')
+            self.daoB.count_files(True)
+            self.matrixB.display()
+            print('End Reduce B')
+
+    def submitExpand(self):
+            print('Begin Expand A ')
+            self.daoA.count_files(False)
+            self.matrixA.display()
+            print('End Expand A')
+            print('Begin Expand B')
+            self.daoB.count_files(False)
+            self.matrixB.display()
+            print('End Expand B')
 
 
 
