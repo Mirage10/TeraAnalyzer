@@ -3,6 +3,7 @@
 # todo suffixes tab: deduplicate statistics
 # todo in files tab rename dedupgroups by filesize
 # todo after reducing erneute Dedup -> dump
+# todo hash button in toolbar
 
 # PyQt5 examples: http://nullege.com/codes/show/src%40p%40y%40pyqt5-HEAD%40examples%40sql%40cachedtable.py/46/PyQt5.QtWidgets.QTableView/python
 from datetime import date
@@ -275,8 +276,14 @@ class Dao():
                 # Files mit Länge 0 bekommen 0 als Hashwert ...
                 self.A[r][HASH] = 0
                 continue
+            if self.A[r][SIZE] > 4000000:
+                # Achtung Heuristik: hier wird angenommen, dass bei grossen Files die Filelaenge als Hash-Wert fungieren kan; dist ist nicht
+                # immer richtig, aber mit hoher Wahrscheinlichkeit. Womoeglich ist diese Option in der Configuration anzubieten ...
+                self.A[r][HASH] = self.A[r][SIZE]
+                continue
 
             try:
+
                 # Fehlerbehandlung erforderlich bei fehlender Berechtigung ...
                 with open(self.A[r][FILE],'rb') as f:
                     h = hash(f.read())
@@ -408,6 +415,7 @@ class Dao():
           self.Expand = [a for a in self.A if a[WASTE]]
           # Redundanzbefreiung ...
           self.A = [a for a in self.A if not a[WASTE]]
+
       else:
           if len(self.Expand):
               self.A.extend(self.Expand)
