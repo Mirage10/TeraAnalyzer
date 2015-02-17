@@ -106,8 +106,28 @@ import itertools
 class Dao():
 
 
-    def diff(A,B):
-    # dient nur als Prototyp ...
+   def __init__(self, datasource=None):
+        self.A=[]
+        self.FIL=[]
+        self.ALL=[]
+        self.SU=[]
+        self.YE= []
+        self.YEMO=[]
+        self.YESU=[]
+        self.YEMOSU=[]
+        self.SUYEMO=[]
+        self.LE=[]
+        self.SUYE=[]
+        self.Expand=[]
+
+        self.path = ''
+        if datasource == DATA_SOURCE_A or datasource == DATA_SOURCE_B:
+            conf = DaoConfig()
+            self.path = conf.value_get(datasource,'Please enter a Directory')
+            print('ein Path: ',self.path)
+
+   def diff(A,B):
+        # dient nur als Prototyp ...
         L =[]
         M =[]
         R =[]
@@ -139,28 +159,11 @@ class Dao():
                 L.append(a)
                 i+=1
                 continue
-        return L, M , R
+        return L, M, R
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    def difference(daoa, daob):
+   def difference(daoa, daob):
         # dient nur als Prototyp ...
         daol=Dao()
         daom=Dao()
@@ -204,41 +207,26 @@ class Dao():
 
 
 
-    def __init__(self, datasource=None):
-        self.A=[]
-        self.FIL=[]
-        self.ALL=[]
-        self.SU=[]
-        self.YE= []
-        self.YEMO=[]
-        self.YESU=[]
-        self.YEMOSU=[]
-        self.SUYEMO=[]
-        self.LE=[]
-        self.SUYE=[]
-        self.Expand=[]
 
-        self.path = ''
-        if datasource == DATA_SOURCE_A or datasource == DATA_SOURCE_B:
-            conf = DaoConfig()
-            self.path = conf.value_get(datasource,'Please enter a Directory')
-            print('ein Path: ',self.path)
 
-    def getkeylen(self,item):
+   def getkeylen(self,item):
         s=self.A[item][SIZE]
         return s
 
-    def getkeydubgroup(self,item):
+
+
+   def getkeydubgroup(self,item):
         s=self.A[item][DUBGROUP]
         return s
 
 
-    def getkeyhash(self,item):
+   def getkeyhash(self,item):
         s=self.A[item][HASH]
         return s
 
 
-    def dedub(self):
+
+   def dedub(self):
 
         # Achtung: Auf A keine Sortierung machen. Alle Pointer erwarten die anfangs gemachte Reihenfolge ...
         # Achtung Nebeneffekt: Dedub setzt die dedubgroup in A ...
@@ -379,7 +367,7 @@ class Dao():
 
 
 
-    def selection(self):
+   def selection(self):
       print('Beginn Selektion')
       self.A=[]
       for root, Dir, File in os.walk(self.path):
@@ -408,7 +396,7 @@ class Dao():
 
 
 
-    def count_files(self, reduc=False):
+   def count_files(self, reduc=False):
 
       if reduc:
           # redundante Eintraege zwischenspeichern ...
@@ -502,24 +490,24 @@ class Dao():
 
 
 
-    def filter_all(self):
+   def filter_all(self):
         self.FIL=[ i for i, a in enumerate (self.A)]
 
-    def filter_suffix(self,suffix):
+   def filter_suffix(self,suffix):
         self.FIL=[ i for i, a in enumerate(self.A) if a[SUFFIX] == suffix]
-    def filter_year(self,year):
+   def filter_year(self,year):
         self.FIL=[ i for i, a in enumerate(self.A) if a[YEAR] == year]
-    def filter_year_month(self,year,month):
+   def filter_year_month(self,year,month):
         self.FIL=[ i for i, a in enumerate(self.A) if a[YEAR] == year and a[MONTH] == month  ]
-    def filter_suffix_year(self,suffix,year):
+   def filter_suffix_year(self,suffix,year):
         self.FIL=[ i for i, a in enumerate(self.A) if a[SUFFIX] == suffix and a[YEAR] == year  ]
-    def filter_year_suffix(self,year, suffix):
+   def filter_year_suffix(self,year, suffix):
         self.FIL=[ i for i, a in enumerate(self.A) if a[YEAR] == year and a[SUFFIX] == suffix  ]
-    def filter_suffix_year_month(self, suffix, year, month):
+   def filter_suffix_year_month(self, suffix, year, month):
         self.FIL=[ i for i, a in enumerate(self.A) if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month  ]
-    def filter_year_month_suffix(self, year, month, suffix):
+   def filter_year_month_suffix(self, year, month, suffix):
         self.FIL=[ i for i, a in enumerate(self.A) if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix  ]
-    def filter_level(self,level):
+   def filter_level(self,level):
         self.FIL=[ i for i, a in enumerate(self.A) if a[LEVEL] == level]
 
 
