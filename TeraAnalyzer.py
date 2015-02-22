@@ -1,6 +1,6 @@
 
 
-# todo suffixes tab: deduplicate statistics
+
 # todo in files tab rename dedupgroups by filesize
 # todo after reducing erneute Dedup -> dump
 # todo hash button in toolbar
@@ -431,13 +431,19 @@ class Dao():
 
       self.SU = []
       self.A.sort(key=getkeysuffix)
+
       for k, F in it.groupby(self.A, getkeysuffix):
          F=list(F)
+         wastesuff = 0
+         for f in F:
+             if f[WASTE]: wastesuff+=int(f[SIZE])
+
+
          self.SU.append((k , len(F), len({a[DIRECTORY] for a in F }),
                          len({a[DUBGROUP] for a in self.A  if a[DUBGROUP] >= 1 and a[SUFFIX] == k }  ),
                          len([a[DUBGROUP] for a in self.A  if a[DUBGROUP] >= 1 and a[SUFFIX] == k ]  ),
                          sum([int(a[SIZE]) for a in F ]),
-                         sum([a[SIZE] for a in self.A  if a[DUBGROUP] >= 1 and a[SUFFIX] == k ]  )
+                         wastesuff
                          ))
 
 
