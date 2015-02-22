@@ -240,7 +240,7 @@ class Dao():
 
         flag=False
 
-
+        # Gruppenstufenermittlung: Elemente mit die zu einer gleichbleibenden Seqzenz gehoeren in R aufnehmen ...
         for i, b in enumerate(self.B):
             if i==0: continue
             x=self.A[self.B[i-1]][SIZE]
@@ -258,6 +258,9 @@ class Dao():
         # falls Gleichheit bis ans Ende besteht, den letzten Eintrag noch mitnehmen
             R.append(self.B[-1])
 
+        # In R stehen Elemente mit gleichen Sequenzen;schon zu Beginn gibt es mindestens 2 gleiche aufeinanderfolgende Elemente ...
+
+
         # hash werte fuer genau die Elemente in R berechnen. Hash werte werden auf Ebene von A gespeichert...
         for r in R:
             if self.A[r][SIZE]==0:
@@ -265,7 +268,7 @@ class Dao():
                 self.A[r][HASH] = 0
                 continue
             if self.A[r][SIZE] > 4000000:
-                # Achtung Heuristik: hier wird angenommen, dass bei grossen Files die Filelaenge als Hash-Wert fungieren kan; dist ist nicht
+                # Achtung Heuristik: hier wird angenommen, dass bei grossen Files die Filelaenge als Hash-Wert fungieren kan; dies ist nicht
                 # immer richtig, aber mit hoher Wahrscheinlichkeit. Womoeglich ist diese Option in der Configuration anzubieten ...
                 self.A[r][HASH] = self.A[r][SIZE]
                 continue
@@ -329,7 +332,7 @@ class Dao():
 
 
 
-        R= [self.A[s] for s in S]
+        #R= [self.A[s] for s in S]
 
         #print('DDUB', [self.A[s][DUBGROUP] for s in S])
 
@@ -422,15 +425,20 @@ class Dao():
 
 
       self.ALL=[]
-      self.ALL.append((ASTERIX ,str(len(self.A)), str(len({a[DIRECTORY]for a in self.A})),
-                                str(len({a[DUBGROUP] for a in self.A  if a[DUBGROUP] >= 1} ) ) , str(len([a[DUBGROUP] for a in self.A  if a[DUBGROUP] >= 1]  ) )    , str(size_all), waste))
+      self.ALL.append((ASTERIX ,len(self.A), len({a[DIRECTORY]for a in self.A}),
+                                len({a[DUBGROUP] for a in self.A  if a[DUBGROUP] >= 1}  ) , len([a[DUBGROUP] for a in self.A  if a[DUBGROUP] >= 1]   )    , size_all, waste))
 
 
       self.SU = []
       self.A.sort(key=getkeysuffix)
       for k, F in it.groupby(self.A, getkeysuffix):
          F=list(F)
-         self.SU.append((k , len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+         self.SU.append((k , len(F), len({a[DIRECTORY] for a in F }),
+                         len({a[DUBGROUP] for a in self.A  if a[DUBGROUP] >= 1 and a[SUFFIX] == k }  ),
+                         len([a[DUBGROUP] for a in self.A  if a[DUBGROUP] >= 1 and a[SUFFIX] == k ]  ),
+                         sum([int(a[SIZE]) for a in F ]),
+                         sum([a[SIZE] for a in self.A  if a[DUBGROUP] >= 1 and a[SUFFIX] == k ]  )
+                         ))
 
 
 
@@ -661,14 +669,17 @@ class Tab_SU(QWidget):
 
         self.table.setSortingEnabled(True)
         self.table.setColumnCount(30)
-        self.table.setHorizontalHeaderLabels([ 'suffix','# file', '# directory', 'size'])
+        self.table.setHorizontalHeaderLabels([ 'suffix','# file', '# directory',  '# dubfiles', '# dubgroup', 'size','waste'])
         self.set_content()
 
     def set_content(self):
         # suffixe anzeigen ...
-        CNTFILE = 1
-        CNTDIR  = 2
-        CNTSIZE = 3
+        CNTFILE      = 1
+        CNTDIR       = 2
+        CNTDUPGROUP  = 3
+        CNTDUPFILES  = 4
+        CNTSIZE      = 5
+        CNTWASTE     = 6
         # rows are changing ...
         self.table.setRowCount(len(self.dao.SU)+RWCNT)
 
@@ -688,12 +699,36 @@ class Tab_SU(QWidget):
 
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 2, value)
+
+          value = QTItem(str(s[CNTDUPFILES]),s[CNTDUPFILES])
+          value.setData(DATCOMP,i) ##########################
+          # zelle pastell rot ...
+          value.setBackground(BRUSH_TARGET)
+          self.table.setItem(i, 3, value)
+
+          value = QTItem(str(s[CNTDUPGROUP]),s[CNTDUPGROUP])
+          value.setData(DATCOMP,i) ##########################
+          # zelle pastell rot ...
+          value.setBackground(BRUSH_TARGET)
+          self.table.setItem(i, 4, value)
+
+
           value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
           value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
-          self.table.setItem(i, 3, value)
+          self.table.setItem(i, 5, value)
+
+          value = QTItem(frmt(s[CNTWASTE]),s[CNTWASTE]  )
+          value.setData(DATCOMP,i) ##########################
+          # zelle pastell rot ...
+          value.setBackground(BRUSH_SIZE)
+          value.setTextAlignment(Qt.AlignRight)
+          self.table.setItem(i, 6, value)
+
+
+
         #table.setSortingEnabled(True)
 
 
