@@ -436,12 +436,12 @@ class Dao():
          F=list(F)
          wastesuff = 0
          for f in F:
-             if f[WASTE]: wastesuff+=int(f[SIZE])
+           if f[WASTE]: wastesuff+=int(f[SIZE])
 
 
          self.SU.append((k , len(F), len({a[DIRECTORY] for a in F }),
-                         len({a[DUBGROUP] for a in self.A  if a[DUBGROUP] >= 1 and a[SUFFIX] == k }  ),
-                         len([a[DUBGROUP] for a in self.A  if a[DUBGROUP] >= 1 and a[SUFFIX] == k ]  ),
+                         len({a[DUBGROUP] for a in F  if a[DUBGROUP] >= 1 and a[SUFFIX] == k }  ),
+                         len([a[DUBGROUP] for a in F  if a[DUBGROUP] >= 1 and a[SUFFIX] == k ]  ),
                          sum([int(a[SIZE]) for a in F ]),
                          wastesuff
                          ))
