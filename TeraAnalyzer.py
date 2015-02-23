@@ -315,7 +315,6 @@ class Dao():
 
 
         # Achtung: hier F aufbauen, die aus Unikaten besteht
-
         S.sort(key=self.getkeylen)
 
 
