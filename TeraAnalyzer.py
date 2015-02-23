@@ -232,8 +232,8 @@ class Dao():
         # Achtung Nebeneffekt: Dedub setzt die dedubgroup in A ...
 
 
-        self.B=[i for i, a in enumerate(self.A)]
-        self.B.sort(key=self.getkeylen)
+        B=[i for i, a in enumerate(self.A)]
+        B.sort(key=self.getkeylen)
         # in R sollen die pointer auf A stehen, die die gleichen Längen haben...
         R=[]
 
@@ -241,24 +241,24 @@ class Dao():
         flag=False
 
         # Gruppenstufenermittlung: Elemente mit die zu einer gleichbleibenden Seqzenz gehoeren in R aufnehmen ...
-        for i, b in enumerate(self.B):
+        for i, b in enumerate(B):
             if i==0: continue
-            x=self.A[self.B[i-1]][SIZE]
+            x=self.A[B[i-1]][SIZE]
             y=self.A[b][SIZE]
             if x==y:
-              R.append(self.B[i-1])
+              R.append(B[i-1])
               flag=True
               continue
 
             if flag:
-               R.append(self.B[i-1])
+               R.append(B[i-1])
                flag=False
 
         if flag:
         # falls Gleichheit bis ans Ende besteht, den letzten Eintrag noch mitnehmen
-            R.append(self.B[-1])
+            R.append(B[-1])
 
-        # In R stehen Elemente mit gleichen Sequenzen;schon zu Beginn gibt es mindestens 2 gleiche aufeinanderfolgende Elemente ...
+        # In R stehen Elemente mit gleichen Sequenzen; schon zu Beginn gibt es mindestens 2 gleiche aufeinanderfolgende Elemente ...
 
 
         # hash werte fuer genau die Elemente in R berechnen. Hash werte werden auf Ebene von A gespeichert...
@@ -316,15 +316,12 @@ class Dao():
 
         # Achtung: hier F aufbauen, die aus Unikaten besteht
 
-        #print('ERGE:  ',[self.A[b][SIZE] for b in self.B])
-
         S.sort(key=self.getkeylen)
-        #print('RR= ',[self.A[s][SIZE] for s in S])
+
 
         # duplicate group in A setzen ...
         for s in S: self.A[s][DUBGROUP] = self.A[s][HASH]
-        #print('HH= ',[self.A[s][HASH] for s in S])
-        #print(S)
+
 
 
         # ab hier sollen die dubroups statt hash werte normale integer sein ...
@@ -332,15 +329,13 @@ class Dao():
 
 
 
-        #R= [self.A[s] for s in S]
+        if len(S)==0: return     # tritt ein beispielsweise nach Reduce+Dedup ...
 
-        #print('DDUB', [self.A[s][DUBGROUP] for s in S])
 
         if len(self.A) > 1:
           # Gruppenbildung macht nur Sinn, wenn mindestens 2 Files vorhanden sind ...
           i = 1
           x = self.A[S[0]][DUBGROUP]
-          nowaste = 0
           self.A[S[0]][DUBGROUP] = 1        # Achtung die Sequenz verweist anfangs auf mindestens zwei gleiche Elemente. Zaehlung beginnt bei 1 ...
           for s in S[1:]:
               y = self.A[s][DUBGROUP]
@@ -355,8 +350,6 @@ class Dao():
                   self.A[s][DUBGROUP] = i
 
 
-
-        #print('DDUB_Int', [self.A[s][DUBGROUP] for s in S])
 
         # alle -1 Werrte, d.h. es gibt keine Duplikate, auf 0 setzen...
 
