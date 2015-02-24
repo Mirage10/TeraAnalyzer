@@ -1569,7 +1569,7 @@ class Form(QWidget):
         self.matrixAminusB = Matrix(daol)
         split.addWidget(self.matrixAminusB)
 
-        self.tabwid.addTab(tab_spaceAminusB,'Space A - B')
+        self.tabwid.insertTab(2,tab_spaceAminusB,'Space A - B')
 
 
         tab_spaceAintersectB = QWidget()
@@ -1583,7 +1583,7 @@ class Form(QWidget):
         self.matrixAintersectB = Matrix(daom)
         split.addWidget(self.matrixAintersectB)
 
-        self.tabwid.addTab(tab_spaceAintersectB,'Space A /\ B')
+        self.tabwid.insertTab(3,tab_spaceAintersectB,'Space A /\ B')
 
 
         tab_spaceBminusA = QWidget()
@@ -1597,10 +1597,11 @@ class Form(QWidget):
         self.matrixBminusA = Matrix(daor)
         split.addWidget(self.matrixBminusA)
 
-        self.tabwid.addTab(tab_spaceBminusA,'Space B - A')
+        self.tabwid.insertTab(4,tab_spaceBminusA,'Space B - A')
 
 
 
+        tab_spaceBminusA.move(2,6)
 
 
 
@@ -1679,6 +1680,9 @@ class Form(QWidget):
             daol, daom, daor = self.daoA.difference(self.daoA, self.daoB)
 
             daol.count_files(False)
+            daom.count_files(False)
+            daor.count_files(False)
+
             self.add_CalculationTabs(daol, daom, daor)
             self.matrixAminusB.display()
             self.matrixAintersectB.display()
