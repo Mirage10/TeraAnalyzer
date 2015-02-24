@@ -132,9 +132,11 @@ class Dao():
 
    def difference(self, daoa, daob):
         # dient nur als Prototyp ...
-        daol=Dao()
-        daom=Dao()
-        daor=Dao()
+        daol       =Dao()
+        daom       =Dao()
+        daor       =Dao()
+        daoab      =Dao()
+        daodyaddiff=Dao()
         A = daoa.A
         B = daob.A
         A.sort(key=getkeysize)
@@ -241,7 +243,18 @@ class Dao():
         for m in M:
             print('Msize: ', m[SIZE])
         print('M: ', M)
-        return daol, daom, daor
+
+        # die Vereinigungsmenge aus A und B berechnen
+        daoab.A=L
+        daoab.A.extend(M)
+        daoab.A.extend(R)
+
+        # die dyadische Differenz aus A und B berechnen ...  (dyadische Differenz = Vereinigungsmenge von A und B minus Schnittmenge)
+        daodyaddiff.A=L
+        daodyaddiff.A.extend(R)
+
+
+        return daol, daom, daor, daoab, daodyaddiff
 
 
 
@@ -1555,7 +1568,7 @@ class Form(QWidget):
         self.setWindowTitle("Tera-Analyzer")
 
 
-    def add_CalculationTabs(self,daol,daom,daor):
+    def add_CalculationTabs(self,daol,daom,daor,daoab,daodyaddiff):
 
         # assemble tab space A ...
         tab_spaceAminusB = QWidget()
@@ -1599,9 +1612,34 @@ class Form(QWidget):
 
         self.tabwid.insertTab(4,tab_spaceBminusA,'Space B - A')
 
+        tab_spaceAplusB = QWidget()
+        layouttab = QVBoxLayout()
+        tab_spaceAplusB.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+        self.matrixAplusB = Matrix(daoab)
+        split.addWidget(self.matrixAplusB)
+
+        self.tabwid.insertTab(5,tab_spaceAplusB,'Space A + B')
+
+        tab_spaceDyadDiff = QWidget()
+        layouttab = QVBoxLayout()
+        tab_spaceDyadDiff.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+        self.matrixDyadDiff = Matrix(daodyaddiff)
+        split.addWidget(self.matrixDyadDiff)
+
+        self.tabwid.insertTab(6,tab_spaceDyadDiff,'Space A - B \/ B - A')
 
 
-        tab_spaceBminusA.move(2,6)
+
 
 
 
@@ -1677,16 +1715,20 @@ class Form(QWidget):
 
     def submitAdvanced(self):
             print('Begin Advanced ')
-            daol, daom, daor = self.daoA.difference(self.daoA, self.daoB)
+            daol, daom, daor, daoab, daodydiff = self.daoA.difference(self.daoA, self.daoB)
 
             daol.count_files(False)
             daom.count_files(False)
             daor.count_files(False)
+            daoab.count_files(False)
+            daodydiff.count_files(False)
 
-            self.add_CalculationTabs(daol, daom, daor)
+            self.add_CalculationTabs(daol, daom, daor, daoab, daodydiff)
             self.matrixAminusB.display()
             self.matrixAintersectB.display()
             self.matrixBminusA.display()
+            self.matrixAplusB.display()
+            self.matrixDyadDiff.display()
 
 
             print('Ende Advanced ')
