@@ -126,82 +126,113 @@ class Dao():
             self.path = conf.value_get(datasource,'Please enter a Directory')
             print('ein Path: ',self.path)
 
-   def diff(A,B):
-        # dient nur als Prototyp ...
-        L =[]
-        M =[]
-        R =[]
-        A.sort()
-
-        i = 0
-        j = 0
-
-        while True:
-            try: a=A[i]
-            except:
-              R.extend(B[j:])
-              break
-            try: b=B[j]
-            except:
-              L.extend(A[i:])
-              break
-
-            if a > b:
-                R.append(b)
-                j+=1
-                continue
-            if a == b:
-                M.append(a)
-                i+=1
-                j+=1
-                continue
-            if a < b:
-                L.append(a)
-                i+=1
-                continue
-        return L, M, R
 
 
 
-   def difference(daoa, daob):
+   def difference(self, daoa, daob):
         # dient nur als Prototyp ...
         daol=Dao()
         daom=Dao()
         daor=Dao()
-        daoa.A.sort(key=getkeysize)
-        daob.A.sort(key=getkeysize)
-        lena = len(daoa.A)
-        lenb = len(daob.A)
+        A = daoa.A
+        B = daob.A
+        A.sort(key=getkeysize)
+        B.sort(key=getkeysize)
+        L=[]
+        M=[]
+        R=[]
+        MA=[]
+        MB=[]
+
+        lena = len(A)
+        lenb = len(B)
         i = 0
         j = 0
-
-        while True:
-            try:
-              a=daoa.A[i]
-            except:
-              daor.A.extend(daob.A[j:])
-              break
-            try: b=daob.A[j]
-            except:
-              daol.A.extend(daoa.A[i:])
-              break
-
-            if a[SIZE] > b[SIZE]:
-                daor.A.append(b)
-                j+=1
-                continue
-            if a[SIZE] == b[SIZE]:
-                print('Gleichheit')
-                daom.A.append(a)
-                i+=1
-                j+=1
-
-                continue
+        while i<lena and j < lenb:
+            a=A[i]
+            b=B[j]
             if a[SIZE] < b[SIZE]:
-                daol.A.append(a)
-                i+=1
-                continue
-        return daol, daom , daor
+              L.append(a)
+              i+=1
+              continue
+            if a[SIZE] > b[SIZE]:
+              R.append(b)
+              j+=1
+              continue
+            if a[SIZE] == b[SIZE]:
+              MA.append(a)
+              MB.append(b)
+              i+=1
+              j+=1
+              continue
+
+        # Rest aufnehmen, falls fuer i Ende lena nicht erreicht ...
+        for p in range(i,lena):
+            L.append(A[p])
+        # Rest aufnehmen, falls fuer j Ende lenb nicht erreicht ...
+        for p in range(j,lenb):
+            R.append(B[p])
+
+
+        # MA und MB enthaelt files mit gleicher Laenge. Hier ist Phase II anzuwenden: Hashcodes ermitteln und dann die Vergleiche auf derselbigen ...
+        for a in MA:
+            # Fehlerbehandlung erforderlich bei fehlender Berechtigung ...
+            with open(a[FILE],'rb') as f:
+                h = hash(f.read())
+                #print(h)
+                if h < 0: h=-h
+                a[HASH] = h
+
+        for b in MB:
+            # Fehlerbehandlung erforderlich bei fehlender Berechtigung ...
+            with open(b[FILE],'rb') as f:
+                h = hash(f.read())
+                #print(h)
+                if h < 0: h=-h
+                b[HASH] = h
+
+        MA.sort(key=getkeyhash)
+        MB.sort(key=getkeyhash)
+
+        lena = len(MA)
+        lenb = len(MB)
+        i = 0
+        j = 0
+        while i<lena and j < lenb:
+            a=MA[i]
+            b=MB[j]
+            if a[HASH] < b[HASH]:
+              L.append(a)
+              i+=1
+              continue
+            if a[HASH] > b[HASH]:
+              R.append(b)
+              j+=1
+              continue
+            if a[HASH] == b[HASH]:
+              M.append(a)             # File ist in beiden Mengen vorhanden ...
+              i+=1
+              j+=1
+              continue
+
+        # Rest aufnehmen, falls fuer i Ende lena nicht erreicht ...
+        for p in range(i,lena):
+            L.append(MA[p])
+        # Rest aufnehmen, falls fuer j Ende lenb nicht erreicht ...
+        for p in range(j,lenb):
+            R.append(MB[p])
+        daol.A=L
+        daom.A=M
+        daor.A=R
+
+
+        assert len(A)+len(B) == len(L)+2*len(M)+len(R)
+        print('Gesamtlaenge A+B:',len(A)+len(B))
+        print('Gesamtlaenge l+m+r:',len(L)+2*len(M)+len(R))
+        for m in M:
+            print('Msize: ', m[SIZE])
+        print('M: ', M)
+        return daol, daom, daor
 
 
 
@@ -1478,7 +1509,7 @@ class Form(QWidget):
 
         action_reduce.triggered.connect(self.submitReduce)
         action_expand.triggered.connect(self.submitExpand)
-
+        action_advanced.triggered.connect(self.submitAdvanced)
 
 
 #       operations.addAction(action_DedupSpace)
@@ -1585,8 +1616,10 @@ class Form(QWidget):
             self.matrixB.display()
             print('End Expand B')
 
-
-
+    def submitAdvanced(self):
+            print('Begin Advanced ')
+            self.daoA.difference(self.daoA, self.daoB)
+            print('Ende Advanced ')
 
         #if name == "":
             #QMessageBox.information( self, "Empty Field",
