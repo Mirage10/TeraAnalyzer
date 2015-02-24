@@ -44,6 +44,7 @@ ASTERIX     = '*'
 NOCLUSTER   = -1
 DATCOMP     = 5
 RWCNT       = 40
+MAXSIZE     = 4000000
 
 
 
@@ -176,6 +177,10 @@ class Dao():
 
         # MA und MB enthaelt files mit gleicher Laenge. Hier ist Phase II anzuwenden: Hashcodes ermitteln und dann die Vergleiche auf derselbigen ...
         for a in MA:
+            # wird eine bestimmte Groesse ueberschritten, so kann dies als hash-Wert betrachtet werden ...
+            if a[SIZE] > MAXSIZE:
+                a[HASH]=a[SIZE]
+                continue
             # Fehlerbehandlung erforderlich bei fehlender Berechtigung ...
             with open(a[FILE],'rb') as f:
                 h = hash(f.read())
@@ -184,6 +189,10 @@ class Dao():
                 a[HASH] = h
 
         for b in MB:
+            # wird eine bestimmte Groesse ueberschritten, so kann dies als hash-Wert betrachtet werden ...
+            if b[SIZE] > MAXSIZE:
+                b[HASH]=b[SIZE]
+                continue
             # Fehlerbehandlung erforderlich bei fehlender Berechtigung ...
             with open(b[FILE],'rb') as f:
                 h = hash(f.read())
@@ -298,7 +307,7 @@ class Dao():
                 # Files mit Länge 0 bekommen 0 als Hashwert ...
                 self.A[r][HASH] = 0
                 continue
-            if self.A[r][SIZE] > 4000000:
+            if self.A[r][SIZE] > MAXSIZE:
                 # Achtung Heuristik: hier wird angenommen, dass bei grossen Files die Filelaenge als Hash-Wert fungieren kan; dies ist nicht
                 # immer richtig, aber mit hoher Wahrscheinlichkeit. Womoeglich ist diese Option in der Configuration anzubieten ...
                 self.A[r][HASH] = self.A[r][SIZE]
@@ -1528,22 +1537,71 @@ class Form(QWidget):
         toolbar.addAction(action_advanced)
 
 
-        tabwid = QTabWidget()
+        self.tabwid = QTabWidget()
 
 
-        tabwid.addTab(tab_spaceA,'Space A')
-        tabwid.addTab(tab_spaceB,'Space B')
-        tabwid.addTab(tab_spaceConfig,'Config')
+        self.tabwid.addTab(tab_spaceA,'Space A')
+        self.tabwid.addTab(tab_spaceB,'Space B')
+        self.tabwid.addTab(tab_spaceConfig,'Config')
 
 
         toplayout = QVBoxLayout(self)
         toplayout.addWidget(toolbar)
-        toplayout.addWidget(tabwid)
+        toplayout.addWidget(self.tabwid)
 
 
 #       self.matrix.itemClicked.connect(self.on_matrixfiles_clicked)
 #       self.files.itemClicked.connect(self.on_file_clicked)
         self.setWindowTitle("Tera-Analyzer")
+
+
+    def add_CalculationTabs(self,daol,daom,daor):
+
+        # assemble tab space A ...
+        tab_spaceAminusB = QWidget()
+        layouttab = QVBoxLayout()
+        tab_spaceAminusB.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+        self.matrixAminusB = Matrix(daol)
+        split.addWidget(self.matrixAminusB)
+
+        self.tabwid.addTab(tab_spaceAminusB,'Space A - B')
+
+
+        tab_spaceAintersectB = QWidget()
+        layouttab = QVBoxLayout()
+        tab_spaceAintersectB.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+        self.matrixAintersectB = Matrix(daom)
+        split.addWidget(self.matrixAintersectB)
+
+        self.tabwid.addTab(tab_spaceAintersectB,'Space A /\ B')
+
+
+        tab_spaceBminusA = QWidget()
+        layouttab = QVBoxLayout()
+        tab_spaceBminusA.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+        self.matrixBminusA = Matrix(daor)
+        split.addWidget(self.matrixBminusA)
+
+        self.tabwid.addTab(tab_spaceBminusA,'Space B - A')
+
+
+
+
 
 
 
@@ -1618,9 +1676,16 @@ class Form(QWidget):
 
     def submitAdvanced(self):
             print('Begin Advanced ')
-            self.daoA.difference(self.daoA, self.daoB)
-            print('Ende Advanced ')
+            daol, daom, daor = self.daoA.difference(self.daoA, self.daoB)
 
+            daol.count_files(False)
+            self.add_CalculationTabs(daol, daom, daor)
+            self.matrixAminusB.display()
+            self.matrixAintersectB.display()
+            self.matrixBminusA.display()
+
+
+            print('Ende Advanced ')
         #if name == "":
             #QMessageBox.information( self, "Empty Field",
             #                        "Please enter a name and address.")
