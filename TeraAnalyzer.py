@@ -361,8 +361,159 @@ class Api():
 
           print('Ende Selektion')
 
+    def filter_all(dao):
+        dao.FIL=[ i for i, a in enumerate (dao.A)]
+
+    def filter_suffix(dao,suffix):
+        dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix]
+    def filter_year(dao,year):
+        dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year]
+    def filter_year_month(dao,year,month):
+        dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[MONTH] == month  ]
+    def filter_suffix_year(dao,suffix,year):
+        dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix and a[YEAR] == year  ]
+    def filter_year_suffix(dao,year, suffix):
+        dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[SUFFIX] == suffix  ]
+    def filter_suffix_year_month(dao, suffix, year, month):
+        dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month  ]
+    def filter_year_month_suffix(dao, year, month, suffix):
+        dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix  ]
+    def filter_level(dao,level):
+        dao.FIL=[ i for i, a in enumerate(dao.A) if a[LEVEL] == level]
 
 
+    def dedub(dao):
+
+        # Achtung: Auf A keine Sortierung machen. Alle Pointer erwarten die anfangs gemachte Reihenfolge ...
+        # Achtung Nebeneffekt: Dedub setzt die dedubgroup in A ...
+
+
+        B=[i for i, a in enumerate(dao.A)]
+        B.sort(key=dao.getkeylen)
+        # in R sollen die pointer auf A stehen, die die gleichen Längen haben...
+        R=[]
+
+
+        flag=False
+
+        # Gruppenstufenermittlung: Elemente mit die zu einer gleichbleibenden Seqzenz gehoeren in R aufnehmen ...
+        for i, b in enumerate(B):
+            if i==0: continue
+            x=dao.A[B[i-1]][SIZE]
+            y=dao.A[b][SIZE]
+            if x==y:
+              R.append(B[i-1])
+              flag=True
+              continue
+
+            if flag:
+               R.append(B[i-1])
+               flag=False
+
+        if flag:
+        # falls Gleichheit bis ans Ende besteht, den letzten Eintrag noch mitnehmen
+            R.append(B[-1])
+
+        # In R stehen Elemente mit gleichen Sequenzen; schon zu Beginn gibt es mindestens 2 gleiche aufeinanderfolgende Elemente ...
+
+
+        # hash werte fuer genau die Elemente in R berechnen. Hash werte werden auf Ebene von A gespeichert...
+        for r in R:
+            if dao.A[r][SIZE]==0:
+                # Files mit Länge 0 bekommen 0 als Hashwert ...
+                dao.A[r][HASH] = 0
+                continue
+            if dao.A[r][SIZE] > MAXSIZE:
+                # Achtung Heuristik: hier wird angenommen, dass bei grossen Files die Filelaenge als Hash-Wert fungieren kan; dies ist nicht
+                # immer richtig, aber mit hoher Wahrscheinlichkeit. Womoeglich ist diese Option in der Configuration anzubieten ...
+                dao.A[r][HASH] = dao.A[r][SIZE]
+                continue
+
+            try:
+
+                # Fehlerbehandlung erforderlich bei fehlender Berechtigung ...
+                with open(dao.A[r][FILE],'rb') as f:
+                    h = hash(f.read())
+                    #print(h)
+                    if h < 0: h=-h
+                    dao.A[r][HASH] = h
+                    #print(self.A[r][HASH])
+            except:
+                pass
+
+
+        # Phase II: weitere Einschränkung von R ...
+        # analog wie oben die duplikatermittlung auf hash, statt auf len ...
+
+        R.sort(key=dao.getkeyhash)
+        # in S sollen die pointer auf A stehen, die die gleichen hashes(laengen) haben...
+        S=[]
+
+        flag=False
+
+
+        for i, r in enumerate(R):
+            if i==0: continue
+            x=dao.A[R[i-1]][HASH]
+            y=dao.A[r][HASH]
+            if x==y:
+              S.append(R[i-1])
+              flag=True
+              continue
+            if flag:
+               S.append(R[i-1])
+               flag=False
+
+        if flag:
+        # falls Gleichheit bis ans Ende besteht, den letzten Eintrag noch mitnehmen
+            S.append(R[-1])
+
+
+
+        # Achtung: hier F aufbauen, die aus Unikaten besteht
+        S.sort(key=dao.getkeylen)
+
+
+        # duplicate group in A setzen ...
+        for s in S: dao.A[s][DUBGROUP] = dao.A[s][HASH]
+
+
+
+        # ab hier sollen die dubroups statt hash werte normale integer sein ...
+        S.sort(key=dao.getkeydubgroup)
+
+
+
+        if len(S)==0: return     # tritt ein beispielsweise nach Reduce+Dedup ...
+
+
+        if len(dao.A) > 1:
+          # Gruppenbildung macht nur Sinn, wenn mindestens 2 Files vorhanden sind ...
+          i = 1
+          x = dao.A[S[0]][DUBGROUP]
+          dao.A[S[0]][DUBGROUP] = 1        # Achtung die Sequenz verweist anfangs auf mindestens zwei gleiche Elemente. Zaehlung beginnt bei 1 ...
+          for s in S[1:]:
+              y = dao.A[s][DUBGROUP]
+              if x==y:
+                  dao.A[s][DUBGROUP] = i
+                  dao.A[s][WASTE] = 1   # wenn kein Gruppenstufenwechsel, dann liegt waste vor. achtung zu Beginn einer Gruppenstufe ist waste =0 (Originaleintrag)
+                  continue
+              if x!=y:
+                  x=y
+                  i+=1
+
+                  dao.A[s][DUBGROUP] = i
+
+
+
+        # alle -1 Werrte, d.h. es gibt keine Duplikate, auf 0 setzen...
+
+        for a in dao.A:
+            if a[DUBGROUP] == NOCLUSTER: a[DUBGROUP] = 0
+
+
+
+        #return R
 
 class Dao():
 
@@ -390,9 +541,6 @@ class Dao():
 
 
 
-
-
-
    def getkeylen(self,item):
         s=self.A[item][SIZE]
         return s
@@ -410,162 +558,6 @@ class Dao():
 
 
 
-   def dedub(self):
-
-        # Achtung: Auf A keine Sortierung machen. Alle Pointer erwarten die anfangs gemachte Reihenfolge ...
-        # Achtung Nebeneffekt: Dedub setzt die dedubgroup in A ...
-
-
-        B=[i for i, a in enumerate(self.A)]
-        B.sort(key=self.getkeylen)
-        # in R sollen die pointer auf A stehen, die die gleichen Längen haben...
-        R=[]
-
-
-        flag=False
-
-        # Gruppenstufenermittlung: Elemente mit die zu einer gleichbleibenden Seqzenz gehoeren in R aufnehmen ...
-        for i, b in enumerate(B):
-            if i==0: continue
-            x=self.A[B[i-1]][SIZE]
-            y=self.A[b][SIZE]
-            if x==y:
-              R.append(B[i-1])
-              flag=True
-              continue
-
-            if flag:
-               R.append(B[i-1])
-               flag=False
-
-        if flag:
-        # falls Gleichheit bis ans Ende besteht, den letzten Eintrag noch mitnehmen
-            R.append(B[-1])
-
-        # In R stehen Elemente mit gleichen Sequenzen; schon zu Beginn gibt es mindestens 2 gleiche aufeinanderfolgende Elemente ...
-
-
-        # hash werte fuer genau die Elemente in R berechnen. Hash werte werden auf Ebene von A gespeichert...
-        for r in R:
-            if self.A[r][SIZE]==0:
-                # Files mit Länge 0 bekommen 0 als Hashwert ...
-                self.A[r][HASH] = 0
-                continue
-            if self.A[r][SIZE] > MAXSIZE:
-                # Achtung Heuristik: hier wird angenommen, dass bei grossen Files die Filelaenge als Hash-Wert fungieren kan; dies ist nicht
-                # immer richtig, aber mit hoher Wahrscheinlichkeit. Womoeglich ist diese Option in der Configuration anzubieten ...
-                self.A[r][HASH] = self.A[r][SIZE]
-                continue
-
-            try:
-
-                # Fehlerbehandlung erforderlich bei fehlender Berechtigung ...
-                with open(self.A[r][FILE],'rb') as f:
-                    h = hash(f.read())
-                    #print(h)
-                    if h < 0: h=-h
-                    self.A[r][HASH] = h
-                    #print(self.A[r][HASH])
-            except:
-                pass
-
-
-        # Phase II: weitere Einschränkung von R ...
-        # analog wie oben die duplikatermittlung auf hash, statt auf len ...
-
-        R.sort(key=self.getkeyhash)
-        # in S sollen die pointer auf A stehen, die die gleichen hashes(laengen) haben...
-        S=[]
-
-        flag=False
-
-
-        for i, r in enumerate(R):
-            if i==0: continue
-            x=self.A[R[i-1]][HASH]
-            y=self.A[r][HASH]
-            if x==y:
-              S.append(R[i-1])
-              flag=True
-              continue
-            if flag:
-               S.append(R[i-1])
-               flag=False
-
-        if flag:
-        # falls Gleichheit bis ans Ende besteht, den letzten Eintrag noch mitnehmen
-            S.append(R[-1])
-
-
-
-        # Achtung: hier F aufbauen, die aus Unikaten besteht
-        S.sort(key=self.getkeylen)
-
-
-        # duplicate group in A setzen ...
-        for s in S: self.A[s][DUBGROUP] = self.A[s][HASH]
-
-
-
-        # ab hier sollen die dubroups statt hash werte normale integer sein ...
-        S.sort(key=self.getkeydubgroup)
-
-
-
-        if len(S)==0: return     # tritt ein beispielsweise nach Reduce+Dedup ...
-
-
-        if len(self.A) > 1:
-          # Gruppenbildung macht nur Sinn, wenn mindestens 2 Files vorhanden sind ...
-          i = 1
-          x = self.A[S[0]][DUBGROUP]
-          self.A[S[0]][DUBGROUP] = 1        # Achtung die Sequenz verweist anfangs auf mindestens zwei gleiche Elemente. Zaehlung beginnt bei 1 ...
-          for s in S[1:]:
-              y = self.A[s][DUBGROUP]
-              if x==y:
-                  self.A[s][DUBGROUP] = i
-                  self.A[s][WASTE] = 1   # wenn kein Gruppenstufenwechsel, dann liegt waste vor. achtung zu Beginn einer Gruppenstufe ist waste =0 (Originaleintrag)
-                  continue
-              if x!=y:
-                  x=y
-                  i+=1
-
-                  self.A[s][DUBGROUP] = i
-
-
-
-        # alle -1 Werrte, d.h. es gibt keine Duplikate, auf 0 setzen...
-
-        for a in self.A:
-            if a[DUBGROUP] == NOCLUSTER: a[DUBGROUP] = 0
-
-
-
-        #return R
-
-
-
-
-
-   def filter_all(self):
-        self.FIL=[ i for i, a in enumerate (self.A)]
-
-   def filter_suffix(self,suffix):
-        self.FIL=[ i for i, a in enumerate(self.A) if a[SUFFIX] == suffix]
-   def filter_year(self,year):
-        self.FIL=[ i for i, a in enumerate(self.A) if a[YEAR] == year]
-   def filter_year_month(self,year,month):
-        self.FIL=[ i for i, a in enumerate(self.A) if a[YEAR] == year and a[MONTH] == month  ]
-   def filter_suffix_year(self,suffix,year):
-        self.FIL=[ i for i, a in enumerate(self.A) if a[SUFFIX] == suffix and a[YEAR] == year  ]
-   def filter_year_suffix(self,year, suffix):
-        self.FIL=[ i for i, a in enumerate(self.A) if a[YEAR] == year and a[SUFFIX] == suffix  ]
-   def filter_suffix_year_month(self, suffix, year, month):
-        self.FIL=[ i for i, a in enumerate(self.A) if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month  ]
-   def filter_year_month_suffix(self, year, month, suffix):
-        self.FIL=[ i for i, a in enumerate(self.A) if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix  ]
-   def filter_level(self,level):
-        self.FIL=[ i for i, a in enumerate(self.A) if a[LEVEL] == level]
 
 
 
@@ -690,7 +682,7 @@ class Tab_All(QWidget):
         self.files_all.setSortingEnabled(False)
         index = item.data(DATCOMP)
         s = self.dao.ALL[index]
-        self.dao.filter_all()
+        Api.filter_all(self.dao)
         self.files_all.display()
         #self.files.setSortingEnabled(True)
 
@@ -786,7 +778,7 @@ class Tab_SU(QWidget):
         self.files_su.setSortingEnabled(False)
         index = item.data(DATCOMP)
         s = self.dao.SU[index]
-        self.dao.filter_suffix(s[0])
+        Api.filter_suffix(self.dao,s[0])
         self.files_su.display()
         #self.files.setSortingEnabled(True)
 
@@ -851,7 +843,7 @@ class Tab_YE(QWidget):
         self.files_ye.setSortingEnabled(False)
         index = item.data(DATCOMP)
         s = self.dao.YE[index]
-        self.dao.filter_year(s[0])
+        Api.filter_year(self.dao,s[0])
         self.files_ye.display()
         #self.files.setSortingEnabled(True)
 
@@ -924,7 +916,7 @@ class Tab_YEMO(QWidget):
         self.files_yemo.setSortingEnabled(False)
         index = item.data(DATCOMP)
         s = self.dao.YEMO[index]
-        self.dao.filter_year_month(s[0],s[1])
+        Api.filter_year_month(self.dao,s[0],s[1])
         self.files_yemo.display()
         #self.files.setSortingEnabled(True)
 
@@ -999,7 +991,7 @@ class Tab_SUYE(QWidget):
         self.files_suye.setSortingEnabled(False)
         index = item.data(DATCOMP)
         s = self.dao.SUYE[index]
-        self.dao.filter_suffix_year(s[0],s[1])
+        Api.filter_suffix_year(self.dao,s[0],s[1])
         self.files_suye.display()
         #self.files.setSortingEnabled(True)
 
@@ -1074,7 +1066,7 @@ class Tab_YESU(QWidget):
         self.files_yesu.setSortingEnabled(False)
         index = item.data(DATCOMP)
         s = self.dao.YESU[index]
-        self.dao.filter_year_suffix(s[0],s[1])
+        Api.filter_year_suffix(self.dao,s[0],s[1])
         self.files_yesu.display()
         #self.files.setSortingEnabled(True)
 
@@ -1153,7 +1145,7 @@ class Tab_SUYEMO(QWidget):
         self.files_suyemo.setSortingEnabled(False)
         index = item.data(DATCOMP)
         s = self.dao.SUYEMO[index]
-        self.dao.filter_suffix_year_month(s[0],s[1],s[2])
+        Api.filter_suffix_year_month(self.dao,s[0],s[1],s[2])
         self.files_suyemo.display()
         #self.files.setSortingEnabled(True)
 
@@ -1229,7 +1221,7 @@ class Tab_YEMOSU(QWidget):
         self.files_yemosu.setSortingEnabled(False)
         index = item.data(DATCOMP)
         s = self.dao.YEMOSU[index]
-        self.dao.filter_year_month_suffix(s[0],s[1],s[2])
+        Api.filter_year_month_suffix(self.dao,s[0],s[1],s[2])
         self.files_yemosu.display()
         #self.files.setSortingEnabled(True)
 
@@ -1300,7 +1292,7 @@ class Tab_LE(QWidget):
         self.files_le.setSortingEnabled(False)
         index = item.data(DATCOMP)
         s = self.dao.LE[index]
-        self.dao.filter_level(s[0])
+        Api.filter_level(self.dao,s[0])
         self.files_le.display()
         #self.files.setSortingEnabled(True)
 
@@ -1680,12 +1672,12 @@ class Form(QWidget):
 
     def submitDedupSapce(self):
             print('Begin Dedup A ')
-            self.daoA.dedub()
+            Api.dedub(self.daoA)
             Api.count_files(self.daoA)
             self.matrixA.display()
             print('End Dedup A')
             print('Begin Dedup B')
-            self.daoB.dedub()
+            Api.dedub(self.daoB)
             Api.count_files(self.daoB)
             self.matrixB.display()
             print('End Dedup B')
