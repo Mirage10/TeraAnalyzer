@@ -234,6 +234,111 @@ class Api():
         print('ab: ',len(daoab.A))
         return daol, daom, daor, daoab, daodyaddiff
 
+
+    def count_files(dao, reduc=False):
+        if reduc:
+          # redundante Eintraege zwischenspeichern ...
+          dao.Expand = [a for a in dao.A if a[WASTE]]
+          # Redundanzbefreiung ...
+          dao.A = [a for a in dao.A if not a[WASTE]]
+
+        else:
+          if len(dao.Expand):
+              dao.A.extend(dao.Expand)
+              dao.Expand=[]
+
+
+          print('Beginn zaehlen')
+          # Achtung: hier wird A sortiert; Die Sortierreihenfolge von A darf wegen Referenzen auf derselbigen nicht veraendert werden ...
+
+          # Summe der Dateigroessen ermitteln ...
+          size_all=0
+          waste = 0
+          for a in dao.A:
+            size_all+=int(a[SIZE])
+            if a[WASTE]: waste+=int(a[SIZE])
+
+
+          dao.ALL=[]
+          dao.ALL.append((ASTERIX ,len(dao.A), len({a[DIRECTORY]for a in dao.A}),
+                                    len({a[DUBGROUP] for a in dao.A  if a[DUBGROUP] >= 1}  ) , len([a[DUBGROUP] for a in dao.A  if a[DUBGROUP] >= 1]   )    , size_all, waste))
+
+
+          dao.SU = []
+          dao.A.sort(key=getkeysuffix)
+
+          for k, F in it.groupby(dao.A, getkeysuffix):
+             F=list(F)
+             wastesuff = 0
+             for f in F:
+               if f[WASTE]: wastesuff+=int(f[SIZE])
+
+
+             dao.SU.append((k , len(F), len({a[DIRECTORY] for a in F }),
+                             len({a[DUBGROUP] for a in F  if a[DUBGROUP] >= 1 and a[SUFFIX] == k }  ),
+                             len([a[DUBGROUP] for a in F  if a[DUBGROUP] >= 1 and a[SUFFIX] == k ]  ),
+                             sum([int(a[SIZE]) for a in F ]),
+                             wastesuff
+                             ))
+
+
+
+          dao.YE = []
+          dao.A.sort(key=getkeyyear)
+          for k, F in it.groupby(dao.A, getkeyyear):
+             F=list(F)
+             dao.YE.append((k,len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+          dao.SUYE = []
+
+          dao.A.sort(key=getkeysuffixyear)
+          for k, F in it.groupby(dao.A, getkeysuffixyear):
+             F=list(F)
+             dao.SUYE.append((k[0],k[1],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+          dao.YESU = []
+          dao.A.sort(key=getkeyyearsuffix)
+          for k, F in it.groupby(dao.A, getkeyyearsuffix):
+             F=list(F)
+             dao.YESU.append((k[0],k[1],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+          dao.YEMO = []
+          dao.A.sort(key=getkeyyearmonth)
+          for k, F in it.groupby(dao.A, getkeyyearmonth):
+             F=list(F)
+             dao.YEMO.append((k[0],k[1], len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+          dao.SUYEMO = []
+          dao.A.sort(key=getkeysuffixyearmonth)
+          for k, F in it.groupby(dao.A, getkeysuffixyearmonth):
+             F=list(F)
+             dao.SUYEMO.append((k[0],k[1],k[2],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+
+          dao.YEMOSU = []
+          dao.A.sort(key=getkeyyearmonthsuffix)
+          for k, F in it.groupby(dao.A, getkeyyearmonthsuffix):
+             F=list(F)
+             dao.YEMOSU.append(( k[0],k[1],k[2], len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+
+          dao.LE = []
+          dao.A.sort(key=getkeylevel)
+          for k, F in it.groupby(dao.A, getkeylevel):
+             F=list(F)
+             dao.LE.append((k , len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+
+          print('Ende Zählen')
+          print('Das Ergebnis')
+
+
+
+
+
+
+
+
 class Dao():
 
 
@@ -442,110 +547,6 @@ class Dao():
 
 
       print('Ende Selektion')
-
-
-
-   def count_files(self, reduc=False):
-
-      if reduc:
-          # redundante Eintraege zwischenspeichern ...
-          self.Expand = [a for a in self.A if a[WASTE]]
-          # Redundanzbefreiung ...
-          self.A = [a for a in self.A if not a[WASTE]]
-
-      else:
-          if len(self.Expand):
-              self.A.extend(self.Expand)
-              self.Expand=[]
-
-
-      print('Beginn zaehlen')
-      # Achtung: hier wird A sortiert; Die Sortierreihenfolge von A darf wegen Referenzen auf derselbigen nicht veraendert werden ...
-
-      # Summe der Dateigroessen ermitteln ...
-      size_all=0
-      waste = 0
-      for a in self.A:
-        size_all+=int(a[SIZE])
-        if a[WASTE]: waste+=int(a[SIZE])
-
-
-      self.ALL=[]
-      self.ALL.append((ASTERIX ,len(self.A), len({a[DIRECTORY]for a in self.A}),
-                                len({a[DUBGROUP] for a in self.A  if a[DUBGROUP] >= 1}  ) , len([a[DUBGROUP] for a in self.A  if a[DUBGROUP] >= 1]   )    , size_all, waste))
-
-
-      self.SU = []
-      self.A.sort(key=getkeysuffix)
-
-      for k, F in it.groupby(self.A, getkeysuffix):
-         F=list(F)
-         wastesuff = 0
-         for f in F:
-           if f[WASTE]: wastesuff+=int(f[SIZE])
-
-
-         self.SU.append((k , len(F), len({a[DIRECTORY] for a in F }),
-                         len({a[DUBGROUP] for a in F  if a[DUBGROUP] >= 1 and a[SUFFIX] == k }  ),
-                         len([a[DUBGROUP] for a in F  if a[DUBGROUP] >= 1 and a[SUFFIX] == k ]  ),
-                         sum([int(a[SIZE]) for a in F ]),
-                         wastesuff
-                         ))
-
-
-
-      self.YE = []
-      self.A.sort(key=getkeyyear)
-      for k, F in it.groupby(self.A, getkeyyear):
-         F=list(F)
-         self.YE.append((k,len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
-
-      self.SUYE = []
-
-      self.A.sort(key=getkeysuffixyear)
-      for k, F in it.groupby(self.A, getkeysuffixyear):
-         F=list(F)
-         self.SUYE.append((k[0],k[1],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
-
-      self.YESU = []
-      self.A.sort(key=getkeyyearsuffix)
-      for k, F in it.groupby(self.A, getkeyyearsuffix):
-         F=list(F)
-         self.YESU.append((k[0],k[1],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
-
-      self.YEMO = []
-      self.A.sort(key=getkeyyearmonth)
-      for k, F in it.groupby(self.A, getkeyyearmonth):
-         F=list(F)
-         self.YEMO.append((k[0],k[1], len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
-
-      self.SUYEMO = []
-      self.A.sort(key=getkeysuffixyearmonth)
-      for k, F in it.groupby(self.A, getkeysuffixyearmonth):
-         F=list(F)
-         self.SUYEMO.append((k[0],k[1],k[2],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
-
-
-      self.YEMOSU = []
-      self.A.sort(key=getkeyyearmonthsuffix)
-      for k, F in it.groupby(self.A, getkeyyearmonthsuffix):
-         F=list(F)
-         self.YEMOSU.append(( k[0],k[1],k[2], len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
-
-
-      self.LE = []
-      self.A.sort(key=getkeylevel)
-      for k, F in it.groupby(self.A, getkeylevel):
-         F=list(F)
-         self.LE.append((k , len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
-
-
-      print('Ende Zählen')
-      print('Das Ergebnis')
-
-
-
-
 
 
 
@@ -1673,23 +1674,23 @@ class Form(QWidget):
 
     def submitIndexing(self):
         self.daoA.selection()
-        self.daoA.count_files()
+        Api.count_files(self.daoA)
         self.matrixA.display()
 
         self.daoB.selection()
-        self.daoB.count_files()
+        Api.count_files(self.daoB)
         self.matrixB.display()
         print('hallo')
 
     def submitDedupSapce(self):
             print('Begin Dedup A ')
             self.daoA.dedub()
-            self.daoA.count_files()
+            Api.count_files(self.daoA)
             self.matrixA.display()
             print('End Dedup A')
             print('Begin Dedup B')
             self.daoB.dedub()
-            self.daoB.count_files()
+            Api.count_files(self.daoB)
             self.matrixB.display()
             print('End Dedup B')
 
@@ -1698,21 +1699,21 @@ class Form(QWidget):
     def submitReduce(self):
 
             print('Begin Reduce A ')
-            self.daoA.count_files(True)
+            Api.count_files(self.daoA,True)
             self.matrixA.display()
             print('End Reduce A')
             print('Begin Reduce B')
-            self.daoB.count_files(True)
+            Api.count_files(self.daoB,True)
             self.matrixB.display()
             print('End Reduce B')
 
     def submitExpand(self):
             print('Begin Expand A ')
-            self.daoA.count_files(False)
+            Api.count_files(self.daoA,False)
             self.matrixA.display()
             print('End Expand A')
             print('Begin Expand B')
-            self.daoB.count_files(False)
+            Api.count_files(self.daoB,False)
             self.matrixB.display()
             print('End Expand B')
 
@@ -1720,11 +1721,11 @@ class Form(QWidget):
             print('Begin Advanced ')
             daol, daom, daor, daoab, daodydiff = Api.difference(self.daoA, self.daoB)
 
-            daol.count_files(False)
-            daom.count_files(False)
-            daor.count_files(False)
-            daoab.count_files(False)
-            daodydiff.count_files(False)
+            Api.count_files(daol,False)
+            Api.count_files(daom,False)
+            Api.count_files(daor,False)
+            Api.count_files(daoab,False)
+            Api.count_files(daodydiff,False)
 
             self.add_CalculationTabs(daol, daom, daor, daoab, daodydiff)
             self.matrixAminusB.display()
