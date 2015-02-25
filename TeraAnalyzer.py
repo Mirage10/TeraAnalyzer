@@ -248,89 +248,89 @@ class Api():
               dao.Expand=[]
 
 
-          print('Beginn zaehlen')
-          # Achtung: hier wird A sortiert; Die Sortierreihenfolge von A darf wegen Referenzen auf derselbigen nicht veraendert werden ...
+        print('Beginn zaehlen')
+        # Achtung: hier wird A sortiert; Die Sortierreihenfolge von A darf wegen Referenzen auf derselbigen nicht veraendert werden ...
 
-          # Summe der Dateigroessen ermitteln ...
-          size_all=0
-          waste = 0
-          for a in dao.A:
+        # Summe der Dateigroessen ermitteln ...
+        size_all=0
+        waste = 0
+        for a in dao.A:
             size_all+=int(a[SIZE])
             if a[WASTE]: waste+=int(a[SIZE])
 
 
-          dao.ALL=[]
-          dao.ALL.append((ASTERIX ,len(dao.A), len({a[DIRECTORY]for a in dao.A}),
-                                    len({a[DUBGROUP] for a in dao.A  if a[DUBGROUP] >= 1}  ) , len([a[DUBGROUP] for a in dao.A  if a[DUBGROUP] >= 1]   )    , size_all, waste))
+        dao.ALL=[]
+        dao.ALL.append((ASTERIX ,len(dao.A), len({a[DIRECTORY]for a in dao.A}),
+                                  len({a[DUBGROUP] for a in dao.A  if a[DUBGROUP] >= 1}  ) , len([a[DUBGROUP] for a in dao.A  if a[DUBGROUP] >= 1]   )    , size_all, waste))
 
 
-          dao.SU = []
-          dao.A.sort(key=getkeysuffix)
+        dao.SU = []
+        dao.A.sort(key=getkeysuffix)
 
-          for k, F in it.groupby(dao.A, getkeysuffix):
-             F=list(F)
-             wastesuff = 0
-             for f in F:
-               if f[WASTE]: wastesuff+=int(f[SIZE])
-
-
-             dao.SU.append((k , len(F), len({a[DIRECTORY] for a in F }),
-                             len({a[DUBGROUP] for a in F  if a[DUBGROUP] >= 1 and a[SUFFIX] == k }  ),
-                             len([a[DUBGROUP] for a in F  if a[DUBGROUP] >= 1 and a[SUFFIX] == k ]  ),
-                             sum([int(a[SIZE]) for a in F ]),
-                             wastesuff
-                             ))
+        for k, F in it.groupby(dao.A, getkeysuffix):
+            F=list(F)
+            wastesuff = 0
+            for f in F:
+             if f[WASTE]: wastesuff+=int(f[SIZE])
 
 
-
-          dao.YE = []
-          dao.A.sort(key=getkeyyear)
-          for k, F in it.groupby(dao.A, getkeyyear):
-             F=list(F)
-             dao.YE.append((k,len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
-
-          dao.SUYE = []
-
-          dao.A.sort(key=getkeysuffixyear)
-          for k, F in it.groupby(dao.A, getkeysuffixyear):
-             F=list(F)
-             dao.SUYE.append((k[0],k[1],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
-
-          dao.YESU = []
-          dao.A.sort(key=getkeyyearsuffix)
-          for k, F in it.groupby(dao.A, getkeyyearsuffix):
-             F=list(F)
-             dao.YESU.append((k[0],k[1],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
-
-          dao.YEMO = []
-          dao.A.sort(key=getkeyyearmonth)
-          for k, F in it.groupby(dao.A, getkeyyearmonth):
-             F=list(F)
-             dao.YEMO.append((k[0],k[1], len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
-
-          dao.SUYEMO = []
-          dao.A.sort(key=getkeysuffixyearmonth)
-          for k, F in it.groupby(dao.A, getkeysuffixyearmonth):
-             F=list(F)
-             dao.SUYEMO.append((k[0],k[1],k[2],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+            dao.SU.append((k , len(F), len({a[DIRECTORY] for a in F }),
+                            len({a[DUBGROUP] for a in F  if a[DUBGROUP] >= 1 and a[SUFFIX] == k }  ),
+                            len([a[DUBGROUP] for a in F  if a[DUBGROUP] >= 1 and a[SUFFIX] == k ]  ),
+                            sum([int(a[SIZE]) for a in F ]),
+                            wastesuff
+                            ))
 
 
-          dao.YEMOSU = []
-          dao.A.sort(key=getkeyyearmonthsuffix)
-          for k, F in it.groupby(dao.A, getkeyyearmonthsuffix):
-             F=list(F)
-             dao.YEMOSU.append(( k[0],k[1],k[2], len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+        dao.YE = []
+        dao.A.sort(key=getkeyyear)
+        for k, F in it.groupby(dao.A, getkeyyear):
+            F=list(F)
+            dao.YE.append((k,len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+        dao.SUYE = []
+
+        dao.A.sort(key=getkeysuffixyear)
+        for k, F in it.groupby(dao.A, getkeysuffixyear):
+            F=list(F)
+            dao.SUYE.append((k[0],k[1],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+        dao.YESU = []
+        dao.A.sort(key=getkeyyearsuffix)
+        for k, F in it.groupby(dao.A, getkeyyearsuffix):
+            F=list(F)
+            dao.YESU.append((k[0],k[1],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+        dao.YEMO = []
+        dao.A.sort(key=getkeyyearmonth)
+        for k, F in it.groupby(dao.A, getkeyyearmonth):
+            F=list(F)
+            dao.YEMO.append((k[0],k[1], len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+        dao.SUYEMO = []
+        dao.A.sort(key=getkeysuffixyearmonth)
+        for k, F in it.groupby(dao.A, getkeysuffixyearmonth):
+            F=list(F)
+            dao.SUYEMO.append((k[0],k[1],k[2],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
 
-          dao.LE = []
-          dao.A.sort(key=getkeylevel)
-          for k, F in it.groupby(dao.A, getkeylevel):
-             F=list(F)
-             dao.LE.append((k , len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+        dao.YEMOSU = []
+        dao.A.sort(key=getkeyyearmonthsuffix)
+        for k, F in it.groupby(dao.A, getkeyyearmonthsuffix):
+            F=list(F)
+            dao.YEMOSU.append(( k[0],k[1],k[2], len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
 
-          print('Ende Zählen')
-          print('Das Ergebnis')
+        dao.LE = []
+        dao.A.sort(key=getkeylevel)
+        for k, F in it.groupby(dao.A, getkeylevel):
+            F=list(F)
+            dao.LE.append((k , len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+
+        print('Ende Zählen')
+        print('Das Ergebnis')
 
 
 
