@@ -334,7 +334,32 @@ class Api():
 
 
 
+    def selection(dao):
+          print('Beginn Selektion')
+          dao.A=[]
+          for root, Dir, File in os.walk(dao.path):
+            for file in File:
+              if file[0] == '.': continue
+              a = os.path.join(root, file)
+              if '/.' in os.path.join(root, a): continue
+              if SUFFIXES and os.path.splitext(a)[1].lower() not in SUFFIXES: continue
+              if not os.path.exists(a): continue
+              dao.A.append( [ str(a),
+                               str(os.path.dirname(a)),
+                               str(os.path.basename(a)),
+                               str(os.path.splitext(a)[1][1:].lower()),
+                               str(os.stat(a).st_mtime),
+                               str(date.fromtimestamp(os.stat(a).st_mtime).year),
+                               str('0'+str(date.fromtimestamp(os.stat(a).st_mtime).month))[-2:],
+                               str(date.fromtimestamp(os.stat(a).st_mtime).year)+' '+str(date.fromtimestamp(os.stat(a).st_mtime).month),
+                               os.stat(a).st_size,
+                               a.count('/')-1,  #level
+                               0,               #hash
+                               NOCLUSTER,       #duplicate cluster, default = -1
+                               0] )             #duplicate   (as waste)  originaleintrag bleibt erhalten und ist ein duplicate
 
+
+          print('Ende Selektion')
 
 
 
@@ -518,35 +543,6 @@ class Dao():
 
         #return R
 
-
-
-
-   def selection(self):
-      print('Beginn Selektion')
-      self.A=[]
-      for root, Dir, File in os.walk(self.path):
-        for file in File:
-          if file[0] == '.': continue
-          a = os.path.join(root, file)
-          if '/.' in os.path.join(root, a): continue
-          if SUFFIXES and os.path.splitext(a)[1].lower() not in SUFFIXES: continue
-          if not os.path.exists(a): continue
-          self.A.append( [ str(a),
-                           str(os.path.dirname(a)),
-                           str(os.path.basename(a)),
-                           str(os.path.splitext(a)[1][1:].lower()),
-                           str(os.stat(a).st_mtime),
-                           str(date.fromtimestamp(os.stat(a).st_mtime).year),
-                           str('0'+str(date.fromtimestamp(os.stat(a).st_mtime).month))[-2:],
-                           str(date.fromtimestamp(os.stat(a).st_mtime).year)+' '+str(date.fromtimestamp(os.stat(a).st_mtime).month),
-                           os.stat(a).st_size,
-                           a.count('/')-1,  #level
-                           0,               #hash
-                           NOCLUSTER,       #duplicate cluster, default = -1
-                           0] )             #duplicate   (as waste)  originaleintrag bleibt erhalten und ist ein duplicate
-
-
-      print('Ende Selektion')
 
 
 
@@ -1673,11 +1669,11 @@ class Form(QWidget):
 
 
     def submitIndexing(self):
-        self.daoA.selection()
+        Api.selection(daoA)
         Api.count_files(self.daoA)
         self.matrixA.display()
 
-        self.daoB.selection()
+        Api.selection(daoB)
         Api.count_files(self.daoB)
         self.matrixB.display()
         print('hallo')
