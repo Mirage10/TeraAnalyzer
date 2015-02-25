@@ -253,7 +253,8 @@ class Dao():
         daodyaddiff.A=L
         daodyaddiff.A.extend(R)
 
-
+        print('dyad:',len(daodyaddiff.A)+2*len(M))
+        print('ab: ',len(daoab.A))
         return daol, daom, daor, daoab, daodyaddiff
 
 
@@ -1624,6 +1625,8 @@ class Form(QWidget):
         split.addWidget(self.matrixAplusB)
 
         self.tabwid.insertTab(5,tab_spaceAplusB,'Space A + B')
+
+
 
         tab_spaceDyadDiff = QWidget()
         layouttab = QVBoxLayout()
