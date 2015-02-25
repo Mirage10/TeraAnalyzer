@@ -100,45 +100,19 @@ class DaoConfig():
         self.__settings.setValue(key,value)
 
 
-import itertools
-
-## little change
-######################################################################
-class Dao():
-
-
-   def __init__(self, datasource=None):
-        self.A=[]
-        self.FIL=[]
-        self.ALL=[]
-        self.SU=[]
-        self.YE= []
-        self.YEMO=[]
-        self.YESU=[]
-        self.YEMOSU=[]
-        self.SUYEMO=[]
-        self.LE=[]
-        self.SUYE=[]
-        self.Expand=[]
-
-        self.path = ''
-        if datasource == DATA_SOURCE_A or datasource == DATA_SOURCE_B:
-            conf = DaoConfig()
-            self.path = conf.value_get(datasource,'Please enter a Directory')
-            print('ein Path: ',self.path)
 
 
 
-
-   def difference(self, daoa, daob):
-        # dient nur als Prototyp ...
+class Api():
+    def difference(daoa, daob):
+         # dient nur als Prototyp ...
         daol       =Dao()
         daom       =Dao()
         daor       =Dao()
         daoab      =Dao()
         daodyaddiff=Dao()
-        A = daoa.A
-        B = daob.A
+        A = daoa.A[:]     # es darf auf A daoa.A keine Sortierung erfolgen, daher arbeiten auf Kopie
+        B = daob.A[:]
         A.sort(key=getkeysize)
         B.sort(key=getkeysize)
         L=[]
@@ -175,6 +149,8 @@ class Dao():
         # Rest aufnehmen, falls fuer j Ende lenb nicht erreicht ...
         for p in range(j,lenb):
             R.append(B[p])
+
+
 
 
         # MA und MB enthaelt files mit gleicher Laenge. Hier ist Phase II anzuwenden: Hashcodes ermitteln und dann die Vergleiche auf derselbigen ...
@@ -232,9 +208,10 @@ class Dao():
         # Rest aufnehmen, falls fuer j Ende lenb nicht erreicht ...
         for p in range(j,lenb):
             R.append(MB[p])
-        daol.A=L
-        daom.A=M
-        daor.A=R
+
+        daol.A=L[:]
+        daom.A=M[:]
+        daor.A=R[:]
 
 
         assert len(A)+len(B) == len(L)+2*len(M)+len(R)
@@ -245,17 +222,40 @@ class Dao():
         print('M: ', M)
 
         # die Vereinigungsmenge aus A und B berechnen
-        daoab.A=L
+        daoab.A=L[:]
         daoab.A.extend(M)
         daoab.A.extend(R)
 
         # die dyadische Differenz aus A und B berechnen ...  (dyadische Differenz = Vereinigungsmenge von A und B minus Schnittmenge)
-        daodyaddiff.A=L
+        daodyaddiff.A=L[:]
         daodyaddiff.A.extend(R)
 
         print('dyad:',len(daodyaddiff.A)+2*len(M))
         print('ab: ',len(daoab.A))
         return daol, daom, daor, daoab, daodyaddiff
+
+class Dao():
+
+
+   def __init__(self, datasource=None):
+        self.A=[]
+        self.FIL=[]
+        self.ALL=[]
+        self.SU=[]
+        self.YE= []
+        self.YEMO=[]
+        self.YESU=[]
+        self.YEMOSU=[]
+        self.SUYEMO=[]
+        self.LE=[]
+        self.SUYE=[]
+        self.Expand=[]
+
+        self.path = ''
+        if datasource == DATA_SOURCE_A or datasource == DATA_SOURCE_B:
+            conf = DaoConfig()
+            self.path = conf.value_get(datasource,'Please enter a Directory')
+            print('ein Path: ',self.path)
 
 
 
@@ -1718,7 +1718,7 @@ class Form(QWidget):
 
     def submitAdvanced(self):
             print('Begin Advanced ')
-            daol, daom, daor, daoab, daodydiff = self.daoA.difference(self.daoA, self.daoB)
+            daol, daom, daor, daoab, daodydiff = Api.difference(self.daoA, self.daoB)
 
             daol.count_files(False)
             daom.count_files(False)
