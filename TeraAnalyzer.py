@@ -45,46 +45,47 @@ DATCOMP     = 5
 RWCNT       = 40
 MAXSIZE     = 4000000
 
+class Util():
+    def getkeysuffix(item):
+        return item[SUFFIX]
+    def getkeyyear(item):
+        return item[YEAR]
+    def getkeysuffixyear(item):
+        return item[SUFFIX],item[YEAR]
+    def getkeyyearsuffix(item):
+        return item[YEAR],item[SUFFIX]
+    def getkeyyearmonth(item):
+        return item[YEAR],item[MONTH]
+    def getkeysuffixyearmonth(item):
+        return item[SUFFIX],item[YEAR],item[MONTH]
+    def getkeyyearmonthsuffix(item):
+        return item[YEAR],item[MONTH],item[SUFFIX]
+    def getkeylevel(item):
+        return int(item[LEVEL])
+    def getkeysize(item):
+        return int(item[SIZE])
+    def getkeyhash(item):
+        return item[HASH]
+    def getkey2(item):
+        return item[2]
+
+    # format with intermediate points for large numbers...
+    def frmt(numstr):
+        numstr=str(numstr)
+        ret=''
+        n = len(numstr)
+        k=0
+        while not n == 0:
+            k+=1
+            ret = numstr[n-1]+ret
+            if (k % 3) == 0 and n != 1 :
+                ret='.'+ret
+            n-=1
+        return ret
 
 
 
-def getkeysuffix(item):
-    return item[SUFFIX]
-def getkeyyear(item):
-    return item[YEAR]
-def getkeysuffixyear(item):
-    return item[SUFFIX],item[YEAR]
-def getkeyyearsuffix(item):
-    return item[YEAR],item[SUFFIX]
-def getkeyyearmonth(item):
-    return item[YEAR],item[MONTH]
-def getkeysuffixyearmonth(item):
-    return item[SUFFIX],item[YEAR],item[MONTH]
-def getkeyyearmonthsuffix(item):
-    return item[YEAR],item[MONTH],item[SUFFIX]
-def getkeylevel(item):
-    return int(item[LEVEL])
-def getkeysize(item):
-    return int(item[SIZE])
-def getkeyhash(item):
-    return item[HASH]
-def getkey2(item):
-    return item[2]
 
-
-# format with intermediate points for large numbers...
-def frmt(numstr):
-    numstr=str(numstr)
-    ret=''
-    n = len(numstr)
-    k=0
-    while not n == 0:
-        k+=1
-        ret = numstr[n-1]+ret
-        if (k % 3) == 0 and n != 1 :
-            ret='.'+ret
-        n-=1
-    return ret
 
 
 
@@ -112,8 +113,8 @@ class Api():
         daodyaddiff=Dao()
         A = daoa.A[:]     # es darf auf A daoa.A keine Sortierung erfolgen, daher arbeiten auf Kopie
         B = daob.A[:]
-        A.sort(key=getkeysize)
-        B.sort(key=getkeysize)
+        A.sort(key=Util.getkeysize)
+        B.sort(key=Util.getkeysize)
         L=[]
         M=[]
         R=[]
@@ -177,8 +178,8 @@ class Api():
                 if h < 0: h=-h
                 b[HASH] = h
 
-        MA.sort(key=getkeyhash)
-        MB.sort(key=getkeyhash)
+        MA.sort(key=Util.getkeyhash)
+        MB.sort(key=Util.getkeyhash)
 
         lena = len(MA)
         lenb = len(MB)
@@ -264,9 +265,9 @@ class Api():
 
 
         dao.SU = []
-        dao.A.sort(key=getkeysuffix)
+        dao.A.sort(key=Util.getkeysuffix)
 
-        for k, F in it.groupby(dao.A, getkeysuffix):
+        for k, F in it.groupby(dao.A, Util.getkeysuffix):
             F=list(F)
             wastesuff = 0
             for f in F:
@@ -283,47 +284,47 @@ class Api():
 
 
         dao.YE = []
-        dao.A.sort(key=getkeyyear)
-        for k, F in it.groupby(dao.A, getkeyyear):
+        dao.A.sort(key=Util.getkeyyear)
+        for k, F in it.groupby(dao.A, Util.getkeyyear):
             F=list(F)
             dao.YE.append((k,len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
         dao.SUYE = []
 
-        dao.A.sort(key=getkeysuffixyear)
-        for k, F in it.groupby(dao.A, getkeysuffixyear):
+        dao.A.sort(key=Util.getkeysuffixyear)
+        for k, F in it.groupby(dao.A, Util.getkeysuffixyear):
             F=list(F)
             dao.SUYE.append((k[0],k[1],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
         dao.YESU = []
-        dao.A.sort(key=getkeyyearsuffix)
-        for k, F in it.groupby(dao.A, getkeyyearsuffix):
+        dao.A.sort(key=Util.getkeyyearsuffix)
+        for k, F in it.groupby(dao.A, Util.getkeyyearsuffix):
             F=list(F)
             dao.YESU.append((k[0],k[1],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
         dao.YEMO = []
-        dao.A.sort(key=getkeyyearmonth)
-        for k, F in it.groupby(dao.A, getkeyyearmonth):
+        dao.A.sort(key=Util.getkeyyearmonth)
+        for k, F in it.groupby(dao.A, Util.getkeyyearmonth):
             F=list(F)
             dao.YEMO.append((k[0],k[1], len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
         dao.SUYEMO = []
-        dao.A.sort(key=getkeysuffixyearmonth)
-        for k, F in it.groupby(dao.A, getkeysuffixyearmonth):
+        dao.A.sort(key=Util.getkeysuffixyearmonth)
+        for k, F in it.groupby(dao.A, Util.getkeysuffixyearmonth):
             F=list(F)
             dao.SUYEMO.append((k[0],k[1],k[2],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
 
         dao.YEMOSU = []
-        dao.A.sort(key=getkeyyearmonthsuffix)
-        for k, F in it.groupby(dao.A, getkeyyearmonthsuffix):
+        dao.A.sort(key=Util.getkeyyearmonthsuffix)
+        for k, F in it.groupby(dao.A, Util.getkeyyearmonthsuffix):
             F=list(F)
             dao.YEMOSU.append(( k[0],k[1],k[2], len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
 
         dao.LE = []
-        dao.A.sort(key=getkeylevel)
-        for k, F in it.groupby(dao.A, getkeylevel):
+        dao.A.sort(key=Util.getkeylevel)
+        for k, F in it.groupby(dao.A, Util.getkeylevel):
             F=list(F)
             dao.LE.append((k , len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
@@ -660,13 +661,13 @@ class Tab_All(QWidget):
           self.table.setItem(0, 4, value)
 
 
-          value = QTItem(frmt(s[CNTSIZE]),s[CNTSIZE]  )
+          value = QTItem(Util.frmt(s[CNTSIZE]),s[CNTSIZE]  )
           value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
           self.table.setItem(0, 5, value)
-          value = QTItem(frmt(s[CNTWASTE]),s[CNTWASTE]  )
+          value = QTItem(Util.frmt(s[CNTWASTE]),s[CNTWASTE]  )
           value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
@@ -757,14 +758,14 @@ class Tab_SU(QWidget):
           self.table.setItem(i, 4, value)
 
 
-          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value = QTItem(Util.frmt(str(s[CNTSIZE])),s[CNTSIZE])
           value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
           self.table.setItem(i, 5, value)
 
-          value = QTItem(frmt(s[CNTWASTE]),s[CNTWASTE]  )
+          value = QTItem(Util.frmt(s[CNTWASTE]),s[CNTWASTE]  )
           value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
@@ -835,7 +836,7 @@ class Tab_YE(QWidget):
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 2, value)
-          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value = QTItem(Util.frmt(str(s[CNTSIZE])),s[CNTSIZE])
           value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
@@ -909,7 +910,7 @@ class Tab_YEMO(QWidget):
           # zelle pastell rot ...dao.YEMO[k][CNTDIR]
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 3, value)
-          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value = QTItem(Util.frmt(str(s[CNTSIZE])),s[CNTSIZE])
           value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
@@ -985,7 +986,7 @@ class Tab_SUYE(QWidget):
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 3, value)
-          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value = QTItem(Util.frmt(str(s[CNTSIZE])),s[CNTSIZE])
           value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
@@ -1061,7 +1062,7 @@ class Tab_YESU(QWidget):
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 3, value)
-          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value = QTItem(Util.frmt(str(s[CNTSIZE])),s[CNTSIZE])
           value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
@@ -1142,7 +1143,7 @@ class Tab_SUYEMO(QWidget):
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 4, value)
-          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value = QTItem(Util.frmt(str(s[CNTSIZE])),s[CNTSIZE])
           value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
@@ -1220,7 +1221,7 @@ class Tab_YEMOSU(QWidget):
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 4, value)
-          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value = QTItem(Util.frmt(str(s[CNTSIZE])),s[CNTSIZE])
           value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
@@ -1279,7 +1280,7 @@ class Tab_LE(QWidget):
         self.table.setRowCount(len(self.dao.LE)+RWCNT)
 
         for i,s in enumerate(self.dao.LE):
-          value=QTItem(frmt(str(s[0])),s[0])
+          value=QTItem(Util.frmt(str(s[0])),s[0])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
           self.table.setItem(i, 0, value)
@@ -1293,7 +1294,7 @@ class Tab_LE(QWidget):
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 2, value)
-          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value = QTItem(Util.frmt(str(s[CNTSIZE])),s[CNTSIZE])
           value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
@@ -1404,7 +1405,7 @@ class Files(QTableWidget):
           value.setTextAlignment(Qt.AlignRight)
           self.setItem(i, 8, value)
 
-          value = QTItem(frmt(row[SIZE]), row[SIZE])
+          value = QTItem(Util.frmt(row[SIZE]), row[SIZE])
           value.setTextAlignment(Qt.AlignRight)
           self.setItem(i, 9, value)
 
