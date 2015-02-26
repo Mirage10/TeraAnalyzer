@@ -1,8 +1,7 @@
 
 
-# todo  clicken auf space A->suffix tab-> 81. eintrag xspf => dump ...
+
 # todo in files tab rename dedupgroups by filesize
-# todo after reducing erneute Dedup -> dump
 # todo hash button in toolbar
 
 # PyQt5 examples: http://nullege.com/codes/show/src%40p%40y%40pyqt5-HEAD%40examples%40sql%40cachedtable.py/46/PyQt5.QtWidgets.QTableView/python
