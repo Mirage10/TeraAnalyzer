@@ -1,6 +1,6 @@
 
 
-
+# todo  clicken auf space A->suffix tab-> 81. eintrag xspf => dump ...
 # todo in files tab rename dedupgroups by filesize
 # todo after reducing erneute Dedup -> dump
 # todo hash button in toolbar
@@ -626,6 +626,7 @@ class Tab_All(QWidget):
         CNTDUPFILES  = 4
         CNTSIZE      = 5
         CNTWASTE     = 6
+        self.table.clear()
         # rows are changing ...
         self.table.setRowCount(len(self.dao.ALL)+RWCNT)
 
@@ -722,19 +723,21 @@ class Tab_SU(QWidget):
         CNTSIZE      = 5
         CNTWASTE     = 6
         # rows are changing ...
+        self.table.clear()
         self.table.setRowCount(len(self.dao.SU)+RWCNT)
+
 
         for i,s in enumerate(self.dao.SU):
           value = QTableWidgetItem(s[0])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
           self.table.setItem(i, 0, value)
-          value = QTItem(str(s[CNTFILE]),s[CNTFILE]  )
+          value = QTItem(str(s[CNTFILE]),s[CNTFILE] )
           value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
           self.table.setItem(i, 1, value)
-          value = QTItem(str(s[CNTDIR]), s[CNTDIR]    )
+          value = QTItem(str(s[CNTDIR]), s[CNTDIR] )
           value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
 
@@ -812,6 +815,7 @@ class Tab_YE(QWidget):
         CNTFILE = 1
         CNTDIR  = 2
         CNTSIZE = 3
+        self.table.clear()
         # rows are changing ...
         self.table.setRowCount(len(self.dao.YE)+RWCNT)
 
@@ -881,6 +885,7 @@ class Tab_YEMO(QWidget):
         CNTDIR  = 3
         CNTSIZE = 4
 
+        self.table.clear()
         # rows are changing ...
         self.table.setRowCount(len(self.dao.YEMO)+RWCNT)
 
@@ -954,7 +959,7 @@ class Tab_SUYE(QWidget):
         CNTDIR  = 3
         CNTSIZE = 4
 
-
+        self.table.clear()
         # rows are changing ...
         self.table.setRowCount(len(self.dao.SUYE)+RWCNT)
 
@@ -1030,7 +1035,7 @@ class Tab_YESU(QWidget):
         CNTDIR  = 3
         CNTSIZE = 4
 
-
+        self.table.clear()
         # rows are changing ...
         self.table.setRowCount(len(self.dao.YESU)+RWCNT)
 
@@ -1104,7 +1109,7 @@ class Tab_SUYEMO(QWidget):
         CNTDIR  = 4
         CNTSIZE = 5
 
-
+        self.table.clear()
         # suffix years month anzeigen
 
         # rows are changing ...
@@ -1183,6 +1188,7 @@ class Tab_YEMOSU(QWidget):
         CNTDIR  = 4
         CNTSIZE = 5
 
+        self.table.clear()
         # rows are changing ...
         self.table.setRowCount(len(self.dao.YEMOSU)+RWCNT)
 
@@ -1262,6 +1268,7 @@ class Tab_LE(QWidget):
         CNTDIR  = 2
         CNTSIZE = 3
 
+        self.table.clear()
         # rows are changing ...
         self.table.setRowCount(len(self.dao.LE)+RWCNT)
 
@@ -1739,38 +1746,14 @@ class Form(QWidget):
 
 
 daoA = Dao(DATA_SOURCE_A)
-#daoA.selection()
-#daoA.count_files()
-#daoA.dedub()
-
 daoB = Dao(DATA_SOURCE_B)
-#daoB.selection()
-#daoB.count_files()
 daoConfig = DaoConfig()
-#Dao.difference(daoA,daoB)
-# A=[3,2,1,7,7]
-# B=[3,2,1]
-# L,M,R = Dao.diff(A,B)
-# print('A=',A,'B=',B)
-# print('L=',L,'M=',M,'R=',R)
-#daoL,daoM,daoR = Dao.difference(daoA,daoB)
-#print('A=', len(daoA.A), 'B=', len(daoB.A), 'L=',len(daoL.A),'M=',len(daoM.A),'R=',len(daoR.A))
-
-
-
-
-
-#Dao.dedup(daoA)
 
 
 
 app = QApplication(sys.argv)
 screen = Form( daoA, daoB, daoConfig )
 screen.show()
-
-
-
-#R=daoA.dedub()
 
 
 sys.exit(app.exec_())
