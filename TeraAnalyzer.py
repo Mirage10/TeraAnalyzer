@@ -46,30 +46,42 @@ RWCNT       = 40
 MAXSIZE     = 4000000
 
 class Util():
+    @staticmethod
     def getkeysuffix(item):
         return item[SUFFIX]
+    @staticmethod
     def getkeyyear(item):
         return item[YEAR]
+    @staticmethod
     def getkeysuffixyear(item):
         return item[SUFFIX],item[YEAR]
+    @staticmethod
     def getkeyyearsuffix(item):
         return item[YEAR],item[SUFFIX]
+    @staticmethod
     def getkeyyearmonth(item):
         return item[YEAR],item[MONTH]
+    @staticmethod
     def getkeysuffixyearmonth(item):
         return item[SUFFIX],item[YEAR],item[MONTH]
+    @staticmethod
     def getkeyyearmonthsuffix(item):
         return item[YEAR],item[MONTH],item[SUFFIX]
+    @staticmethod
     def getkeylevel(item):
         return int(item[LEVEL])
+    @staticmethod
     def getkeysize(item):
         return int(item[SIZE])
+    @staticmethod
     def getkeyhash(item):
         return item[HASH]
+    @staticmethod
     def getkey2(item):
         return item[2]
 
     # format with intermediate points for large numbers...
+    @staticmethod
     def frmt(numstr):
         numstr=str(numstr)
         ret=''
@@ -104,6 +116,7 @@ class DaoConfig():
 
 
 class Api():
+    @staticmethod
     def difference(daoa, daob):
          # dient nur als Prototyp ...
         daol       =Dao()
@@ -234,7 +247,7 @@ class Api():
         print('ab: ',len(daoab.A))
         return daol, daom, daor, daoab, daodyaddiff
 
-
+    @staticmethod
     def count_files(dao, reduc=False):
         if reduc:
           # redundante Eintraege zwischenspeichern ...
@@ -333,7 +346,7 @@ class Api():
         print('Das Ergebnis')
 
 
-
+    @staticmethod
     def selection(dao):
           print('Beginn Selektion')
           dao.A=[]
@@ -361,27 +374,35 @@ class Api():
 
           print('Ende Selektion')
 
+    @staticmethod
     def filter_all(dao):
         dao.FIL=[ i for i, a in enumerate (dao.A)]
-
+    @staticmethod
     def filter_suffix(dao,suffix):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix]
+    @staticmethod
     def filter_year(dao,year):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year]
+    @staticmethod
     def filter_year_month(dao,year,month):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[MONTH] == month  ]
+    @staticmethod
     def filter_suffix_year(dao,suffix,year):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix and a[YEAR] == year  ]
+    @staticmethod
     def filter_year_suffix(dao,year, suffix):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[SUFFIX] == suffix  ]
+    @staticmethod
     def filter_suffix_year_month(dao, suffix, year, month):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month  ]
+    @staticmethod
     def filter_year_month_suffix(dao, year, month, suffix):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix  ]
+    @staticmethod
     def filter_level(dao,level):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[LEVEL] == level]
 
-
+    @staticmethod
     def dedub(dao):
 
         # Achtung: Auf A keine Sortierung machen. Alle Pointer erwarten die anfangs gemachte Reihenfolge ...
