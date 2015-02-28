@@ -1,6 +1,6 @@
 
 
-
+# todo timestamps in der filelist haben inkonsistente laenge
 # todo in files tab rename dedupgroups by filesize
 # todo hash button in toolbar
 
@@ -1353,7 +1353,17 @@ class Files(QTableWidget):
           super(Files, self).__init__(parent)
           self.dao = dao
           self.itemClicked.connect(self.on_file_clicked)
+          # define context menu ...
+          self.setContextMenuPolicy(Qt.CustomContextMenu)
+          self.customContextMenuRequested.connect(self.popup)
 
+    # pops up the context menu ...
+    def popup(self, pos):
+        for i in self.selectionModel().selection().indexes():
+            print( i.row(), i.column())
+        menu = QMenu()
+        quitAction = menu.addAction("Quit")
+        action = menu.exec_(QCursor.pos() )
 
     def display(self):
 
@@ -1527,30 +1537,23 @@ class Form(QWidget):
         action_Indexing       = QAction('Indexing', self)
         action_DedupSpace     = QAction('Dedup', self)
         action_reduce         = QAction('Reduce', self)
+        action_calculate      = QAction('Calculate', self)
         action_expand         = QAction('Expand', self)
-        action_trash          = QAction('Calculate', self)
         action_advanced       = QAction('Advanced', self)
         action_Indexing.triggered.connect(self.submitIndexing)
         action_DedupSpace.triggered.connect(self.submitDedupSapce)
-
         action_reduce.triggered.connect(self.submitReduce)
-        action_expand.triggered.connect(self.submitExpand)
+        action_calculate.triggered.connect(self.submitCalculate)
         action_advanced.triggered.connect(self.submitAdvanced)
-
-
-#       operations.addAction(action_DedupSpace)
-#       operations.addAction(action_indexing)
-#       operations.addAction(action_reduceB)
-#       operations.addAction(action_trash)
-
+        action_expand.triggered.connect(self.submitExpand)
 
 
         toolbar = QToolBar()
         toolbar.addAction(action_Indexing)
         toolbar.addAction(action_DedupSpace)
         toolbar.addAction(action_reduce)
+        toolbar.addAction(action_calculate)
         toolbar.addAction(action_expand)
-        toolbar.addAction(action_trash)
         toolbar.addAction(action_advanced)
 
 
@@ -1709,18 +1712,8 @@ class Form(QWidget):
             self.matrixB.display()
             print('End Reduce B')
 
-    def submitExpand(self):
-            print('Begin Expand A ')
-            Api.count_files(self.daoA,False)
-            self.matrixA.display()
-            print('End Expand A')
-            print('Begin Expand B')
-            Api.count_files(self.daoB,False)
-            self.matrixB.display()
-            print('End Expand B')
-
-    def submitAdvanced(self):
-            print('Begin Advanced ')
+    def submitCalculate(self):
+            print('Begin Calculate ')
             daol, daom, daor, daoab, daodydiff = Api.difference(self.daoA, self.daoB)
 
             Api.count_files(daol,False)
@@ -1737,13 +1730,26 @@ class Form(QWidget):
             self.matrixDyadDiff.display()
 
 
+            print('Ende Calculate ')
+
+    def submitAdvanced(self):
+            print('Begin Advanced ')
+
             print('Ende Advanced ')
         #if name == "":
             #QMessageBox.information( self, "Empty Field",
             #                        "Please enter a name and address.")
 
 
-
+    def submitExpand(self):
+            print('Begin Expand A ')
+            Api.count_files(self.daoA,False)
+            self.matrixA.display()
+            print('End Expand A')
+            print('Begin Expand B')
+            Api.count_files(self.daoB,False)
+            self.matrixB.display()
+            print('End Expand B')
 
 
 
