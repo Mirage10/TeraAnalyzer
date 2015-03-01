@@ -1449,13 +1449,34 @@ class Files(QTableWidget):
         self.resizeColumnToContents(2)
         #self.show()
 
+    def get_url_stream(self,file):
+        with open(file,'r') as f:
+           text = f.read()
+           start= text.find("<location>")       # zwischen <location>http:// ... </location> steht der http stream link
+           end  = text.find("</location")
+           start+=10                            # das location tag ueberspreingen (10 Zeichen)
+           return text[start:end]
+
+
+
 
     def on_file_clicked(self, item):
 
         index = item.data(DATCOMP)
         command=''
+
+        if item.column() == 0 and item.text() == 'xspf':
+            print(item.text())
+
         if item.column() == 1: # click auf file
-          command = 'xdg-open '+'\''+item.text()+'\''
+          # falls auf ein xfpf stream geclickt wird, soll derselbige gerecorded werden ...
+          ss=str(item.text())
+          if ss.endswith('xspf'):
+            #  gnome-terminal --command="streamripper http://91.250.77.9:8070 -u gaudi"
+            command = 'gnome-terminal --command=\'streamripper ' + self.get_url_stream(item.text()) + ' -u gaudi\''
+
+
+          #command = 'xdg-open '+'\''+item.text()+'\''
           # das File muss in Hochkommata stehen, da der finename ein blank enthalten kann
         if item.column() == 2: # click auf filename
           # Achtung: data enthaelt  filename incl path, damit nemo in dem Directory auf das File positioniert ...
