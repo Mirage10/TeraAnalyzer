@@ -1,6 +1,4 @@
 
-
-# todo timestamps in der filelist haben inkonsistente laenge
 # todo in files tab rename dedupgroups by filesize
 # todo hash button in toolbar
 
@@ -79,6 +77,16 @@ class Util():
     @staticmethod
     def getkey2(item):
         return item[2]
+
+    @staticmethod
+    def get_url_stream(file):
+        # aus einem xspf-file die http Adresse fuer einen musicstream ermitteln ...
+        with open(file,'r') as f:
+           text = f.read()
+           start= text.find("<location>")       # zwischen <location>http:// ... </location> steht der http stream link
+           end  = text.find("</location")
+           start+=10                            # das location tag ueberspreingen (10 Zeichen)
+           return text[start:end]
 
     # format with intermediate points for large numbers...
     @staticmethod
@@ -361,7 +369,7 @@ class Api():
                                str(os.path.dirname(a)),
                                str(os.path.basename(a)),
                                str(os.path.splitext(a)[1][1:].lower()),
-                               str(os.stat(a).st_mtime),
+                               int(round(os.stat(a).st_mtime)),
                                str(date.fromtimestamp(os.stat(a).st_mtime).year),
                                str('0'+str(date.fromtimestamp(os.stat(a).st_mtime).month))[-2:],
                                str(date.fromtimestamp(os.stat(a).st_mtime).year)+' '+str(date.fromtimestamp(os.stat(a).st_mtime).month),
@@ -596,7 +604,7 @@ BRUSH_TARGET     = QBrush(QColor(255, 235, 235))  # pastell rot
 BRUSH_SIZE       = QBrush(QColor(229, 249, 255))  # pastell blau
 BRUSH_FILE       = QBrush(QColor(255, 242, 229))  # pastell orange
 BRUSH_DIRECTORY  = QBrush(QColor(242, 255, 229))  # pastell gruen
-
+BRUSH_FILENAME   = QBrush(QColor(255, 255, 240))  # pastell gelb
 
 # QTItem ueberschreibt den Vergleichsoperator <=, damit die Sortierung der Spalten mit Integer richtig funktioniert;
 # ansonsten werden die Integers nach der lexikographischen Reifenfolge sortiert ...
@@ -1403,7 +1411,7 @@ class Files(QTableWidget):
           value.setText(row[SUFFIX])
           self.setItem(i, 0, value) # spalte suffix
           value = QTableWidgetItem(row[FILE])
-          value.setBackground(BRUSH_FILE)
+          value.setBackground(BRUSH_FILENAME)
           self.setItem(i, 1, value) # spalte file
           value = QTableWidgetItem(row[NAME])
           value.setData(DATCOMP,fil)   # bei filename wird intern auch file gespeichert zwecks Positionierung in nemo
@@ -1420,8 +1428,17 @@ class Files(QTableWidget):
           value = QTableWidgetItem(row[MONTH])
           self.setItem(i, 5, value)
 
-          value = QTableWidgetItem(row[TIMESTAMP])
+          # Achtung: timestamps muessen nach integer sortiert werden und nich lexikographisch ...
+          value = QTItem(str(row[TIMESTAMP]), row[TIMESTAMP])
+          value.setTextAlignment(Qt.AlignRight)
           self.setItem(i, 6, value)
+
+
+          #value = QTableWidgetItem(str(row[TIMESTAMP]))
+          #self.setItem(i, 6, value)
+
+
+
 
           value = QTItem(str(row[LEVEL]), row[LEVEL])
           value.setTextAlignment(Qt.AlignRight)
@@ -1449,13 +1466,7 @@ class Files(QTableWidget):
         self.resizeColumnToContents(2)
         #self.show()
 
-    def get_url_stream(self,file):
-        with open(file,'r') as f:
-           text = f.read()
-           start= text.find("<location>")       # zwischen <location>http:// ... </location> steht der http stream link
-           end  = text.find("</location")
-           start+=10                            # das location tag ueberspreingen (10 Zeichen)
-           return text[start:end]
+
 
 
 
@@ -1473,7 +1484,7 @@ class Files(QTableWidget):
           ss=str(item.text())
           if ss.endswith('xspf'):
             #  gnome-terminal --command="streamripper http://91.250.77.9:8070 -u gaudi"
-            command = 'gnome-terminal --command=\'streamripper ' + self.get_url_stream(item.text()) + ' -u gaudi\''
+            command = 'gnome-terminal --command=\'streamripper ' + Util.get_url_stream(item.text()) + ' -u gaudi\''
 
 
           #command = 'xdg-open '+'\''+item.text()+'\''
