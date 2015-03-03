@@ -1,4 +1,5 @@
 
+# todo Logik einbauen: falls hash bereits errechnet, dann nicht nochmal berechnen/ueberschreiben
 # todo in files tab rename dedupgroups by filesize
 # todo hash button in toolbar
 
