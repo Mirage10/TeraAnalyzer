@@ -1,7 +1,5 @@
 
 # todo: /home   und /hime/user/dropbox   -> in der Schnittmengenbildung B-A und A-B sind Dateien, die dort nicht hingehoeren -> Inkonsistenz
-# todo: in Files die Sortierung auf Size funktioniert nicht -> integerbasierte Sortierung ist erstrebenswert
-# todo: Sortierung auf leve geschieht derzeit noch lexicographisch
 # todo Logik einbauen: falls hash bereits errechnet, dann nicht nochmal berechnen/ueberschreiben
 # todo in files tab rename dedupgroups by filesize
 # todo hash button in toolbar
@@ -717,16 +715,12 @@ class Tab_All(QWidget):
 
 
 
-          #table.setSortingEnabled(True)
-
     def on_kpi_clicked(self,item):
-        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files_all.setSortingEnabled(False)
         index = item.data(DATCOMP)
         s = self.dao.ALL[index]
         Api.filter_all(self.dao)
         self.files_all.display()
-        #self.files.setSortingEnabled(True)
+
 
 class Tab_SU(QWidget):
     def __init__(self, dao, parent=None):
@@ -814,17 +808,12 @@ class Tab_SU(QWidget):
 
 
 
-        #table.setSortingEnabled(True)
-
 
     def on_kpi_clicked(self,item):
-        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files_su.setSortingEnabled(False)
         index = item.data(DATCOMP)
         s = self.dao.SU[index]
         Api.filter_suffix(self.dao,s[0])
         self.files_su.display()
-        #self.files.setSortingEnabled(True)
 
 class Tab_YE(QWidget):
     def __init__(self, dao, parent=None):
@@ -884,13 +873,11 @@ class Tab_YE(QWidget):
           self.table.setItem(i, 3, value)
 
     def on_kpi_clicked(self,item):
-        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files_ye.setSortingEnabled(False)
         index = item.data(DATCOMP)
         s = self.dao.YE[index]
         Api.filter_year(self.dao,s[0])
         self.files_ye.display()
-        #self.files.setSortingEnabled(True)
+
 
 class Tab_YEMO(QWidget):
     def __init__(self, dao, parent=None):
@@ -959,13 +946,11 @@ class Tab_YEMO(QWidget):
           self.table.setItem(i, 4, value)
 
     def on_kpi_clicked(self,item):
-        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files_yemo.setSortingEnabled(False)
         index = item.data(DATCOMP)
         s = self.dao.YEMO[index]
         Api.filter_year_month(self.dao,s[0],s[1])
         self.files_yemo.display()
-        #self.files.setSortingEnabled(True)
+
 
 class Tab_SUYE(QWidget):
     def __init__(self, dao, parent=None):
@@ -1008,7 +993,6 @@ class Tab_SUYE(QWidget):
 
         for i,s in enumerate(self.dao.SUYE):
           value = QTableWidgetItem(s[0])
-          # self.files.setSortingEnabled(False)
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
           self.table.setItem(i, 0, value)
@@ -1035,13 +1019,11 @@ class Tab_SUYE(QWidget):
 
 
     def on_kpi_clicked(self,item):
-        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files_suye.setSortingEnabled(False)
         index = item.data(DATCOMP)
         s = self.dao.SUYE[index]
         Api.filter_suffix_year(self.dao,s[0],s[1])
         self.files_suye.display()
-        #self.files.setSortingEnabled(True)
+
 
 
 
@@ -1111,13 +1093,11 @@ class Tab_YESU(QWidget):
 
 
     def on_kpi_clicked(self,item):
-        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files_yesu.setSortingEnabled(False)
         index = item.data(DATCOMP)
         s = self.dao.YESU[index]
         Api.filter_year_suffix(self.dao,s[0],s[1])
         self.files_yesu.display()
-        #self.files.setSortingEnabled(True)
+
 
 
 class Tab_SUYEMO(QWidget):
@@ -1191,13 +1171,11 @@ class Tab_SUYEMO(QWidget):
           self.table.setItem(i, 5, value)
 
     def on_kpi_clicked(self,item):
-        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files_suyemo.setSortingEnabled(False)
         index = item.data(DATCOMP)
         s = self.dao.SUYEMO[index]
         Api.filter_suffix_year_month(self.dao,s[0],s[1],s[2])
         self.files_suyemo.display()
-        #self.files.setSortingEnabled(True)
+
 
 class Tab_YEMOSU(QWidget):
     def __init__(self, dao, parent=None):
@@ -1269,13 +1247,11 @@ class Tab_YEMOSU(QWidget):
           self.table.setItem(i, 5, value)
 
     def on_kpi_clicked(self,item):
-        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files_yemosu.setSortingEnabled(False)
         index = item.data(DATCOMP)
         s = self.dao.YEMOSU[index]
         Api.filter_year_month_suffix(self.dao,s[0],s[1],s[2])
         self.files_yemosu.display()
-        #self.files.setSortingEnabled(True)
+
 
 
 class Tab_LE(QWidget):
@@ -1342,13 +1318,11 @@ class Tab_LE(QWidget):
           self.table.setItem(i, 3, value)
 
     def on_kpi_clicked(self,item):
-        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files_le.setSortingEnabled(False)
         index = item.data(DATCOMP)
         s = self.dao.LE[index]
         Api.filter_level(self.dao,s[0])
         self.files_le.display()
-        #self.files.setSortingEnabled(True)
+
 
 
 
@@ -1510,8 +1484,6 @@ class Files(QTableView):
         self.setSortingEnabled(True)
         # spalte filename vollständig anzeigen ...
         self.resizeColumnToContents(2)
-        #self.show()
-
 
 
 
