@@ -1,6 +1,7 @@
 
-
+# todo: /home   und /hime/user/dropbox   -> in der Schnittmengenbildung B-A und A-B sind Dateien, die dort nicht hingehoeren -> Inkonsistenz
 # todo: in Files die Sortierung auf Size funktioniert nicht -> integerbasierte Sortierung ist erstrebenswert
+# todo: Sortierung auf leve geschieht derzeit noch lexicographisch
 # todo Logik einbauen: falls hash bereits errechnet, dann nicht nochmal berechnen/ueberschreiben
 # todo in files tab rename dedupgroups by filesize
 # todo hash button in toolbar
@@ -621,18 +622,6 @@ class QTItem(QTableWidgetItem):
     def __lt__(self, other):
         return self.sortKey < other.sortKey
 
-
-# QTItem ueberschreibt den Vergleichsoperator <=, damit die Sortierung der Spalten mit Integer richtig funktioniert;
-# ansonsten werden die Integers nach der lexikographischen Reifenfolge sortiert ...
-class QTSItem(QStandardItem):
-    def __init__(self, text, sortKey):
-        #call custom constructor with UserType item type
-        QStandardItem.__init__(self, text)   #, QStandardItem.UserType
-        self.sortKey = sortKey
-
-    #Qt uses a simple < check for sorting items, override this to use the sortKey
-    def __lt__(self, other):
-        return self.sortKey < other.sortKey
 
 
 
@@ -1409,13 +1398,29 @@ class ProxyModel(QSortFilterProxyModel):
         super(ProxyModel, self).__init__(parent)
 
     def lessThan(self, left, right):
-        leftData = self.sourceModel().data(left)
-        rightData = self.sourceModel().data(right)
 
-        try:
-            return int(leftData) < int(rightData)
-        except ValueError:
-            return leftData < rightData
+
+        col = left.column()
+
+        leftdata  = left.data()
+        rightdata = right.data()
+        if col == 9:
+          # size ...
+          leftdata  = int(str(left.data()).replace('.',''))
+          rightdata = int(str(right.data()).replace('.',''))
+        if col == 6 or col == 7:
+          # timestamp, level ...
+          leftdata  = int(left.data())
+          rightdata = int(right.data())
+        if col == 8:
+          # dubgroup ...
+           if left.data() == '': leftdata = 0
+           else: leftdata = int(left.data())
+           if right.data() == '': rightdata = 0
+           else: rightdata = int(right.data())
+
+        return leftdata < rightdata
+
 
 
 class Files(QTableView):
@@ -1427,6 +1432,7 @@ class Files(QTableView):
           # define context menu ...
           self.setContextMenuPolicy(Qt.CustomContextMenu)
           self.customContextMenuRequested.connect(self.popup)
+
 
     # pops up the context menu ...
     def popup(self, pos):
@@ -1443,6 +1449,7 @@ class Files(QTableView):
         self.proxymodel = ProxyModel()
         self.model =  QStandardItemModel(len(self.dao.FIL), 10, self)
         self.proxymodel.setSourceModel(self.model)
+        self.proxymodel.setDynamicSortFilter(False)
         self.setModel(self.proxymodel)
 
 
@@ -1450,15 +1457,9 @@ class Files(QTableView):
         #selection.selectionChanged.connect(self.handleSelectionChanged)
 
 
-
-        #self.setColumnCount(10)
-        #self.setRowCount(len(self.dao.FIL))
-        #self.clear()
-        #self.clearContents()
-        #self.hide()
         print('clickBegin', len(self.dao.FIL))
         # Zeilen Aendern sich ...
-        #self.setRowCount(len(self.dao.FIL))
+
 
         for i, fil in enumerate(self.dao.FIL):
           row=self.dao.A[fil]
@@ -1469,46 +1470,36 @@ class Files(QTableView):
           value.setBackground(BRUSH_FILENAME)
           self.model.setItem(i, 1, value) # spalte file
           value = QStandardItem(row[NAME])
-          #value.setData(DATCOMP,fil)   # bei filename wird intern auch file gespeichert zwecks Positionierung in nemo
           value.setBackground(BRUSH_FILE)
           self.model.setItem(i, 2, value) # spalte filename
           value = QStandardItem(str(row[DIRECTORY]))
-          #value.setData(DATCOMP,fil)   # beim Directory wird intern auch file gespeichert zwecks Positionierung in nemo
           value.setBackground(BRUSH_DIRECTORY)
           self.model.setItem(i, 3, value) # spalte directory
-
 
           value = QStandardItem(row[YEAR])
           self.model.setItem(i, 4, value)
           value = QStandardItem(row[MONTH])
           self.model.setItem(i, 5, value)
 
-          # Achtung: timestamps muessen nach integer sortiert werden und nich lexikographisch ...
-          value = QTSItem(str(row[TIMESTAMP]), row[TIMESTAMP])
+          # Achtung: timestamps muessen nach integer sortiert werden und nicht lexikographisch ...
+          value = QStandardItem(str(row[TIMESTAMP]))
           value.setTextAlignment(Qt.AlignRight)
           self.model.setItem(i, 6, value)
-        #self.setModel(self.model)
-
-          #value = QTableWidgetItem(str(row[TIMESTAMP]))
-          #self.setItem(i, 6, value)
 
 
-
-
-          value = QTSItem(str(row[LEVEL]), row[LEVEL])
+          value = QStandardItem(str(row[LEVEL]))
           value.setTextAlignment(Qt.AlignRight)
           self.model.setItem(i, 7, value)
 
-          #value = QTableWidgetItem(row[DUBGROUP])
           if row[DUBGROUP] == 0:
               stri = ''
           else:
               stri = str(row[DUBGROUP])
-          value = QTSItem(stri, row[DUBGROUP])
+          value = QStandardItem(stri)
           value.setTextAlignment(Qt.AlignRight)
           self.model.setItem(i, 8, value)
 
-          value = QTSItem(Util.frmt(row[SIZE]), row[SIZE])
+          value = QStandardItem(Util.frmt(row[SIZE]))
           value.setTextAlignment(Qt.AlignRight)
           self.model.setItem(i, 9, value)
 
@@ -1791,6 +1782,7 @@ class Form(QWidget):
 
 
     def submitIndexing(self):
+        print('Begin Indexing')
         Api.selection(daoA)
         Api.count_files(self.daoA)
         self.matrixA.display()
@@ -1798,7 +1790,7 @@ class Form(QWidget):
         Api.selection(daoB)
         Api.count_files(self.daoB)
         self.matrixB.display()
-        print('hallo')
+        print('End Indexing')
 
     def submitDedupSapce(self):
             print('Begin Dedup A ')
