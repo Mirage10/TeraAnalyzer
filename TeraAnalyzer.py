@@ -1,4 +1,6 @@
 
+
+# todo: in Files die Sortierung auf Size funktioniert nicht -> integerbasierte Sortierung ist erstrebenswert
 # todo Logik einbauen: falls hash bereits errechnet, dann nicht nochmal berechnen/ueberschreiben
 # todo in files tab rename dedupgroups by filesize
 # todo hash button in toolbar
@@ -618,6 +620,25 @@ class QTItem(QTableWidgetItem):
     #Qt uses a simple < check for sorting items, override this to use the sortKey
     def __lt__(self, other):
         return self.sortKey < other.sortKey
+
+
+# QTItem ueberschreibt den Vergleichsoperator <=, damit die Sortierung der Spalten mit Integer richtig funktioniert;
+# ansonsten werden die Integers nach der lexikographischen Reifenfolge sortiert ...
+class QTSItem(QStandardItem):
+    def __init__(self, text, sortKey):
+        #call custom constructor with UserType item type
+        QStandardItem.__init__(self, text)   #, QStandardItem.UserType
+        self.sortKey = sortKey
+
+    #Qt uses a simple < check for sorting items, override this to use the sortKey
+    def __lt__(self, other):
+        return self.sortKey < other.sortKey
+
+
+
+
+
+
 
 
 class Tab_All(QWidget):
@@ -1378,11 +1399,31 @@ class Matrix(QTabWidget):
         self.tab_yemosu.set_content()
         self.tab_le.set_content()
 
-class Files(QTableWidget):
+
+
+
+
+class ProxyModel(QSortFilterProxyModel):
+
+    def __init__(self, parent=None):
+        super(ProxyModel, self).__init__(parent)
+
+    def lessThan(self, left, right):
+        leftData = self.sourceModel().data(left)
+        rightData = self.sourceModel().data(right)
+
+        try:
+            return int(leftData) < int(rightData)
+        except ValueError:
+            return leftData < rightData
+
+
+class Files(QTableView):
     def __init__(self, dao, parent=None):
           super(Files, self).__init__(parent)
           self.dao = dao
-          self.itemClicked.connect(self.on_file_clicked)
+
+          self.clicked.connect(self.on_file_clicked)   #on_file_clicked
           # define context menu ...
           self.setContextMenuPolicy(Qt.CustomContextMenu)
           self.customContextMenuRequested.connect(self.popup)
@@ -1395,45 +1436,58 @@ class Files(QTableWidget):
         quitAction = menu.addAction("Quit")
         action = menu.exec_(QCursor.pos() )
 
+
+
     def display(self):
 
-        self.setColumnCount(10)
-        self.setRowCount(len(self.dao.FIL))
-        self.clear()
-        self.clearContents()
+        self.proxymodel = ProxyModel()
+        self.model =  QStandardItemModel(len(self.dao.FIL), 10, self)
+        self.proxymodel.setSourceModel(self.model)
+        self.setModel(self.proxymodel)
+
+
+        #selection = self.selectionModel()
+        #selection.selectionChanged.connect(self.handleSelectionChanged)
+
+
+
+        #self.setColumnCount(10)
+        #self.setRowCount(len(self.dao.FIL))
+        #self.clear()
+        #self.clearContents()
         #self.hide()
         print('clickBegin', len(self.dao.FIL))
         # Zeilen Aendern sich ...
-        self.setRowCount(len(self.dao.FIL))
+        #self.setRowCount(len(self.dao.FIL))
 
         for i, fil in enumerate(self.dao.FIL):
           row=self.dao.A[fil]
-          value = QTableWidgetItem(row[SUFFIX])
+          value = QStandardItem(row[SUFFIX])
           value.setText(row[SUFFIX])
-          self.setItem(i, 0, value) # spalte suffix
-          value = QTableWidgetItem(row[FILE])
+          self.model.setItem(i, 0, value) # spalte suffix
+          value = QStandardItem(row[FILE])
           value.setBackground(BRUSH_FILENAME)
-          self.setItem(i, 1, value) # spalte file
-          value = QTableWidgetItem(row[NAME])
-          value.setData(DATCOMP,fil)   # bei filename wird intern auch file gespeichert zwecks Positionierung in nemo
+          self.model.setItem(i, 1, value) # spalte file
+          value = QStandardItem(row[NAME])
+          #value.setData(DATCOMP,fil)   # bei filename wird intern auch file gespeichert zwecks Positionierung in nemo
           value.setBackground(BRUSH_FILE)
-          self.setItem(i, 2, value) # spalte filename
-          value = QTableWidgetItem(str(row[DIRECTORY]))
-          value.setData(DATCOMP,fil)   # beim Directory wird intern auch file gespeichert zwecks Positionierung in nemo
+          self.model.setItem(i, 2, value) # spalte filename
+          value = QStandardItem(str(row[DIRECTORY]))
+          #value.setData(DATCOMP,fil)   # beim Directory wird intern auch file gespeichert zwecks Positionierung in nemo
           value.setBackground(BRUSH_DIRECTORY)
-          self.setItem(i, 3, value) # spalte directory
+          self.model.setItem(i, 3, value) # spalte directory
 
 
-          value = QTableWidgetItem(row[YEAR])
-          self.setItem(i, 4, value)
-          value = QTableWidgetItem(row[MONTH])
-          self.setItem(i, 5, value)
+          value = QStandardItem(row[YEAR])
+          self.model.setItem(i, 4, value)
+          value = QStandardItem(row[MONTH])
+          self.model.setItem(i, 5, value)
 
           # Achtung: timestamps muessen nach integer sortiert werden und nich lexikographisch ...
-          value = QTItem(str(row[TIMESTAMP]), row[TIMESTAMP])
+          value = QTSItem(str(row[TIMESTAMP]), row[TIMESTAMP])
           value.setTextAlignment(Qt.AlignRight)
-          self.setItem(i, 6, value)
-
+          self.model.setItem(i, 6, value)
+        #self.setModel(self.model)
 
           #value = QTableWidgetItem(str(row[TIMESTAMP]))
           #self.setItem(i, 6, value)
@@ -1441,26 +1495,26 @@ class Files(QTableWidget):
 
 
 
-          value = QTItem(str(row[LEVEL]), row[LEVEL])
+          value = QTSItem(str(row[LEVEL]), row[LEVEL])
           value.setTextAlignment(Qt.AlignRight)
-          self.setItem(i, 7, value)
+          self.model.setItem(i, 7, value)
 
           #value = QTableWidgetItem(row[DUBGROUP])
           if row[DUBGROUP] == 0:
               stri = ''
           else:
               stri = str(row[DUBGROUP])
-          value = QTItem(stri, row[DUBGROUP])
+          value = QTSItem(stri, row[DUBGROUP])
           value.setTextAlignment(Qt.AlignRight)
-          self.setItem(i, 8, value)
+          self.model.setItem(i, 8, value)
 
-          value = QTItem(Util.frmt(row[SIZE]), row[SIZE])
+          value = QTSItem(Util.frmt(row[SIZE]), row[SIZE])
           value.setTextAlignment(Qt.AlignRight)
-          self.setItem(i, 9, value)
+          self.model.setItem(i, 9, value)
 
 
         # Spaltennamen der Filetabelle setzen
-        self.setHorizontalHeaderLabels( ['suffix','file', 'name', 'directory', 'year','month','timestamp' , 'level', 'dubgroup' ,'size'])
+        self.model.setHorizontalHeaderLabels( ['suffix','file', 'name', 'directory', 'year','month','timestamp' , 'level', 'dubgroup' ,'size'])
         print('clickEND')
         self.setSortingEnabled(True)
         # spalte filename vollständig anzeigen ...
@@ -1474,29 +1528,34 @@ class Files(QTableWidget):
 
     def on_file_clicked(self, item):
 
-        index = item.data(DATCOMP)
+        index_suffix    = self.proxymodel.index(item.row(),0)
+        index_file      = self.proxymodel.index(item.row(),1)
+        index_name      = self.proxymodel.index(item.row(),2)
+        index_directory = self.proxymodel.index(item.row(),3)
+
+        suffix     = self.proxymodel.data(index_suffix)
+        file       = self.proxymodel.data(index_file)
+        name       = self.proxymodel.data(index_name)
+        directory  = self.proxymodel.data(index_directory)
+
+
         command=''
 
-        if item.column() == 0 and item.text() == 'xspf':
-            print(item.text())
 
         if item.column() == 1: # click auf file
           # falls auf ein xfpf stream geclickt wird, soll derselbige gerecorded werden ...
-          ss=str(item.text())
+          ss=file
           if ss.endswith('xspf'):
             #  gnome-terminal --command="streamripper http://91.250.77.9:8070 -u gaudi"
-            command = 'gnome-terminal --command=\'streamripper ' + Util.get_url_stream(item.text()) + ' -u gaudi\''
-
+            command = 'gnome-terminal --command=\'streamripper ' + Util.get_url_stream(ss) + ' -u gaudi\''
 
           #command = 'xdg-open '+'\''+item.text()+'\''
           # das File muss in Hochkommata stehen, da der finename ein blank enthalten kann
         if item.column() == 2: # click auf filename
-          # Achtung: data enthaelt  filename incl path, damit nemo in dem Directory auf das File positioniert ...
-          command = 'xdg-open '+'\''+self.dao.A[index][FILE]+'\''
+          command = 'xdg-open '+'\''+file+'\''
           # das Directory muss in Hochkommata stehen, da der finename ein blank enthalten kann
         if item.column() == 3: # click auf directory
-          # Achtung: data enthaelt  filename incl path, damit nemo in dem Directory auf das File positioniert ...
-          command = 'nemo '+'\''+self.dao.A[index][FILE]+'\''
+          command = 'nemo '+'\''+file+'\''
 
         # File oder Ordner anzeigen mit dem richtigen Tool ...
         if command: os.system(command)
