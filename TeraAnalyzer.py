@@ -381,7 +381,7 @@ class Api():
                                NOCLUSTER,       #duplicate cluster, default = -1
                                0] )             #duplicate   (as waste)  originaleintrag bleibt erhalten und ist ein duplicate
 
-
+          #dao.A.sort(key=Util.getkeysuffix) # fuehrt nicht zu sortiertem FIL
           print('Ende Selektion')
 
     @staticmethod
@@ -1388,7 +1388,7 @@ class ProxyModel(QSortFilterProxyModel):
           rightdata = int(right.data())
         if col == 8:
           # dubgroup ...
-           if left.data() == '': leftdata = 0
+           if left.data() == '': leftdata = 0    # dedoupgroup ist initial, daher muss die 0 direkt bestimmt werden ...
            else: leftdata = int(left.data())
            if right.data() == '': rightdata = 0
            else: rightdata = int(right.data())
@@ -1407,6 +1407,7 @@ class Files(QTableView):
           self.setContextMenuPolicy(Qt.CustomContextMenu)
           self.customContextMenuRequested.connect(self.popup)
 
+          self.sortByColumn(0, Qt.AscendingOrder)
 
     # pops up the context menu ...
     def popup(self, pos):
