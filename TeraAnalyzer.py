@@ -1,4 +1,4 @@
-
+# todo setvalue fuer QStandarditem  (text wird zweimal gesetzt ...
 # todo: /home   und /hime/user/dropbox   -> in der Schnittmengenbildung B-A und A-B sind Dateien, die dort nicht hingehoeren -> Inkonsistenz
 # todo Logik einbauen: falls hash bereits errechnet, dann nicht nochmal berechnen/ueberschreiben
 # todo in files tab rename dedupgroups by filesize
@@ -384,37 +384,46 @@ class Api():
                                NOCLUSTER,       #duplicate cluster, default = -1
                                0] )             #duplicate   (as waste)  originaleintrag bleibt erhalten und ist ein duplicate
 
-          #dao.A.sort(key=Util.getkeysuffix) # fuehrt nicht zu sortiertem FIL
           print('Ende Selektion')
 
     @staticmethod
     def filter_all(dao):
         dao.FIL=[ i for i, a in enumerate (dao.A)]
+        dao.DIR = list({a[DIRECTORY] for a in dao.A})
+
 
     @staticmethod
     def filter_suffix(dao,suffix):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix]
+        dao.DIR = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix})
     @staticmethod
     def filter_year(dao,year):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year]
+        dao.DIR = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year})
     @staticmethod
     def filter_year_month(dao,year,month):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[MONTH] == month  ]
+        dao.DIR = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year and a[MONTH] == month})
     @staticmethod
     def filter_suffix_year(dao,suffix,year):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix and a[YEAR] == year  ]
+        dao.DIR = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix and a[YEAR] == year})
     @staticmethod
     def filter_year_suffix(dao,year, suffix):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[SUFFIX] == suffix  ]
+        dao.DIR = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year and a[SUFFIX] == suffix})
     @staticmethod
     def filter_suffix_year_month(dao, suffix, year, month):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month  ]
+        dao.DIR = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month})
     @staticmethod
     def filter_year_month_suffix(dao, year, month, suffix):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix  ]
+        dao.DIR = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix})
     @staticmethod
     def filter_level(dao,level):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[LEVEL] == level]
+        dao.DIR = list({a[DIRECTORY] for a in dao.A if a[LEVEL] == level})
 
     @staticmethod
     def dedub(dao):
@@ -723,7 +732,11 @@ class Tab_All(QWidget):
         index = item.data(DATCOMP)
         s = self.dao.ALL[index]
         Api.filter_all(self.dao)
-        self.files_all.display()
+        if item.column() == 1:
+          self.files_all.display()
+        if item.column() == 2:
+          self.files_all.displayDir()
+
 
 
 class Tab_SU(QWidget):
@@ -817,9 +830,11 @@ class Tab_SU(QWidget):
         index = item.data(DATCOMP)
         print(item.column())
         s = self.dao.SU[index]
+        Api.filter_suffix(self.dao,s[0])
         if item.column() == 1:
-          Api.filter_suffix(self.dao,s[0])
           self.files_su.display()
+        if item.column() == 2:
+          self.files_su.displayDir()
 
 class Tab_YE(QWidget):
     def __init__(self, dao, parent=None):
@@ -882,7 +897,11 @@ class Tab_YE(QWidget):
         index = item.data(DATCOMP)
         s = self.dao.YE[index]
         Api.filter_year(self.dao,s[0])
-        self.files_ye.display()
+        if item.column() == 1:
+          self.files_ye.display()
+        if item.column() == 2:
+          self.files_ye.displayDir()
+
 
 
 class Tab_YEMO(QWidget):
@@ -955,7 +974,11 @@ class Tab_YEMO(QWidget):
         index = item.data(DATCOMP)
         s = self.dao.YEMO[index]
         Api.filter_year_month(self.dao,s[0],s[1])
-        self.files_yemo.display()
+        if item.column() == 2:
+          self.files_yemo.display()
+        if item.column() == 3:
+          self.files_yemo.displayDir()
+
 
 
 class Tab_SUYE(QWidget):
@@ -1028,7 +1051,11 @@ class Tab_SUYE(QWidget):
         index = item.data(DATCOMP)
         s = self.dao.SUYE[index]
         Api.filter_suffix_year(self.dao,s[0],s[1])
-        self.files_suye.display()
+        if item.column() == 2:
+          self.files_suye.display()
+        if item.column() == 3:
+          self.files_suye.displayDir()
+
 
 
 
@@ -1102,7 +1129,11 @@ class Tab_YESU(QWidget):
         index = item.data(DATCOMP)
         s = self.dao.YESU[index]
         Api.filter_year_suffix(self.dao,s[0],s[1])
-        self.files_yesu.display()
+        if item.column() == 2:
+          self.files_yesu.display()
+        if item.column() == 3:
+          self.files_yesu.displayDir()
+
 
 
 
@@ -1180,7 +1211,11 @@ class Tab_SUYEMO(QWidget):
         index = item.data(DATCOMP)
         s = self.dao.SUYEMO[index]
         Api.filter_suffix_year_month(self.dao,s[0],s[1],s[2])
-        self.files_suyemo.display()
+        if item.column() == 3:
+          self.files_suyemo.display()
+        if item.column() == 4:
+          self.files_suyemo.displayDir()
+
 
 
 class Tab_YEMOSU(QWidget):
@@ -1256,7 +1291,11 @@ class Tab_YEMOSU(QWidget):
         index = item.data(DATCOMP)
         s = self.dao.YEMOSU[index]
         Api.filter_year_month_suffix(self.dao,s[0],s[1],s[2])
-        self.files_yemosu.display()
+        if item.column() == 3:
+          self.files_yemosu.display()
+        if item.column() == 4:
+          self.files_yemosu.displayDir()
+
 
 
 
@@ -1327,7 +1366,11 @@ class Tab_LE(QWidget):
         index = item.data(DATCOMP)
         s = self.dao.LE[index]
         Api.filter_level(self.dao,s[0])
-        self.files_le.display()
+        if item.column() == 1:
+          self.files_le.display()
+        if item.column() == 2:
+          self.files_le.displayDir()
+
 
 
 
@@ -1492,7 +1535,27 @@ class Files(QTableView):
         # spalte filename vollständig anzeigen ...
         self.resizeColumnToContents(2)
 
+    def displayDir(self):
 
+        self.proxymodel = ProxyModel()
+        self.model =  QStandardItemModel(len(self.dao.FIL), 10, self)
+        self.proxymodel.setSourceModel(self.model)
+        self.proxymodel.setDynamicSortFilter(False)
+        self.setModel(self.proxymodel)
+
+
+        #selection = self.selectionModel()
+        #selection.selectionChanged.connect(self.handleSelectionChanged)
+
+
+        print('clickBegin', len(self.dao.DIR))
+        # Zeilen Aendern sich ...
+
+
+        for i, dir in enumerate(self.dao.DIR):
+          value = QStandardItem(dir)
+          value.setText(dir)
+          self.model.setItem(i, 0, value) # spalte suffix
 
 
 
