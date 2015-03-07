@@ -76,9 +76,8 @@ class Util():
     @staticmethod
     def getkeyhash(item):
         return item[HASH]
-    @staticmethod
-    def getkey2(item):
-        return item[2]
+
+
 
     @staticmethod
     def get_url_stream(file):
@@ -352,6 +351,10 @@ class Api():
             dao.LE.append((k , len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
 
 
+
+        # am Schluss wird A sortiert nach suffix, weil dies die primäre Ansicht in Files ist ...
+        dao.A.sort(key=Util.getkeysuffix)
+
         print('Ende Zählen')
         print('Das Ergebnis')
 
@@ -387,6 +390,7 @@ class Api():
     @staticmethod
     def filter_all(dao):
         dao.FIL=[ i for i, a in enumerate (dao.A)]
+
     @staticmethod
     def filter_suffix(dao,suffix):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix]
@@ -811,9 +815,11 @@ class Tab_SU(QWidget):
 
     def on_kpi_clicked(self,item):
         index = item.data(DATCOMP)
+        print(item.column())
         s = self.dao.SU[index]
-        Api.filter_suffix(self.dao,s[0])
-        self.files_su.display()
+        if item.column() == 1:
+          Api.filter_suffix(self.dao,s[0])
+          self.files_su.display()
 
 class Tab_YE(QWidget):
     def __init__(self, dao, parent=None):
