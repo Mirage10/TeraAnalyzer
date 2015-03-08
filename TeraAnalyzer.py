@@ -1,4 +1,3 @@
-# todo remove doppelte Registrierung der callbacks
 # todo setvalue fuer QStandarditem  (text wird zweimal gesetzt ...
 # todo: /home   und /hime/user/dropbox   -> in der Schnittmengenbildung B-A und A-B sind Dateien, die dort nicht hingehoeren -> Inkonsistenz
 # todo Logik einbauen: falls hash bereits errechnet, dann nicht nochmal berechnen/ueberschreiben
@@ -1473,6 +1472,9 @@ class Files(QTableView):
 
           self.sortByColumn(0, Qt.AscendingOrder)
 
+          self.clicked.connect(self.on_file_clicked)
+          self.clicked.connect(self.on_directory_clicked)   #on_file_clicked
+
     # pops up the context menu ...
     def popup(self, pos):
         for i in self.selectionModel().selection().indexes():
@@ -1484,8 +1486,9 @@ class Files(QTableView):
 
 
     def display(self):
+        #self.clicked.disconnect(self)
+        #self.clicked.connect(self.on_file_clicked)   #on_file_clicked
 
-        self.clicked.connect(self.on_file_clicked)   #on_file_clicked
         self.proxymodel = ProxyModelFiles()
         self.model =  QStandardItemModel(len(self.dao.FIL), 10, self)
         self.proxymodel.setSourceModel(self.model)
@@ -1552,7 +1555,9 @@ class Files(QTableView):
         self.resizeColumnToContents(2)
         self.resizeColumnToContents(0)
     def displayDir(self):
-        self.clicked.connect(self.on_directory_clicked)   #on_file_clicked
+        #self.clicked.disconnect(self)
+
+
         self.proxymodel = ProxyModelDir()
         self.model =  QStandardItemModel(len(self.dao.DIR), 10, self)
         self.proxymodel.setSourceModel(self.model)
@@ -1580,7 +1585,16 @@ class Files(QTableView):
 
 
     def on_directory_clicked(self,item):
+
+        # Achtung beide on_ callbacks werden im Konstruktor gesetzt, d.h. es werden immer beide
+        # callbacks gerufen. Daher muss festgestellt werden, welches Proxymodell (Liste) genau dahintersteht ...
+        if not isinstance(self.proxymodel, ProxyModelDir):
+            return
+
         index_directory    = self.proxymodel.index(item.row(),0)
+
+
+
         directory      = self.proxymodel.data(index_directory)
         command=''
         if item.column() == 0: # click auf directory
@@ -1590,6 +1604,11 @@ class Files(QTableView):
 
 
     def on_file_clicked(self, item):
+        # Achtung beide on_ callbacks werden im Konstruktor gesetzt, d.h. es werden immer beide
+        # callbacks gerufen. Daher muss festgestellt werden, welches Proxymodell (Liste) genau dahintersteht ...
+        if not isinstance(self.proxymodel, ProxyModelFiles):
+            return
+
 
         index_suffix    = self.proxymodel.index(item.row(),0)
         index_file      = self.proxymodel.index(item.row(),1)
@@ -1609,8 +1628,8 @@ class Files(QTableView):
           # falls auf ein xfpf stream geclickt wird, soll derselbige gerecorded werden ...
           ss=file
           if ss.endswith('xspf'):
-            #  gnome-terminal --command="streamripper http://91.250.77.9:8070 -u gaudi"
-            command = 'gnome-terminal --command=\'streamripper ' + Util.get_url_stream(ss) + ' -u gaudi\''
+            #command = 'streamripper http://91.250.77.9:8070 -u gaudi'
+            command = 'gnome-terminal --command=\'streamripper ' + Util.get_url_stream(ss) + ' -d /home/user/astreamrip -u gaudi\''
 
           #command = 'xdg-open '+'\''+item.text()+'\''
           # das File muss in Hochkommata stehen, da der finename ein blank enthalten kann
