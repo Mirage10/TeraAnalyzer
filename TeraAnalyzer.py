@@ -1,3 +1,4 @@
+# todo remove doppelte Registrierung der callbacks
 # todo setvalue fuer QStandarditem  (text wird zweimal gesetzt ...
 # todo: /home   und /hime/user/dropbox   -> in der Schnittmengenbildung B-A und A-B sind Dateien, die dort nicht hingehoeren -> Inkonsistenz
 # todo Logik einbauen: falls hash bereits errechnet, dann nicht nochmal berechnen/ueberschreiben
@@ -184,7 +185,6 @@ class Api():
             # Fehlerbehandlung erforderlich bei fehlender Berechtigung ...
             with open(a[FILE],'rb') as f:
                 h = hash(f.read())
-                #print(h)
                 if h < 0: h=-h
                 a[HASH] = h
 
@@ -196,7 +196,6 @@ class Api():
             # Fehlerbehandlung erforderlich bei fehlender Berechtigung ...
             with open(b[FILE],'rb') as f:
                 h = hash(f.read())
-                #print(h)
                 if h < 0: h=-h
                 b[HASH] = h
 
@@ -478,10 +477,8 @@ class Api():
                 # Fehlerbehandlung erforderlich bei fehlender Berechtigung ...
                 with open(dao.A[r][FILE],'rb') as f:
                     h = hash(f.read())
-                    #print(h)
                     if h < 0: h=-h
                     dao.A[r][HASH] = h
-                    #print(self.A[r][HASH])
             except:
                 pass
 
@@ -828,7 +825,6 @@ class Tab_SU(QWidget):
 
     def on_kpi_clicked(self,item):
         index = item.data(DATCOMP)
-        print(item.column())
         s = self.dao.SU[index]
         Api.filter_suffix(self.dao,s[0])
         if item.column() == 1:
@@ -1415,10 +1411,10 @@ class Matrix(QTabWidget):
 
 
 
-class ProxyModel(QSortFilterProxyModel):
+class ProxyModelFiles(QSortFilterProxyModel):
 
     def __init__(self, parent=None):
-        super(ProxyModel, self).__init__(parent)
+        super(ProxyModelFiles, self).__init__(parent)
 
     def lessThan(self, left, right):
 
@@ -1444,6 +1440,25 @@ class ProxyModel(QSortFilterProxyModel):
 
         return leftdata < rightdata
 
+class ProxyModelDir(QSortFilterProxyModel):
+
+    def __init__(self, parent=None):
+        super(ProxyModelDir, self).__init__(parent)
+
+    def lessThan(self, left, right):
+
+
+        col = left.column()
+
+        leftdata  = left.data()
+        rightdata = right.data()
+        if col == 0:
+          # directory...
+          leftdata  = str(left.data())
+          rightdata = str(right.data())
+
+
+        return leftdata < rightdata
 
 
 class Files(QTableView):
@@ -1451,7 +1466,7 @@ class Files(QTableView):
           super(Files, self).__init__(parent)
           self.dao = dao
 
-          self.clicked.connect(self.on_file_clicked)   #on_file_clicked
+
           # define context menu ...
           self.setContextMenuPolicy(Qt.CustomContextMenu)
           self.customContextMenuRequested.connect(self.popup)
@@ -1470,7 +1485,8 @@ class Files(QTableView):
 
     def display(self):
 
-        self.proxymodel = ProxyModel()
+        self.clicked.connect(self.on_file_clicked)   #on_file_clicked
+        self.proxymodel = ProxyModelFiles()
         self.model =  QStandardItemModel(len(self.dao.FIL), 10, self)
         self.proxymodel.setSourceModel(self.model)
         self.proxymodel.setDynamicSortFilter(False)
@@ -1534,11 +1550,11 @@ class Files(QTableView):
         self.setSortingEnabled(True)
         # spalte filename vollständig anzeigen ...
         self.resizeColumnToContents(2)
-
+        self.resizeColumnToContents(0)
     def displayDir(self):
-
-        self.proxymodel = ProxyModel()
-        self.model =  QStandardItemModel(len(self.dao.FIL), 10, self)
+        self.clicked.connect(self.on_directory_clicked)   #on_file_clicked
+        self.proxymodel = ProxyModelDir()
+        self.model =  QStandardItemModel(len(self.dao.DIR), 10, self)
         self.proxymodel.setSourceModel(self.model)
         self.proxymodel.setDynamicSortFilter(False)
         self.setModel(self.proxymodel)
@@ -1555,8 +1571,22 @@ class Files(QTableView):
         for i, dir in enumerate(self.dao.DIR):
           value = QStandardItem(dir)
           value.setText(dir)
+          value.setBackground(BRUSH_DIRECTORY)
           self.model.setItem(i, 0, value) # spalte suffix
 
+        self.model.setHorizontalHeaderLabels( ['directory','# file'])
+        self.resizeColumnToContents(0)
+
+
+
+    def on_directory_clicked(self,item):
+        index_directory    = self.proxymodel.index(item.row(),0)
+        directory      = self.proxymodel.data(index_directory)
+        command=''
+        if item.column() == 0: # click auf directory
+           command = 'nemo '+'\''+directory+'\''
+        #  Ordner anzeigen mit dem richtigen Tool ...
+        if command: os.system(command)
 
 
     def on_file_clicked(self, item):
