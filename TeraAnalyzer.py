@@ -729,7 +729,7 @@ class Tab_All(QWidget):
         s = self.dao.ALL[index]
         Api.filter_all(self.dao)
         if item.column() == 1:
-          self.files_all.display()
+          self.files_all.displayFiles()
         if item.column() == 2:
           self.files_all.displayDir()
 
@@ -827,7 +827,7 @@ class Tab_SU(QWidget):
         s = self.dao.SU[index]
         Api.filter_suffix(self.dao,s[0])
         if item.column() == 1:
-          self.files_su.display()
+          self.files_su.displayFiles()
         if item.column() == 2:
           self.files_su.displayDir()
 
@@ -893,7 +893,7 @@ class Tab_YE(QWidget):
         s = self.dao.YE[index]
         Api.filter_year(self.dao,s[0])
         if item.column() == 1:
-          self.files_ye.display()
+          self.files_ye.displayFiles()
         if item.column() == 2:
           self.files_ye.displayDir()
 
@@ -970,7 +970,7 @@ class Tab_YEMO(QWidget):
         s = self.dao.YEMO[index]
         Api.filter_year_month(self.dao,s[0],s[1])
         if item.column() == 2:
-          self.files_yemo.display()
+          self.files_yemo.displayFiles()
         if item.column() == 3:
           self.files_yemo.displayDir()
 
@@ -1047,7 +1047,7 @@ class Tab_SUYE(QWidget):
         s = self.dao.SUYE[index]
         Api.filter_suffix_year(self.dao,s[0],s[1])
         if item.column() == 2:
-          self.files_suye.display()
+          self.files_suye.displayFiles()
         if item.column() == 3:
           self.files_suye.displayDir()
 
@@ -1125,7 +1125,7 @@ class Tab_YESU(QWidget):
         s = self.dao.YESU[index]
         Api.filter_year_suffix(self.dao,s[0],s[1])
         if item.column() == 2:
-          self.files_yesu.display()
+          self.files_yesu.displayFiles()
         if item.column() == 3:
           self.files_yesu.displayDir()
 
@@ -1207,7 +1207,7 @@ class Tab_SUYEMO(QWidget):
         s = self.dao.SUYEMO[index]
         Api.filter_suffix_year_month(self.dao,s[0],s[1],s[2])
         if item.column() == 3:
-          self.files_suyemo.display()
+          self.files_suyemo.displayFiles()
         if item.column() == 4:
           self.files_suyemo.displayDir()
 
@@ -1287,7 +1287,7 @@ class Tab_YEMOSU(QWidget):
         s = self.dao.YEMOSU[index]
         Api.filter_year_month_suffix(self.dao,s[0],s[1],s[2])
         if item.column() == 3:
-          self.files_yemosu.display()
+          self.files_yemosu.displayFiles()
         if item.column() == 4:
           self.files_yemosu.displayDir()
 
@@ -1362,7 +1362,7 @@ class Tab_LE(QWidget):
         s = self.dao.LE[index]
         Api.filter_level(self.dao,s[0])
         if item.column() == 1:
-          self.files_le.display()
+          self.files_le.displayFiles()
         if item.column() == 2:
           self.files_le.displayDir()
 
@@ -1472,6 +1472,7 @@ class Files(QTableView):
 
           self.sortByColumn(0, Qt.AscendingOrder)
 
+          # werden immer beide durchlaufen: sowohl bei displayFiles alsauch bei displayDir ...
           self.clicked.connect(self.on_file_clicked)
           self.clicked.connect(self.on_directory_clicked)   #on_file_clicked
 
@@ -1485,7 +1486,7 @@ class Files(QTableView):
 
 
 
-    def display(self):
+    def displayFiles(self):
         #self.clicked.disconnect(self)
         #self.clicked.connect(self.on_file_clicked)   #on_file_clicked
 
@@ -1554,6 +1555,8 @@ class Files(QTableView):
         # spalte filename vollständig anzeigen ...
         self.resizeColumnToContents(2)
         self.resizeColumnToContents(0)
+
+
     def displayDir(self):
         #self.clicked.disconnect(self)
 
