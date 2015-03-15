@@ -1,8 +1,10 @@
-# todo setvalue fuer QStandarditem  (text wird zweimal gesetzt ...
+# todo in Files die Spalten #subtree und # subtree all ergaenzen, selbiges mit size
+# todo: in Files: delete and ignore column
+# todo: setvalue fuer QStandarditem  (text wird zweimal gesetzt ...
 # todo: /home   und /hime/user/dropbox   -> in der Schnittmengenbildung B-A und A-B sind Dateien, die dort nicht hingehoeren -> Inkonsistenz
-# todo Logik einbauen: falls hash bereits errechnet, dann nicht nochmal berechnen/ueberschreiben
-# todo in files tab rename dedupgroups by filesize
-# todo hash button in toolbar
+# todo: Logik einbauen: falls hash bereits errechnet, dann nicht nochmal berechnen/ueberschreiben
+# todo: in files tab rename dedupgroups by filesize
+# todo: hash button in toolbar
 
 # PyQt5 examples: http://nullege.com/codes/show/src%40p%40y%40pyqt5-HEAD%40examples%40sql%40cachedtable.py/46/PyQt5.QtWidgets.QTableView/python
 from datetime import date
@@ -387,13 +389,66 @@ class Api():
     @staticmethod
     def filter_all(dao):
         dao.FIL=[ i for i, a in enumerate (dao.A)]
-        dao.DIR = list({a[DIRECTORY] for a in dao.A})
+        D = list({a[DIRECTORY] for a in dao.A})
+
+        for i,d in enumerate(D):
+            length = len(d)
+            cnt= 0
+            size = 0
+            for a in dao.A:
+                if  a[FILE][:length]==d:
+                   cnt += 1
+                   size += a[SIZE]
+            D[i]=[d,cnt,size,cnt,size,cnt,size,cnt,size   ]
+
+        dao.DIR = D
+
 
 
     @staticmethod
     def filter_suffix(dao,suffix):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix]
-        dao.DIR = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix})
+        D = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix})
+
+
+        for i,d in enumerate(D):
+            length = len(d)
+            subtreecnt= 0
+            subtreesize = 0
+            subtreeselectedcnt = 0   #subtree
+            subtreeselectedsize = 0  # subtree
+
+            topcnt  = 0
+            topsize = 0
+            topselectedcnt = 0   #toplevel
+            topselectedsize = 0  #toplevel
+            for a in dao.A:
+                if  a[FILE][:length]==d:
+                   subtreecnt += 1
+                   subtreesize += a[SIZE]
+                   if a[SUFFIX] == suffix:
+                      subtreeselectedcnt  += 1
+                      subtreeselectedsize +=a[SIZE]
+                if  a[DIRECTORY]==d:
+                   topcnt += 1
+                   topsize += a[SIZE]
+                   if a[SUFFIX] == suffix:
+                      topselectedcnt  += 1
+                      topselectedsize +=a[SIZE]
+
+
+
+
+            D[i]=[d, topselectedcnt, subtreeselectedcnt, topcnt,  subtreecnt, topselectedsize, subtreeselectedsize , topsize,  subtreesize ]
+
+        dao.DIR = D
+
+
+
+
+
+
+
     @staticmethod
     def filter_year(dao,year):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year]
@@ -576,8 +631,8 @@ class Dao():
         if datasource == DATA_SOURCE_A or datasource == DATA_SOURCE_B:
             conf = DaoConfig()
             self.path = conf.value_get(datasource,'Please enter a Directory')
-            print('ein Path: ',self.path)
-
+            if datasource == DATA_SOURCE_A : print('Source A: ',self.path)
+            if datasource == DATA_SOURCE_B : print('Source B: ',self.path)
 
 
 
@@ -1575,15 +1630,46 @@ class Files(QTableView):
         print('clickBegin', len(self.dao.DIR))
         # Zeilen Aendern sich ...
 
-
+        # d,topselectedcnt, topcnt,  subtreeselectedcnt,subtreecnt, topselectedsize, topsize, subtreeselectedsize , subtreesize ]
         for i, dir in enumerate(self.dao.DIR):
-          value = QStandardItem(dir)
-          value.setText(dir)
-          value.setBackground(BRUSH_DIRECTORY)
-          self.model.setItem(i, 0, value) # spalte suffix
 
-        self.model.setHorizontalHeaderLabels( ['directory','# file'])
+          value = QStandardItem(dir[0])   #directory
+          value.setBackground(BRUSH_DIRECTORY)
+          self.model.setItem(i, 0, value) #
+          value = QStandardItem(str(dir[1]))   #files
+          value.setBackground(BRUSH_TARGET)
+          self.model.setItem(i, 1, value) #
+          value = QStandardItem(str(dir[2]))   # files subtree
+          value.setBackground(BRUSH_TARGET)
+          self.model.setItem(i, 2, value)
+          value = QStandardItem(str(dir[3]))   #files all
+          value.setBackground(BRUSH_TARGET)
+          self.model.setItem(i, 3, value) #
+          value = QStandardItem(str(dir[4]))   #files all subtree
+          value.setBackground(BRUSH_TARGET)
+          self.model.setItem(i, 4, value)
+
+          value = QStandardItem(str(dir[5]))   #size
+          value.setBackground(BRUSH_SIZE)
+          self.model.setItem(i, 5, value) #
+          value = QStandardItem(str(dir[6]))   # size subtree
+          value.setBackground(BRUSH_SIZE)
+          self.model.setItem(i, 6, value)
+          value = QStandardItem(str(dir[7]))   #size all
+          value.setBackground(BRUSH_SIZE)
+          self.model.setItem(i, 7, value) #
+          value = QStandardItem(str(dir[8]))   #size all subtree
+          value.setBackground(BRUSH_SIZE)
+          self.model.setItem(i, 8, value)
+
+
+
+
+        # d,topselectedcnt, topcnt,  subtreeselectedcnt,subtreecnt, topselectedsize, topsize, subtreeselectedsize , subtreesize ]
+
+        self.model.setHorizontalHeaderLabels( ['directory','# files','# files tree','# files all', '# files all tree','# size','# size tree','# size all', '# size all tree'            ])
         self.resizeColumnToContents(0)
+        self.setSortingEnabled(True)
 
 
 
