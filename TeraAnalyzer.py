@@ -1,6 +1,6 @@
+# todo in Directory Liste # directories all # #directories subtree einfuegen. evtl noch selected directories jeweils
 # todo in Files die Spalten #subtree und # subtree all ergaenzen, selbiges mit size
 # todo: in Files: delete and ignore column
-# todo: setvalue fuer QStandarditem  (text wird zweimal gesetzt ...
 # todo: /home   und /hime/user/dropbox   -> in der Schnittmengenbildung B-A und A-B sind Dateien, die dort nicht hingehoeren -> Inkonsistenz
 # todo: Logik einbauen: falls hash bereits errechnet, dann nicht nochmal berechnen/ueberschreiben
 # todo: in files tab rename dedupgroups by filesize
@@ -390,18 +390,50 @@ class Api():
     def filter_all(dao):
         dao.FIL=[ i for i, a in enumerate (dao.A)]
         D = list({a[DIRECTORY] for a in dao.A})
+        #sorted(D)
+
+
+
 
         for i,d in enumerate(D):
             length = len(d)
-            cnt= 0
-            size = 0
+            subtreecnt= 0
+            subtreesize = 0
+            subtreeselectedcnt = 0   #subtree
+            subtreeselectedsize = 0  # subtree
+
+            topcnt  = 0
+            topsize = 0
+            topselectedcnt = 0   #toplevel
+            topselectedsize = 0  #toplevel
             for a in dao.A:
                 if  a[FILE][:length]==d:
-                   cnt += 1
-                   size += a[SIZE]
-            D[i]=[d,cnt,size,cnt,size,cnt,size,cnt,size   ]
+                   subtreecnt += 1
+                   subtreesize += a[SIZE]
+                   if True:
+                      subtreeselectedcnt  += 1
+                      subtreeselectedsize +=a[SIZE]
+                if  a[DIRECTORY]==d:
+                   topcnt += 1
+                   topsize += a[SIZE]
+                   if True:
+                      topselectedcnt  += 1
+                      topselectedsize +=a[SIZE]
+
+
+
+
+            D[i]=[d, topselectedcnt, subtreeselectedcnt, topcnt,  subtreecnt, topselectedsize, subtreeselectedsize , topsize,  subtreesize ]
 
         dao.DIR = D
+
+
+
+
+
+
+
+
 
 
 
@@ -409,6 +441,7 @@ class Api():
     def filter_suffix(dao,suffix):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix]
         D = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix})
+        #sorted(D)
 
 
         for i,d in enumerate(D):
@@ -452,31 +485,284 @@ class Api():
     @staticmethod
     def filter_year(dao,year):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year]
-        dao.DIR = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year})
+        D = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year})
+
+
+        for i,d in enumerate(D):
+            length = len(d)
+            subtreecnt= 0
+            subtreesize = 0
+            subtreeselectedcnt = 0   #subtree
+            subtreeselectedsize = 0  # subtree
+
+            topcnt  = 0
+            topsize = 0
+            topselectedcnt = 0   #toplevel
+            topselectedsize = 0  #toplevel
+            for a in dao.A:
+                if  a[FILE][:length]==d:
+                   subtreecnt += 1
+                   subtreesize += a[SIZE]
+                   if a[YEAR] == year:
+                      subtreeselectedcnt  += 1
+                      subtreeselectedsize +=a[SIZE]
+                if  a[DIRECTORY]==d:
+                   topcnt += 1
+                   topsize += a[SIZE]
+                   if a[YEAR] == year:
+                      topselectedcnt  += 1
+                      topselectedsize +=a[SIZE]
+
+
+
+
+            D[i]=[d, topselectedcnt, subtreeselectedcnt, topcnt,  subtreecnt, topselectedsize, subtreeselectedsize , topsize,  subtreesize ]
+
+        dao.DIR = D
+
+
+
+
+
+
     @staticmethod
     def filter_year_month(dao,year,month):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[MONTH] == month  ]
-        dao.DIR = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year and a[MONTH] == month})
+        D = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year and a[MONTH] == month})
+
+
+        for i,d in enumerate(D):
+            length = len(d)
+            subtreecnt= 0
+            subtreesize = 0
+            subtreeselectedcnt = 0   #subtree
+            subtreeselectedsize = 0  # subtree
+
+            topcnt  = 0
+            topsize = 0
+            topselectedcnt = 0   #toplevel
+            topselectedsize = 0  #toplevel
+            for a in dao.A:
+                if  a[FILE][:length]==d:
+                   subtreecnt += 1
+                   subtreesize += a[SIZE]
+                   if a[YEAR] == year and a[MONTH]==month:
+                      subtreeselectedcnt  += 1
+                      subtreeselectedsize +=a[SIZE]
+                if  a[DIRECTORY]==d:
+                   topcnt += 1
+                   topsize += a[SIZE]
+                   if a[YEAR] == year and a[MONTH]==month:
+                      topselectedcnt  += 1
+                      topselectedsize +=a[SIZE]
+
+
+
+
+            D[i]=[d, topselectedcnt, subtreeselectedcnt, topcnt,  subtreecnt, topselectedsize, subtreeselectedsize , topsize,  subtreesize ]
+
+        dao.DIR = D
+
+
+
+
+
     @staticmethod
     def filter_suffix_year(dao,suffix,year):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix and a[YEAR] == year  ]
-        dao.DIR = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix and a[YEAR] == year})
+        D = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix and a[YEAR] == year})
+
+        for i,d in enumerate(D):
+            length = len(d)
+            subtreecnt= 0
+            subtreesize = 0
+            subtreeselectedcnt = 0   #subtree
+            subtreeselectedsize = 0  # subtree
+
+            topcnt  = 0
+            topsize = 0
+            topselectedcnt = 0   #toplevel
+            topselectedsize = 0  #toplevel
+            for a in dao.A:
+                if  a[FILE][:length]==d:
+                   subtreecnt += 1
+                   subtreesize += a[SIZE]
+                   if a[YEAR] == year and a[SUFFIX]==suffix:
+                      subtreeselectedcnt  += 1
+                      subtreeselectedsize +=a[SIZE]
+                if  a[DIRECTORY]==d:
+                   topcnt += 1
+                   topsize += a[SIZE]
+                   if a[YEAR] == year and a[SUFFIX]==suffix:
+                      topselectedcnt  += 1
+                      topselectedsize +=a[SIZE]
+
+
+
+
+            D[i]=[d, topselectedcnt, subtreeselectedcnt, topcnt,  subtreecnt, topselectedsize, subtreeselectedsize , topsize,  subtreesize ]
+
+        dao.DIR = D
+
+
+
+
     @staticmethod
     def filter_year_suffix(dao,year, suffix):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[SUFFIX] == suffix  ]
-        dao.DIR = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year and a[SUFFIX] == suffix})
+        D = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year and a[SUFFIX] == suffix})
+
+        for i,d in enumerate(D):
+            length = len(d)
+            subtreecnt= 0
+            subtreesize = 0
+            subtreeselectedcnt = 0   #subtree
+            subtreeselectedsize = 0  # subtree
+
+            topcnt  = 0
+            topsize = 0
+            topselectedcnt = 0   #toplevel
+            topselectedsize = 0  #toplevel
+            for a in dao.A:
+                if  a[FILE][:length]==d:
+                   subtreecnt += 1
+                   subtreesize += a[SIZE]
+                   if a[YEAR] == year and a[SUFFIX]==suffix:
+                      subtreeselectedcnt  += 1
+                      subtreeselectedsize +=a[SIZE]
+                if  a[DIRECTORY]==d:
+                   topcnt += 1
+                   topsize += a[SIZE]
+                   if a[YEAR] == year and a[SUFFIX]==suffix:
+                      topselectedcnt  += 1
+                      topselectedsize +=a[SIZE]
+
+
+
+
+            D[i]=[d, topselectedcnt, subtreeselectedcnt, topcnt,  subtreecnt, topselectedsize, subtreeselectedsize , topsize,  subtreesize ]
+
+        dao.DIR = D
+
+
+
+
     @staticmethod
     def filter_suffix_year_month(dao, suffix, year, month):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month  ]
-        dao.DIR = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month})
+        D = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month})
+
+
+        for i,d in enumerate(D):
+            length = len(d)
+            subtreecnt= 0
+            subtreesize = 0
+            subtreeselectedcnt = 0   #subtree
+            subtreeselectedsize = 0  # subtree
+
+            topcnt  = 0
+            topsize = 0
+            topselectedcnt = 0   #toplevel
+            topselectedsize = 0  #toplevel
+            for a in dao.A:
+                if  a[FILE][:length]==d:
+                   subtreecnt += 1
+                   subtreesize += a[SIZE]
+                   if a[YEAR] == year and a[SUFFIX]==suffix and a[MONTH]==month:
+                      subtreeselectedcnt  += 1
+                      subtreeselectedsize +=a[SIZE]
+                if  a[DIRECTORY]==d:
+                   topcnt += 1
+                   topsize += a[SIZE]
+                   if a[YEAR] == year and a[SUFFIX]==suffix and a[MONTH]==month:
+                      topselectedcnt  += 1
+                      topselectedsize +=a[SIZE]
+
+
+
+
+            D[i]=[d, topselectedcnt, subtreeselectedcnt, topcnt,  subtreecnt, topselectedsize, subtreeselectedsize , topsize,  subtreesize ]
+
+        dao.DIR = D
+
+
+
+
     @staticmethod
     def filter_year_month_suffix(dao, year, month, suffix):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix  ]
-        dao.DIR = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix})
+        D = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix})
+
+        for i,d in enumerate(D):
+            length = len(d)
+            subtreecnt= 0
+            subtreesize = 0
+            subtreeselectedcnt = 0   #subtree
+            subtreeselectedsize = 0  # subtree
+
+            topcnt  = 0
+            topsize = 0
+            topselectedcnt = 0   #toplevel
+            topselectedsize = 0  #toplevel
+            for a in dao.A:
+                if  a[FILE][:length]==d:
+                   subtreecnt += 1
+                   subtreesize += a[SIZE]
+                   if a[YEAR] == year and a[MONTH]==month and a[SUFFIX]==suffix:
+                      subtreeselectedcnt  += 1
+                      subtreeselectedsize +=a[SIZE]
+                if  a[DIRECTORY]==d:
+                   topcnt += 1
+                   topsize += a[SIZE]
+                   if a[YEAR] == year and a[MONTH]==month and a[SUFFIX]==suffix:
+                      topselectedcnt  += 1
+                      topselectedsize +=a[SIZE]
+
+
+
+
+            D[i]=[d, topselectedcnt, subtreeselectedcnt, topcnt,  subtreecnt, topselectedsize, subtreeselectedsize , topsize,  subtreesize ]
+
+        dao.DIR = D
+
+
     @staticmethod
     def filter_level(dao,level):
         dao.FIL=[ i for i, a in enumerate(dao.A) if a[LEVEL] == level]
-        dao.DIR = list({a[DIRECTORY] for a in dao.A if a[LEVEL] == level})
+        D = list({a[DIRECTORY] for a in dao.A if a[LEVEL] == level})
+
+        for i,d in enumerate(D):
+            length = len(d)
+            subtreecnt= 0
+            subtreesize = 0
+            subtreeselectedcnt = 0   #subtree
+            subtreeselectedsize = 0  # subtree
+
+            topcnt  = 0
+            topsize = 0
+            topselectedcnt = 0   #toplevel
+            topselectedsize = 0  #toplevel
+            for a in dao.A:
+                if  a[FILE][:length]==d:
+                   subtreecnt += 1
+                   subtreesize += a[SIZE]
+                   if a[LEVEL] == level:
+                      subtreeselectedcnt  += 1
+                      subtreeselectedsize +=a[SIZE]
+                if  a[DIRECTORY]==d:
+                   topcnt += 1
+                   topsize += a[SIZE]
+                   if a[LEVEL] == level:
+                      topselectedcnt  += 1
+                      topselectedsize +=a[SIZE]
+
+
+
+
+            D[i]=[d, topselectedcnt, subtreeselectedcnt, topcnt,  subtreecnt, topselectedsize, subtreeselectedsize , topsize,  subtreesize ]
+
+        dao.DIR = D
+
 
     @staticmethod
     def dedub(dao):
@@ -1563,7 +1849,7 @@ class Files(QTableView):
         for i, fil in enumerate(self.dao.FIL):
           row=self.dao.A[fil]
           value = QStandardItem(row[SUFFIX])
-          value.setText(row[SUFFIX])
+          #value.setText(row[SUFFIX])
           self.model.setItem(i, 0, value) # spalte suffix
           value = QStandardItem(row[FILE])
           value.setBackground(BRUSH_FILENAME)
