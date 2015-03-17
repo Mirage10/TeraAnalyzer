@@ -1,5 +1,6 @@
+# todo: Space A und Space B: mehrere Ordner zulassen, evtl einige ausschliessen
+# todo: in dao.A datum und Uhrzeit als column ergaenzen und in Files anzeigen ...
 # todo in Directory Liste # directories all # #directories subtree einfuegen. evtl noch selected directories jeweils
-# todo in Files die Spalten #subtree und # subtree all ergaenzen, selbiges mit size
 # todo: in Files: delete and ignore column
 # todo: /home   und /hime/user/dropbox   -> in der Schnittmengenbildung B-A und A-B sind Dateien, die dort nicht hingehoeren -> Inkonsistenz
 # todo: Logik einbauen: falls hash bereits errechnet, dann nicht nochmal berechnen/ueberschreiben
@@ -397,33 +398,44 @@ class Api():
 
         for i,d in enumerate(D):
             length = len(d)
-            subtreecnt= 0
-            subtreesize = 0
-            subtreeselectedcnt = 0   #subtree
-            subtreeselectedsize = 0  # subtree
+            treecnt             = 0
+            treesize            = 0
+            treeselectedcnt     = 0   #subtree
+            treeselectedsize    = 0  # subtree
 
-            topcnt  = 0
-            topsize = 0
-            topselectedcnt = 0   #toplevel
-            topselectedsize = 0  #toplevel
+            topcnt              = 0
+            topsize             = 0
+            topselectedcnt      = 0   #toplevel
+            topselectedsize     = 0  #toplevel
+            subtreecnt          = 0
+            subtreesize         = 0
+            subtreeselectedcnt  = 0
+            subtreeselectedsize = 0
             for a in dao.A:
                 if  a[FILE][:length]==d:
-                   subtreecnt += 1
-                   subtreesize += a[SIZE]
+                   treecnt += 1
+                   treesize += a[SIZE]
                    if True:
-                      subtreeselectedcnt  += 1
-                      subtreeselectedsize +=a[SIZE]
+                      treeselectedcnt  += 1
+                      treeselectedsize +=a[SIZE]
                 if  a[DIRECTORY]==d:
                    topcnt += 1
                    topsize += a[SIZE]
                    if True:
                       topselectedcnt  += 1
                       topselectedsize +=a[SIZE]
+                if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                    # we are in a subdirectory ...
+                    if True:
+                      subtreeselectedcnt +=1
+                      subtreeselectedsize +=a[SIZE]
+                    subtreecnt +=1
+                    subtreesize +=a[SIZE]
 
 
 
 
-            D[i]=[d, topselectedcnt, subtreeselectedcnt, topcnt,  subtreecnt, topselectedsize, subtreeselectedsize , topsize,  subtreesize ]
+            D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
 
         dao.DIR = D
 
@@ -446,33 +458,49 @@ class Api():
 
         for i,d in enumerate(D):
             length = len(d)
-            subtreecnt= 0
-            subtreesize = 0
-            subtreeselectedcnt = 0   #subtree
-            subtreeselectedsize = 0  # subtree
 
-            topcnt  = 0
-            topsize = 0
-            topselectedcnt = 0   #toplevel
-            topselectedsize = 0  #toplevel
+
+            treecnt             = 0
+            treesize            = 0
+            treeselectedcnt     = 0   #subtree
+            treeselectedsize    = 0  # subtree
+
+            topcnt              = 0
+            topsize             = 0
+            topselectedcnt      = 0   #toplevel
+            topselectedsize     = 0  #toplevel
+            subtreecnt          = 0
+            subtreesize         = 0
+            subtreeselectedcnt  = 0
+            subtreeselectedsize = 0
+
+
             for a in dao.A:
                 if  a[FILE][:length]==d:
-                   subtreecnt += 1
-                   subtreesize += a[SIZE]
+                   treecnt += 1
+                   treesize += a[SIZE]
                    if a[SUFFIX] == suffix:
-                      subtreeselectedcnt  += 1
-                      subtreeselectedsize +=a[SIZE]
+                      treeselectedcnt  += 1
+                      treeselectedsize +=a[SIZE]
                 if  a[DIRECTORY]==d:
                    topcnt += 1
                    topsize += a[SIZE]
                    if a[SUFFIX] == suffix:
                       topselectedcnt  += 1
                       topselectedsize +=a[SIZE]
+                if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                    # we are in a subdirectory ...
+                    if a[SUFFIX] == suffix:
+                      subtreeselectedcnt +=1
+                      subtreeselectedsize +=a[SIZE]
+                    subtreecnt +=1
+                    subtreesize +=a[SIZE]
 
 
 
 
-            D[i]=[d, topselectedcnt, subtreeselectedcnt, topcnt,  subtreecnt, topselectedsize, subtreeselectedsize , topsize,  subtreesize ]
+
+            D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
 
         dao.DIR = D
 
@@ -490,33 +518,46 @@ class Api():
 
         for i,d in enumerate(D):
             length = len(d)
-            subtreecnt= 0
-            subtreesize = 0
-            subtreeselectedcnt = 0   #subtree
-            subtreeselectedsize = 0  # subtree
 
-            topcnt  = 0
-            topsize = 0
-            topselectedcnt = 0   #toplevel
-            topselectedsize = 0  #toplevel
+            treecnt             = 0
+            treesize            = 0
+            treeselectedcnt     = 0   #subtree
+            treeselectedsize    = 0  # subtree
+
+            topcnt              = 0
+            topsize             = 0
+            topselectedcnt      = 0   #toplevel
+            topselectedsize     = 0  #toplevel
+            subtreecnt          = 0
+            subtreesize         = 0
+            subtreeselectedcnt  = 0
+            subtreeselectedsize = 0
+
+
             for a in dao.A:
                 if  a[FILE][:length]==d:
-                   subtreecnt += 1
-                   subtreesize += a[SIZE]
+                   treecnt += 1
+                   treesize += a[SIZE]
                    if a[YEAR] == year:
-                      subtreeselectedcnt  += 1
-                      subtreeselectedsize +=a[SIZE]
+                      treeselectedcnt  += 1
+                      treeselectedsize +=a[SIZE]
                 if  a[DIRECTORY]==d:
                    topcnt += 1
                    topsize += a[SIZE]
                    if a[YEAR] == year:
                       topselectedcnt  += 1
                       topselectedsize +=a[SIZE]
+                if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                    # we are in a subdirectory ...
+                    if a[YEAR] == year:
+                      subtreeselectedcnt +=1
+                      subtreeselectedsize +=a[SIZE]
+                    subtreecnt +=1
+                    subtreesize +=a[SIZE]
 
 
+            D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
 
-
-            D[i]=[d, topselectedcnt, subtreeselectedcnt, topcnt,  subtreecnt, topselectedsize, subtreeselectedsize , topsize,  subtreesize ]
 
         dao.DIR = D
 
@@ -533,33 +574,45 @@ class Api():
 
         for i,d in enumerate(D):
             length = len(d)
-            subtreecnt= 0
-            subtreesize = 0
-            subtreeselectedcnt = 0   #subtree
-            subtreeselectedsize = 0  # subtree
+            treecnt             = 0
+            treesize            = 0
+            treeselectedcnt     = 0   #subtree
+            treeselectedsize    = 0  # subtree
 
-            topcnt  = 0
-            topsize = 0
-            topselectedcnt = 0   #toplevel
-            topselectedsize = 0  #toplevel
+            topcnt              = 0
+            topsize             = 0
+            topselectedcnt      = 0   #toplevel
+            topselectedsize     = 0  #toplevel
+            subtreecnt          = 0
+            subtreesize         = 0
+            subtreeselectedcnt  = 0
+            subtreeselectedsize = 0
+
+
             for a in dao.A:
                 if  a[FILE][:length]==d:
-                   subtreecnt += 1
-                   subtreesize += a[SIZE]
+                   treecnt += 1
+                   treesize += a[SIZE]
                    if a[YEAR] == year and a[MONTH]==month:
-                      subtreeselectedcnt  += 1
-                      subtreeselectedsize +=a[SIZE]
+                      treeselectedcnt  += 1
+                      treeselectedsize +=a[SIZE]
                 if  a[DIRECTORY]==d:
                    topcnt += 1
                    topsize += a[SIZE]
                    if a[YEAR] == year and a[MONTH]==month:
                       topselectedcnt  += 1
                       topselectedsize +=a[SIZE]
+                if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                    # we are in a subdirectory ...
+                    if a[YEAR] == year and a[MONTH]==month:
+                      subtreeselectedcnt +=1
+                      subtreeselectedsize +=a[SIZE]
+                    subtreecnt +=1
+                    subtreesize +=a[SIZE]
 
 
+            D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
 
-
-            D[i]=[d, topselectedcnt, subtreeselectedcnt, topcnt,  subtreecnt, topselectedsize, subtreeselectedsize , topsize,  subtreesize ]
 
         dao.DIR = D
 
@@ -574,33 +627,44 @@ class Api():
 
         for i,d in enumerate(D):
             length = len(d)
-            subtreecnt= 0
-            subtreesize = 0
-            subtreeselectedcnt = 0   #subtree
-            subtreeselectedsize = 0  # subtree
+            treecnt             = 0
+            treesize            = 0
+            treeselectedcnt     = 0   #subtree
+            treeselectedsize    = 0  # subtree
 
-            topcnt  = 0
-            topsize = 0
-            topselectedcnt = 0   #toplevel
-            topselectedsize = 0  #toplevel
+            topcnt              = 0
+            topsize             = 0
+            topselectedcnt      = 0   #toplevel
+            topselectedsize     = 0  #toplevel
+            subtreecnt          = 0
+            subtreesize         = 0
+            subtreeselectedcnt  = 0
+            subtreeselectedsize = 0
+
+
             for a in dao.A:
                 if  a[FILE][:length]==d:
-                   subtreecnt += 1
-                   subtreesize += a[SIZE]
+                   treecnt += 1
+                   treesize += a[SIZE]
                    if a[YEAR] == year and a[SUFFIX]==suffix:
-                      subtreeselectedcnt  += 1
-                      subtreeselectedsize +=a[SIZE]
+                      treeselectedcnt  += 1
+                      treeselectedsize +=a[SIZE]
                 if  a[DIRECTORY]==d:
                    topcnt += 1
                    topsize += a[SIZE]
                    if a[YEAR] == year and a[SUFFIX]==suffix:
                       topselectedcnt  += 1
                       topselectedsize +=a[SIZE]
+                if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                    # we are in a subdirectory ...
+                    if a[YEAR] == year and a[SUFFIX]==suffix:
+                      subtreeselectedcnt +=1
+                      subtreeselectedsize +=a[SIZE]
+                    subtreecnt +=1
+                    subtreesize +=a[SIZE]
 
 
-
-
-            D[i]=[d, topselectedcnt, subtreeselectedcnt, topcnt,  subtreecnt, topselectedsize, subtreeselectedsize , topsize,  subtreesize ]
+            D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
 
         dao.DIR = D
 
@@ -614,33 +678,44 @@ class Api():
 
         for i,d in enumerate(D):
             length = len(d)
-            subtreecnt= 0
-            subtreesize = 0
-            subtreeselectedcnt = 0   #subtree
-            subtreeselectedsize = 0  # subtree
+            treecnt             = 0
+            treesize            = 0
+            treeselectedcnt     = 0   #subtree
+            treeselectedsize    = 0  # subtree
 
-            topcnt  = 0
-            topsize = 0
-            topselectedcnt = 0   #toplevel
-            topselectedsize = 0  #toplevel
+            topcnt              = 0
+            topsize             = 0
+            topselectedcnt      = 0   #toplevel
+            topselectedsize     = 0  #toplevel
+            subtreecnt          = 0
+            subtreesize         = 0
+            subtreeselectedcnt  = 0
+            subtreeselectedsize = 0
+
+
             for a in dao.A:
                 if  a[FILE][:length]==d:
-                   subtreecnt += 1
-                   subtreesize += a[SIZE]
+                   treecnt += 1
+                   treesize += a[SIZE]
                    if a[YEAR] == year and a[SUFFIX]==suffix:
-                      subtreeselectedcnt  += 1
-                      subtreeselectedsize +=a[SIZE]
+                      treeselectedcnt  += 1
+                      treeselectedsize +=a[SIZE]
                 if  a[DIRECTORY]==d:
                    topcnt += 1
                    topsize += a[SIZE]
                    if a[YEAR] == year and a[SUFFIX]==suffix:
                       topselectedcnt  += 1
                       topselectedsize +=a[SIZE]
+                if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                    # we are in a subdirectory ...
+                    if a[YEAR] == year and a[SUFFIX]==suffix:
+                      subtreeselectedcnt +=1
+                      subtreeselectedsize +=a[SIZE]
+                    subtreecnt +=1
+                    subtreesize +=a[SIZE]
 
 
-
-
-            D[i]=[d, topselectedcnt, subtreeselectedcnt, topcnt,  subtreecnt, topselectedsize, subtreeselectedsize , topsize,  subtreesize ]
+            D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
 
         dao.DIR = D
 
@@ -655,33 +730,45 @@ class Api():
 
         for i,d in enumerate(D):
             length = len(d)
-            subtreecnt= 0
-            subtreesize = 0
-            subtreeselectedcnt = 0   #subtree
-            subtreeselectedsize = 0  # subtree
+            treecnt             = 0
+            treesize            = 0
+            treeselectedcnt     = 0   #subtree
+            treeselectedsize    = 0  # subtree
 
-            topcnt  = 0
-            topsize = 0
-            topselectedcnt = 0   #toplevel
-            topselectedsize = 0  #toplevel
+            topcnt              = 0
+            topsize             = 0
+            topselectedcnt      = 0   #toplevel
+            topselectedsize     = 0  #toplevel
+            subtreecnt          = 0
+            subtreesize         = 0
+            subtreeselectedcnt  = 0
+            subtreeselectedsize = 0
+
+
             for a in dao.A:
                 if  a[FILE][:length]==d:
-                   subtreecnt += 1
-                   subtreesize += a[SIZE]
+                   treecnt += 1
+                   treesize += a[SIZE]
                    if a[YEAR] == year and a[SUFFIX]==suffix and a[MONTH]==month:
-                      subtreeselectedcnt  += 1
-                      subtreeselectedsize +=a[SIZE]
+                      treeselectedcnt  += 1
+                      treeselectedsize +=a[SIZE]
                 if  a[DIRECTORY]==d:
                    topcnt += 1
                    topsize += a[SIZE]
                    if a[YEAR] == year and a[SUFFIX]==suffix and a[MONTH]==month:
                       topselectedcnt  += 1
                       topselectedsize +=a[SIZE]
+                if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                    # we are in a subdirectory ...
+                    if a[YEAR] == year and a[SUFFIX]==suffix and a[MONTH]==month:
+                      subtreeselectedcnt +=1
+                      subtreeselectedsize +=a[SIZE]
+                    subtreecnt +=1
+                    subtreesize +=a[SIZE]
 
 
+            D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
 
-
-            D[i]=[d, topselectedcnt, subtreeselectedcnt, topcnt,  subtreecnt, topselectedsize, subtreeselectedsize , topsize,  subtreesize ]
 
         dao.DIR = D
 
@@ -695,33 +782,44 @@ class Api():
 
         for i,d in enumerate(D):
             length = len(d)
-            subtreecnt= 0
-            subtreesize = 0
-            subtreeselectedcnt = 0   #subtree
-            subtreeselectedsize = 0  # subtree
+            treecnt             = 0
+            treesize            = 0
+            treeselectedcnt     = 0   #subtree
+            treeselectedsize    = 0  # subtree
 
-            topcnt  = 0
-            topsize = 0
-            topselectedcnt = 0   #toplevel
-            topselectedsize = 0  #toplevel
+            topcnt              = 0
+            topsize             = 0
+            topselectedcnt      = 0   #toplevel
+            topselectedsize     = 0  #toplevel
+            subtreecnt          = 0
+            subtreesize         = 0
+            subtreeselectedcnt  = 0
+            subtreeselectedsize = 0
+
+
             for a in dao.A:
                 if  a[FILE][:length]==d:
-                   subtreecnt += 1
-                   subtreesize += a[SIZE]
+                   treecnt += 1
+                   treesize += a[SIZE]
                    if a[YEAR] == year and a[MONTH]==month and a[SUFFIX]==suffix:
-                      subtreeselectedcnt  += 1
-                      subtreeselectedsize +=a[SIZE]
+                      treeselectedcnt  += 1
+                      treeselectedsize +=a[SIZE]
                 if  a[DIRECTORY]==d:
                    topcnt += 1
                    topsize += a[SIZE]
                    if a[YEAR] == year and a[MONTH]==month and a[SUFFIX]==suffix:
                       topselectedcnt  += 1
                       topselectedsize +=a[SIZE]
+                if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                    # we are in a subdirectory ...
+                    if a[YEAR] == year and a[MONTH]==month and a[SUFFIX]==suffix:
+                      subtreeselectedcnt +=1
+                      subtreeselectedsize +=a[SIZE]
+                    subtreecnt +=1
+                    subtreesize +=a[SIZE]
 
 
-
-
-            D[i]=[d, topselectedcnt, subtreeselectedcnt, topcnt,  subtreecnt, topselectedsize, subtreeselectedsize , topsize,  subtreesize ]
+            D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
 
         dao.DIR = D
 
@@ -733,33 +831,44 @@ class Api():
 
         for i,d in enumerate(D):
             length = len(d)
-            subtreecnt= 0
-            subtreesize = 0
-            subtreeselectedcnt = 0   #subtree
-            subtreeselectedsize = 0  # subtree
+            treecnt             = 0
+            treesize            = 0
+            treeselectedcnt     = 0   #subtree
+            treeselectedsize    = 0  # subtree
 
-            topcnt  = 0
-            topsize = 0
-            topselectedcnt = 0   #toplevel
-            topselectedsize = 0  #toplevel
+            topcnt              = 0
+            topsize             = 0
+            topselectedcnt      = 0   #toplevel
+            topselectedsize     = 0  #toplevel
+            subtreecnt          = 0
+            subtreesize         = 0
+            subtreeselectedcnt  = 0
+            subtreeselectedsize = 0
+
+
             for a in dao.A:
                 if  a[FILE][:length]==d:
-                   subtreecnt += 1
-                   subtreesize += a[SIZE]
+                   treecnt += 1
+                   treesize += a[SIZE]
                    if a[LEVEL] == level:
-                      subtreeselectedcnt  += 1
-                      subtreeselectedsize +=a[SIZE]
+                      treeselectedcnt  += 1
+                      treeselectedsize +=a[SIZE]
                 if  a[DIRECTORY]==d:
                    topcnt += 1
                    topsize += a[SIZE]
                    if a[LEVEL] == level:
                       topselectedcnt  += 1
                       topselectedsize +=a[SIZE]
+                if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                    # we are in a subdirectory ...
+                    if a[LEVEL] == level:
+                      subtreeselectedcnt +=1
+                      subtreeselectedsize +=a[SIZE]
+                    subtreecnt +=1
+                    subtreesize +=a[SIZE]
 
 
-
-
-            D[i]=[d, topselectedcnt, subtreeselectedcnt, topcnt,  subtreecnt, topselectedsize, subtreeselectedsize , topsize,  subtreesize ]
+            D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
 
         dao.DIR = D
 
@@ -1928,32 +2037,47 @@ class Files(QTableView):
           value = QStandardItem(str(dir[2]))   # files subtree
           value.setBackground(BRUSH_TARGET)
           self.model.setItem(i, 2, value)
-          value = QStandardItem(str(dir[3]))   #files all
+          value = QStandardItem(str(dir[3]))   #files tree
           value.setBackground(BRUSH_TARGET)
           self.model.setItem(i, 3, value) #
-          value = QStandardItem(str(dir[4]))   #files all subtree
+          value = QStandardItem(str(dir[4]))   #files all
           value.setBackground(BRUSH_TARGET)
           self.model.setItem(i, 4, value)
-
-          value = QStandardItem(str(dir[5]))   #size
-          value.setBackground(BRUSH_SIZE)
-          self.model.setItem(i, 5, value) #
-          value = QStandardItem(str(dir[6]))   # size subtree
-          value.setBackground(BRUSH_SIZE)
+          value = QStandardItem(str(dir[5]))   #files all subtree
+          value.setBackground(BRUSH_TARGET)
+          self.model.setItem(i, 5, value)
+          value = QStandardItem(str(dir[6]))   #files all tree
+          value.setBackground(BRUSH_TARGET)
           self.model.setItem(i, 6, value)
-          value = QStandardItem(str(dir[7]))   #size all
+
+
+
+          value = QStandardItem(str(dir[7]))   #size
           value.setBackground(BRUSH_SIZE)
           self.model.setItem(i, 7, value) #
-          value = QStandardItem(str(dir[8]))   #size all subtree
+          value = QStandardItem(str(dir[8]))   # size subtree
           value.setBackground(BRUSH_SIZE)
           self.model.setItem(i, 8, value)
+          value = QStandardItem(str(dir[9]))   #size all
+          value.setBackground(BRUSH_SIZE)
+          self.model.setItem(i, 9, value)
+          value = QStandardItem(str(dir[10]))   #size all subtree
+          value.setBackground(BRUSH_SIZE)
+          self.model.setItem(i, 10, value)
+          value = QStandardItem(str(dir[11]))   #size all
+          value.setBackground(BRUSH_SIZE)
+          self.model.setItem(i, 11, value)
+          value = QStandardItem(str(dir[12]))   #size all subtree
+          value.setBackground(BRUSH_SIZE)
+          self.model.setItem(i, 12, value)
 
 
 
 
-        # d,topselectedcnt, topcnt,  subtreeselectedcnt,subtreecnt, topselectedsize, topsize, subtreeselectedsize , subtreesize ]
 
-        self.model.setHorizontalHeaderLabels( ['directory','# files','# files tree','# files all', '# files all tree','# size','# size tree','# size all', '# size all tree'            ])
+        #[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+
+        self.model.setHorizontalHeaderLabels( ['directory','# files','# files subtree','# files tree','# files all', '# files all subtree','# files all tree','# size','# size subtree','# size tree','# size all','#size all subtree', '# size all tree'            ])
         self.resizeColumnToContents(0)
         self.setSortingEnabled(True)
 
