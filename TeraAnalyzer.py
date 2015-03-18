@@ -390,6 +390,7 @@ class Api():
     @staticmethod
     def filter_all(dao):
         dao.FIL=[ i for i, a in enumerate (dao.A)]
+
         D = list({a[DIRECTORY] for a in dao.A})
         #sorted(D)
 
@@ -451,7 +452,7 @@ class Api():
 
     @staticmethod
     def filter_suffix(dao,suffix):
-        dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix]
+        dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix] # nur indices stehen in FIL
         D = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix})
         #sorted(D)
 
