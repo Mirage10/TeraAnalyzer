@@ -1,3 +1,4 @@
+# todo Quatratischen Algorithmus fuer Direcories refacturen
 # todo: Space A und Space B: mehrere Ordner zulassen, evtl einige ausschliessen
 # todo: in dao.A datum und Uhrzeit als column ergaenzen und in Files anzeigen ...
 # todo in Directory Liste # directories all # #directories subtree einfuegen. evtl noch selected directories jeweils
