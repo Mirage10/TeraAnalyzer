@@ -1,5 +1,5 @@
 # todo Quatratischen Algorithmus fuer Direcories refacturen
-# todo: Space A und Space B: mehrere Ordner zulassen, evtl einige ausschliessen
+# todo: Space A und Space B: mehrere Ordner zulassen, evtl einige ausschliessen, ausschliessen mit einem Minus davor
 # todo: in dao.A datum und Uhrzeit als column ergaenzen und in Files anzeigen ...
 # todo in Directory Liste # directories all # #directories subtree einfuegen. evtl noch selected directories jeweils
 # todo: in Files: delete and ignore column
@@ -2194,7 +2194,7 @@ class Form(QWidget):
         tab_spaceConfig.setLayout(layouttab3)
 
 
-        self.editA = QLineEdit()
+        self.editA = QTextEdit()
         ss = self.daoConfig.value_get( 'sourceA' , 'Please select a Directory' )
         self.editA.setText(ss)
 
@@ -2202,7 +2202,7 @@ class Form(QWidget):
         butA.clicked.connect(self.on_button_clickedA)
         layouttab3.addRow(butA, self.editA)
 
-        self.editB = QLineEdit()
+        self.editB = QTextEdit()
         ss = self.daoConfig.value_get('sourceB', 'Please select a Directory')
         self.editB.setText(ss)
 
