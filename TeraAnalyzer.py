@@ -1,4 +1,6 @@
-# todo Quatratischen Algorithmus fuer Direcories refacturen
+
+
+# todo: Quatratischen Algorithmus fuer Direcories refacturen
 # todo: Space A und Space B: mehrere Ordner zulassen, evtl einige ausschliessen, ausschliessen mit einem Minus davor
 # todo: in dao.A datum und Uhrzeit als column ergaenzen und in Files anzeigen ...
 # todo in Directory Liste # directories all # #directories subtree einfuegen. evtl noch selected directories jeweils
@@ -48,6 +50,11 @@ NOCLUSTER   = -1
 DATCOMP     = 5
 RWCNT       = 40
 MAXSIZE     = 4000000
+
+
+KPI_FILES = 'FILES'
+KPI_DIRECTORY = 'DIRECTORY'
+
 
 class Util():
     @staticmethod
@@ -389,122 +396,63 @@ class Api():
           print('Ende Selektion')
 
     @staticmethod
-    def filter_all(dao):
-        dao.FIL=[ i for i, a in enumerate (dao.A)]
+    def filter_all(dao, kpi):
+        if kpi == KPI_FILES or KPI_DIRECTORY:
+          dao.FIL=[ i for i, a in enumerate (dao.A)]
 
-        D = list({a[DIRECTORY] for a in dao.A})
-        #sorted(D)
-
-
-
-
-        for i,d in enumerate(D):
-            length = len(d)
-            treecnt             = 0
-            treesize            = 0
-            treeselectedcnt     = 0   #subtree
-            treeselectedsize    = 0  # subtree
-
-            topcnt              = 0
-            topsize             = 0
-            topselectedcnt      = 0   #toplevel
-            topselectedsize     = 0  #toplevel
-            subtreecnt          = 0
-            subtreesize         = 0
-            subtreeselectedcnt  = 0
-            subtreeselectedsize = 0
-            for a in dao.A:
-                if  a[FILE][:length]==d:
-                   treecnt += 1
-                   treesize += a[SIZE]
-                   if True:
-                      treeselectedcnt  += 1
-                      treeselectedsize +=a[SIZE]
-                if  a[DIRECTORY]==d:
-                   topcnt += 1
-                   topsize += a[SIZE]
-                   if True:
-                      topselectedcnt  += 1
-                      topselectedsize +=a[SIZE]
-                if  a[FILE][:length]==d and a[DIRECTORY] != d:
-                    # we are in a subdirectory ...
-                    if True:
-                      subtreeselectedcnt +=1
-                      subtreeselectedsize +=a[SIZE]
-                    subtreecnt +=1
-                    subtreesize +=a[SIZE]
+        if kpi == KPI_DIRECTORY:
+            D = list({a[DIRECTORY] for a in dao.A})
+            #sorted(D)
 
 
 
 
-            D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+            for i,d in enumerate(D):
+                length = len(d)
+                treecnt             = 0
+                treesize            = 0
+                treeselectedcnt     = 0   #subtree
+                treeselectedsize    = 0  # subtree
 
-        dao.DIR = D
-
-
-
-
-
-
-
-
-
-
-
-    @staticmethod
-    def filter_suffix(dao,suffix):
-        dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix] # nur indices stehen in FIL
-        D = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix})
-        #sorted(D)
-
-
-        for i,d in enumerate(D):
-            length = len(d)
-
-
-            treecnt             = 0
-            treesize            = 0
-            treeselectedcnt     = 0   #subtree
-            treeselectedsize    = 0  # subtree
-
-            topcnt              = 0
-            topsize             = 0
-            topselectedcnt      = 0   #toplevel
-            topselectedsize     = 0  #toplevel
-            subtreecnt          = 0
-            subtreesize         = 0
-            subtreeselectedcnt  = 0
-            subtreeselectedsize = 0
-
-
-            for a in dao.A:
-                if  a[FILE][:length]==d:
-                   treecnt += 1
-                   treesize += a[SIZE]
-                   if a[SUFFIX] == suffix:
-                      treeselectedcnt  += 1
-                      treeselectedsize +=a[SIZE]
-                if  a[DIRECTORY]==d:
-                   topcnt += 1
-                   topsize += a[SIZE]
-                   if a[SUFFIX] == suffix:
-                      topselectedcnt  += 1
-                      topselectedsize +=a[SIZE]
-                if  a[FILE][:length]==d and a[DIRECTORY] != d:
-                    # we are in a subdirectory ...
-                    if a[SUFFIX] == suffix:
-                      subtreeselectedcnt +=1
-                      subtreeselectedsize +=a[SIZE]
-                    subtreecnt +=1
-                    subtreesize +=a[SIZE]
+                topcnt              = 0
+                topsize             = 0
+                topselectedcnt      = 0   #toplevel
+                topselectedsize     = 0  #toplevel
+                subtreecnt          = 0
+                subtreesize         = 0
+                subtreeselectedcnt  = 0
+                subtreeselectedsize = 0
+                for a in dao.A:
+                    if  a[FILE][:length]==d:
+                       treecnt += 1
+                       treesize += a[SIZE]
+                       if True:
+                          treeselectedcnt  += 1
+                          treeselectedsize +=a[SIZE]
+                    if  a[DIRECTORY]==d:
+                       topcnt += 1
+                       topsize += a[SIZE]
+                       if True:
+                          topselectedcnt  += 1
+                          topselectedsize +=a[SIZE]
+                    if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                        # we are in a subdirectory ...
+                        if True:
+                          subtreeselectedcnt +=1
+                          subtreeselectedsize +=a[SIZE]
+                        subtreecnt +=1
+                        subtreesize +=a[SIZE]
 
 
 
 
+                D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
 
-            D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+            dao.DIR = D
 
-        dao.DIR = D
+
+
+
 
 
 
@@ -513,55 +461,121 @@ class Api():
 
 
     @staticmethod
-    def filter_year(dao,year):
-        dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year]
-        D = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year})
+    def filter_suffix(dao,kpi, suffix):
+        if kpi == KPI_FILES or kpi==KPI_DIRECTORY:
+          dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix] # nur indices stehen in FIL
+
+        if kpi == KPI_DIRECTORY:
+            D = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix})
+            #sorted(D)
 
 
-        for i,d in enumerate(D):
-            length = len(d)
-
-            treecnt             = 0
-            treesize            = 0
-            treeselectedcnt     = 0   #subtree
-            treeselectedsize    = 0  # subtree
-
-            topcnt              = 0
-            topsize             = 0
-            topselectedcnt      = 0   #toplevel
-            topselectedsize     = 0  #toplevel
-            subtreecnt          = 0
-            subtreesize         = 0
-            subtreeselectedcnt  = 0
-            subtreeselectedsize = 0
+            for i,d in enumerate(D):
+                length = len(d)
 
 
-            for a in dao.A:
-                if  a[FILE][:length]==d:
-                   treecnt += 1
-                   treesize += a[SIZE]
-                   if a[YEAR] == year:
-                      treeselectedcnt  += 1
-                      treeselectedsize +=a[SIZE]
-                if  a[DIRECTORY]==d:
-                   topcnt += 1
-                   topsize += a[SIZE]
-                   if a[YEAR] == year:
-                      topselectedcnt  += 1
-                      topselectedsize +=a[SIZE]
-                if  a[FILE][:length]==d and a[DIRECTORY] != d:
-                    # we are in a subdirectory ...
-                    if a[YEAR] == year:
-                      subtreeselectedcnt +=1
-                      subtreeselectedsize +=a[SIZE]
-                    subtreecnt +=1
-                    subtreesize +=a[SIZE]
+                treecnt             = 0
+                treesize            = 0
+                treeselectedcnt     = 0   #subtree
+                treeselectedsize    = 0  # subtree
+
+                topcnt              = 0
+                topsize             = 0
+                topselectedcnt      = 0   #toplevel
+                topselectedsize     = 0  #toplevel
+                subtreecnt          = 0
+                subtreesize         = 0
+                subtreeselectedcnt  = 0
+                subtreeselectedsize = 0
 
 
-            D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+                for a in dao.A:
+                    if  a[FILE][:length]==d:
+                       treecnt += 1
+                       treesize += a[SIZE]
+                       if a[SUFFIX] == suffix:
+                          treeselectedcnt  += 1
+                          treeselectedsize +=a[SIZE]
+                    if  a[DIRECTORY]==d:
+                       topcnt += 1
+                       topsize += a[SIZE]
+                       if a[SUFFIX] == suffix:
+                          topselectedcnt  += 1
+                          topselectedsize +=a[SIZE]
+                    if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                        # we are in a subdirectory ...
+                        if a[SUFFIX] == suffix:
+                          subtreeselectedcnt +=1
+                          subtreeselectedsize +=a[SIZE]
+                        subtreecnt +=1
+                        subtreesize +=a[SIZE]
 
 
-        dao.DIR = D
+
+
+
+                D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+
+            dao.DIR = D
+
+
+
+
+
+
+
+    @staticmethod
+    def filter_year(dao,kpi,year):
+        if kpi == KPI_FILES or kpi==KPI_DIRECTORY:
+          dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year]
+        if kpi==KPI_DIRECTORY:
+            D = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year})
+
+
+            for i,d in enumerate(D):
+                length = len(d)
+
+                treecnt             = 0
+                treesize            = 0
+                treeselectedcnt     = 0   #subtree
+                treeselectedsize    = 0  # subtree
+
+                topcnt              = 0
+                topsize             = 0
+                topselectedcnt      = 0   #toplevel
+                topselectedsize     = 0  #toplevel
+                subtreecnt          = 0
+                subtreesize         = 0
+                subtreeselectedcnt  = 0
+                subtreeselectedsize = 0
+
+
+                for a in dao.A:
+                    if  a[FILE][:length]==d:
+                       treecnt += 1
+                       treesize += a[SIZE]
+                       if a[YEAR] == year:
+                          treeselectedcnt  += 1
+                          treeselectedsize +=a[SIZE]
+                    if  a[DIRECTORY]==d:
+                       topcnt += 1
+                       topsize += a[SIZE]
+                       if a[YEAR] == year:
+                          topselectedcnt  += 1
+                          topselectedsize +=a[SIZE]
+                    if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                        # we are in a subdirectory ...
+                        if a[YEAR] == year:
+                          subtreeselectedcnt +=1
+                          subtreeselectedsize +=a[SIZE]
+                        subtreecnt +=1
+                        subtreesize +=a[SIZE]
+
+
+                D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+
+
+            dao.DIR = D
 
 
 
@@ -569,310 +583,323 @@ class Api():
 
 
     @staticmethod
-    def filter_year_month(dao,year,month):
-        dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[MONTH] == month  ]
-        D = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year and a[MONTH] == month})
+    def filter_year_month(dao,kpi,year,month):
+        if kpi == KPI_FILES or kpi==KPI_DIRECTORY:
+          dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[MONTH] == month  ]
+        if kpi==KPI_DIRECTORY:
+            D = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year and a[MONTH] == month})
 
 
-        for i,d in enumerate(D):
-            length = len(d)
-            treecnt             = 0
-            treesize            = 0
-            treeselectedcnt     = 0   #subtree
-            treeselectedsize    = 0  # subtree
+            for i,d in enumerate(D):
+                length = len(d)
+                treecnt             = 0
+                treesize            = 0
+                treeselectedcnt     = 0   #subtree
+                treeselectedsize    = 0  # subtree
 
-            topcnt              = 0
-            topsize             = 0
-            topselectedcnt      = 0   #toplevel
-            topselectedsize     = 0  #toplevel
-            subtreecnt          = 0
-            subtreesize         = 0
-            subtreeselectedcnt  = 0
-            subtreeselectedsize = 0
-
-
-            for a in dao.A:
-                if  a[FILE][:length]==d:
-                   treecnt += 1
-                   treesize += a[SIZE]
-                   if a[YEAR] == year and a[MONTH]==month:
-                      treeselectedcnt  += 1
-                      treeselectedsize +=a[SIZE]
-                if  a[DIRECTORY]==d:
-                   topcnt += 1
-                   topsize += a[SIZE]
-                   if a[YEAR] == year and a[MONTH]==month:
-                      topselectedcnt  += 1
-                      topselectedsize +=a[SIZE]
-                if  a[FILE][:length]==d and a[DIRECTORY] != d:
-                    # we are in a subdirectory ...
-                    if a[YEAR] == year and a[MONTH]==month:
-                      subtreeselectedcnt +=1
-                      subtreeselectedsize +=a[SIZE]
-                    subtreecnt +=1
-                    subtreesize +=a[SIZE]
+                topcnt              = 0
+                topsize             = 0
+                topselectedcnt      = 0   #toplevel
+                topselectedsize     = 0  #toplevel
+                subtreecnt          = 0
+                subtreesize         = 0
+                subtreeselectedcnt  = 0
+                subtreeselectedsize = 0
 
 
-            D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+                for a in dao.A:
+                    if  a[FILE][:length]==d:
+                       treecnt += 1
+                       treesize += a[SIZE]
+                       if a[YEAR] == year and a[MONTH]==month:
+                          treeselectedcnt  += 1
+                          treeselectedsize +=a[SIZE]
+                    if  a[DIRECTORY]==d:
+                       topcnt += 1
+                       topsize += a[SIZE]
+                       if a[YEAR] == year and a[MONTH]==month:
+                          topselectedcnt  += 1
+                          topselectedsize +=a[SIZE]
+                    if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                        # we are in a subdirectory ...
+                        if a[YEAR] == year and a[MONTH]==month:
+                          subtreeselectedcnt +=1
+                          subtreeselectedsize +=a[SIZE]
+                        subtreecnt +=1
+                        subtreesize +=a[SIZE]
 
 
-        dao.DIR = D
+                D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
 
 
+            dao.DIR = D
 
-
-
-    @staticmethod
-    def filter_suffix_year(dao,suffix,year):
-        dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix and a[YEAR] == year  ]
-        D = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix and a[YEAR] == year})
-
-        for i,d in enumerate(D):
-            length = len(d)
-            treecnt             = 0
-            treesize            = 0
-            treeselectedcnt     = 0   #subtree
-            treeselectedsize    = 0  # subtree
-
-            topcnt              = 0
-            topsize             = 0
-            topselectedcnt      = 0   #toplevel
-            topselectedsize     = 0  #toplevel
-            subtreecnt          = 0
-            subtreesize         = 0
-            subtreeselectedcnt  = 0
-            subtreeselectedsize = 0
-
-
-            for a in dao.A:
-                if  a[FILE][:length]==d:
-                   treecnt += 1
-                   treesize += a[SIZE]
-                   if a[YEAR] == year and a[SUFFIX]==suffix:
-                      treeselectedcnt  += 1
-                      treeselectedsize +=a[SIZE]
-                if  a[DIRECTORY]==d:
-                   topcnt += 1
-                   topsize += a[SIZE]
-                   if a[YEAR] == year and a[SUFFIX]==suffix:
-                      topselectedcnt  += 1
-                      topselectedsize +=a[SIZE]
-                if  a[FILE][:length]==d and a[DIRECTORY] != d:
-                    # we are in a subdirectory ...
-                    if a[YEAR] == year and a[SUFFIX]==suffix:
-                      subtreeselectedcnt +=1
-                      subtreeselectedsize +=a[SIZE]
-                    subtreecnt +=1
-                    subtreesize +=a[SIZE]
-
-
-            D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
-
-        dao.DIR = D
 
 
 
 
     @staticmethod
-    def filter_year_suffix(dao,year, suffix):
-        dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[SUFFIX] == suffix  ]
-        D = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year and a[SUFFIX] == suffix})
+    def filter_suffix_year(dao,kpi,suffix,year):
+        if kpi == KPI_FILES or kpi==KPI_DIRECTORY:
+          dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix and a[YEAR] == year  ]
+        if kpi==KPI_DIRECTORY:
+            D = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix and a[YEAR] == year})
 
-        for i,d in enumerate(D):
-            length = len(d)
-            treecnt             = 0
-            treesize            = 0
-            treeselectedcnt     = 0   #subtree
-            treeselectedsize    = 0  # subtree
+            for i,d in enumerate(D):
+                length = len(d)
+                treecnt             = 0
+                treesize            = 0
+                treeselectedcnt     = 0   #subtree
+                treeselectedsize    = 0  # subtree
 
-            topcnt              = 0
-            topsize             = 0
-            topselectedcnt      = 0   #toplevel
-            topselectedsize     = 0  #toplevel
-            subtreecnt          = 0
-            subtreesize         = 0
-            subtreeselectedcnt  = 0
-            subtreeselectedsize = 0
-
-
-            for a in dao.A:
-                if  a[FILE][:length]==d:
-                   treecnt += 1
-                   treesize += a[SIZE]
-                   if a[YEAR] == year and a[SUFFIX]==suffix:
-                      treeselectedcnt  += 1
-                      treeselectedsize +=a[SIZE]
-                if  a[DIRECTORY]==d:
-                   topcnt += 1
-                   topsize += a[SIZE]
-                   if a[YEAR] == year and a[SUFFIX]==suffix:
-                      topselectedcnt  += 1
-                      topselectedsize +=a[SIZE]
-                if  a[FILE][:length]==d and a[DIRECTORY] != d:
-                    # we are in a subdirectory ...
-                    if a[YEAR] == year and a[SUFFIX]==suffix:
-                      subtreeselectedcnt +=1
-                      subtreeselectedsize +=a[SIZE]
-                    subtreecnt +=1
-                    subtreesize +=a[SIZE]
+                topcnt              = 0
+                topsize             = 0
+                topselectedcnt      = 0   #toplevel
+                topselectedsize     = 0  #toplevel
+                subtreecnt          = 0
+                subtreesize         = 0
+                subtreeselectedcnt  = 0
+                subtreeselectedsize = 0
 
 
-            D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
-
-        dao.DIR = D
-
-
-
-
-    @staticmethod
-    def filter_suffix_year_month(dao, suffix, year, month):
-        dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month  ]
-        D = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month})
-
-
-        for i,d in enumerate(D):
-            length = len(d)
-            treecnt             = 0
-            treesize            = 0
-            treeselectedcnt     = 0   #subtree
-            treeselectedsize    = 0  # subtree
-
-            topcnt              = 0
-            topsize             = 0
-            topselectedcnt      = 0   #toplevel
-            topselectedsize     = 0  #toplevel
-            subtreecnt          = 0
-            subtreesize         = 0
-            subtreeselectedcnt  = 0
-            subtreeselectedsize = 0
+                for a in dao.A:
+                    if  a[FILE][:length]==d:
+                       treecnt += 1
+                       treesize += a[SIZE]
+                       if a[YEAR] == year and a[SUFFIX]==suffix:
+                          treeselectedcnt  += 1
+                          treeselectedsize +=a[SIZE]
+                    if  a[DIRECTORY]==d:
+                       topcnt += 1
+                       topsize += a[SIZE]
+                       if a[YEAR] == year and a[SUFFIX]==suffix:
+                          topselectedcnt  += 1
+                          topselectedsize +=a[SIZE]
+                    if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                        # we are in a subdirectory ...
+                        if a[YEAR] == year and a[SUFFIX]==suffix:
+                          subtreeselectedcnt +=1
+                          subtreeselectedsize +=a[SIZE]
+                        subtreecnt +=1
+                        subtreesize +=a[SIZE]
 
 
-            for a in dao.A:
-                if  a[FILE][:length]==d:
-                   treecnt += 1
-                   treesize += a[SIZE]
-                   if a[YEAR] == year and a[SUFFIX]==suffix and a[MONTH]==month:
-                      treeselectedcnt  += 1
-                      treeselectedsize +=a[SIZE]
-                if  a[DIRECTORY]==d:
-                   topcnt += 1
-                   topsize += a[SIZE]
-                   if a[YEAR] == year and a[SUFFIX]==suffix and a[MONTH]==month:
-                      topselectedcnt  += 1
-                      topselectedsize +=a[SIZE]
-                if  a[FILE][:length]==d and a[DIRECTORY] != d:
-                    # we are in a subdirectory ...
-                    if a[YEAR] == year and a[SUFFIX]==suffix and a[MONTH]==month:
-                      subtreeselectedcnt +=1
-                      subtreeselectedsize +=a[SIZE]
-                    subtreecnt +=1
-                    subtreesize +=a[SIZE]
+                D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
 
-
-            D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
-
-
-        dao.DIR = D
+            dao.DIR = D
 
 
 
 
     @staticmethod
-    def filter_year_month_suffix(dao, year, month, suffix):
-        dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix  ]
-        D = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix})
+    def filter_year_suffix(dao,kpi,year, suffix):
+        if kpi == KPI_FILES or kpi==KPI_DIRECTORY:
+          dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[SUFFIX] == suffix  ]
 
-        for i,d in enumerate(D):
-            length = len(d)
-            treecnt             = 0
-            treesize            = 0
-            treeselectedcnt     = 0   #subtree
-            treeselectedsize    = 0  # subtree
+        if kpi==KPI_DIRECTORY:
+            D = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year and a[SUFFIX] == suffix})
 
-            topcnt              = 0
-            topsize             = 0
-            topselectedcnt      = 0   #toplevel
-            topselectedsize     = 0  #toplevel
-            subtreecnt          = 0
-            subtreesize         = 0
-            subtreeselectedcnt  = 0
-            subtreeselectedsize = 0
+            for i,d in enumerate(D):
+                length = len(d)
+                treecnt             = 0
+                treesize            = 0
+                treeselectedcnt     = 0   #subtree
+                treeselectedsize    = 0  # subtree
 
-
-            for a in dao.A:
-                if  a[FILE][:length]==d:
-                   treecnt += 1
-                   treesize += a[SIZE]
-                   if a[YEAR] == year and a[MONTH]==month and a[SUFFIX]==suffix:
-                      treeselectedcnt  += 1
-                      treeselectedsize +=a[SIZE]
-                if  a[DIRECTORY]==d:
-                   topcnt += 1
-                   topsize += a[SIZE]
-                   if a[YEAR] == year and a[MONTH]==month and a[SUFFIX]==suffix:
-                      topselectedcnt  += 1
-                      topselectedsize +=a[SIZE]
-                if  a[FILE][:length]==d and a[DIRECTORY] != d:
-                    # we are in a subdirectory ...
-                    if a[YEAR] == year and a[MONTH]==month and a[SUFFIX]==suffix:
-                      subtreeselectedcnt +=1
-                      subtreeselectedsize +=a[SIZE]
-                    subtreecnt +=1
-                    subtreesize +=a[SIZE]
+                topcnt              = 0
+                topsize             = 0
+                topselectedcnt      = 0   #toplevel
+                topselectedsize     = 0  #toplevel
+                subtreecnt          = 0
+                subtreesize         = 0
+                subtreeselectedcnt  = 0
+                subtreeselectedsize = 0
 
 
-            D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+                for a in dao.A:
+                    if  a[FILE][:length]==d:
+                       treecnt += 1
+                       treesize += a[SIZE]
+                       if a[YEAR] == year and a[SUFFIX]==suffix:
+                          treeselectedcnt  += 1
+                          treeselectedsize +=a[SIZE]
+                    if  a[DIRECTORY]==d:
+                       topcnt += 1
+                       topsize += a[SIZE]
+                       if a[YEAR] == year and a[SUFFIX]==suffix:
+                          topselectedcnt  += 1
+                          topselectedsize +=a[SIZE]
+                    if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                        # we are in a subdirectory ...
+                        if a[YEAR] == year and a[SUFFIX]==suffix:
+                          subtreeselectedcnt +=1
+                          subtreeselectedsize +=a[SIZE]
+                        subtreecnt +=1
+                        subtreesize +=a[SIZE]
 
-        dao.DIR = D
+
+                D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+
+            dao.DIR = D
+
+
 
 
     @staticmethod
-    def filter_level(dao,level):
-        dao.FIL=[ i for i, a in enumerate(dao.A) if a[LEVEL] == level]
-        D = list({a[DIRECTORY] for a in dao.A if a[LEVEL] == level})
-
-        for i,d in enumerate(D):
-            length = len(d)
-            treecnt             = 0
-            treesize            = 0
-            treeselectedcnt     = 0   #subtree
-            treeselectedsize    = 0  # subtree
-
-            topcnt              = 0
-            topsize             = 0
-            topselectedcnt      = 0   #toplevel
-            topselectedsize     = 0  #toplevel
-            subtreecnt          = 0
-            subtreesize         = 0
-            subtreeselectedcnt  = 0
-            subtreeselectedsize = 0
+    def filter_suffix_year_month(dao,kpi, suffix, year, month):
+        if kpi == KPI_FILES or kpi==KPI_DIRECTORY:
+          dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month  ]
+        if kpi==KPI_DIRECTORY:
+            D = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month})
 
 
-            for a in dao.A:
-                if  a[FILE][:length]==d:
-                   treecnt += 1
-                   treesize += a[SIZE]
-                   if a[LEVEL] == level:
-                      treeselectedcnt  += 1
-                      treeselectedsize +=a[SIZE]
-                if  a[DIRECTORY]==d:
-                   topcnt += 1
-                   topsize += a[SIZE]
-                   if a[LEVEL] == level:
-                      topselectedcnt  += 1
-                      topselectedsize +=a[SIZE]
-                if  a[FILE][:length]==d and a[DIRECTORY] != d:
-                    # we are in a subdirectory ...
-                    if a[LEVEL] == level:
-                      subtreeselectedcnt +=1
-                      subtreeselectedsize +=a[SIZE]
-                    subtreecnt +=1
-                    subtreesize +=a[SIZE]
+            for i,d in enumerate(D):
+                length = len(d)
+                treecnt             = 0
+                treesize            = 0
+                treeselectedcnt     = 0   #subtree
+                treeselectedsize    = 0  # subtree
+
+                topcnt              = 0
+                topsize             = 0
+                topselectedcnt      = 0   #toplevel
+                topselectedsize     = 0  #toplevel
+                subtreecnt          = 0
+                subtreesize         = 0
+                subtreeselectedcnt  = 0
+                subtreeselectedsize = 0
 
 
-            D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+                for a in dao.A:
+                    if  a[FILE][:length]==d:
+                       treecnt += 1
+                       treesize += a[SIZE]
+                       if a[YEAR] == year and a[SUFFIX]==suffix and a[MONTH]==month:
+                          treeselectedcnt  += 1
+                          treeselectedsize +=a[SIZE]
+                    if  a[DIRECTORY]==d:
+                       topcnt += 1
+                       topsize += a[SIZE]
+                       if a[YEAR] == year and a[SUFFIX]==suffix and a[MONTH]==month:
+                          topselectedcnt  += 1
+                          topselectedsize +=a[SIZE]
+                    if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                        # we are in a subdirectory ...
+                        if a[YEAR] == year and a[SUFFIX]==suffix and a[MONTH]==month:
+                          subtreeselectedcnt +=1
+                          subtreeselectedsize +=a[SIZE]
+                        subtreecnt +=1
+                        subtreesize +=a[SIZE]
 
-        dao.DIR = D
+
+                D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+
+
+            dao.DIR = D
+
+
+
+
+    @staticmethod
+    def filter_year_month_suffix(dao, kpi, year, month, suffix):
+        if kpi == KPI_FILES or kpi==KPI_DIRECTORY:
+          dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix  ]
+        if kpi==KPI_DIRECTORY:
+            D = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix})
+
+            for i,d in enumerate(D):
+                length = len(d)
+                treecnt             = 0
+                treesize            = 0
+                treeselectedcnt     = 0   #subtree
+                treeselectedsize    = 0  # subtree
+
+                topcnt              = 0
+                topsize             = 0
+                topselectedcnt      = 0   #toplevel
+                topselectedsize     = 0  #toplevel
+                subtreecnt          = 0
+                subtreesize         = 0
+                subtreeselectedcnt  = 0
+                subtreeselectedsize = 0
+
+
+                for a in dao.A:
+                    if  a[FILE][:length]==d:
+                       treecnt += 1
+                       treesize += a[SIZE]
+                       if a[YEAR] == year and a[MONTH]==month and a[SUFFIX]==suffix:
+                          treeselectedcnt  += 1
+                          treeselectedsize +=a[SIZE]
+                    if  a[DIRECTORY]==d:
+                       topcnt += 1
+                       topsize += a[SIZE]
+                       if a[YEAR] == year and a[MONTH]==month and a[SUFFIX]==suffix:
+                          topselectedcnt  += 1
+                          topselectedsize +=a[SIZE]
+                    if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                        # we are in a subdirectory ...
+                        if a[YEAR] == year and a[MONTH]==month and a[SUFFIX]==suffix:
+                          subtreeselectedcnt +=1
+                          subtreeselectedsize +=a[SIZE]
+                        subtreecnt +=1
+                        subtreesize +=a[SIZE]
+
+
+                D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+
+            dao.DIR = D
+
+
+    @staticmethod
+    def filter_level(dao,kpi,level):
+        if kpi == KPI_FILES or kpi==KPI_DIRECTORY:
+          dao.FIL=[ i for i, a in enumerate(dao.A) if a[LEVEL] == level]
+        if kpi==KPI_DIRECTORY:
+            D = list({a[DIRECTORY] for a in dao.A if a[LEVEL] == level})
+
+            for i,d in enumerate(D):
+                length = len(d)
+                treecnt             = 0
+                treesize            = 0
+                treeselectedcnt     = 0   #subtree
+                treeselectedsize    = 0  # subtree
+
+                topcnt              = 0
+                topsize             = 0
+                topselectedcnt      = 0   #toplevel
+                topselectedsize     = 0  #toplevel
+                subtreecnt          = 0
+                subtreesize         = 0
+                subtreeselectedcnt  = 0
+                subtreeselectedsize = 0
+
+
+                for a in dao.A:
+                    if  a[FILE][:length]==d:
+                       treecnt += 1
+                       treesize += a[SIZE]
+                       if a[LEVEL] == level:
+                          treeselectedcnt  += 1
+                          treeselectedsize +=a[SIZE]
+                    if  a[DIRECTORY]==d:
+                       topcnt += 1
+                       topsize += a[SIZE]
+                       if a[LEVEL] == level:
+                          topselectedcnt  += 1
+                          topselectedsize +=a[SIZE]
+                    if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                        # we are in a subdirectory ...
+                        if a[LEVEL] == level:
+                          subtreeselectedcnt +=1
+                          subtreeselectedsize +=a[SIZE]
+                        subtreecnt +=1
+                        subtreesize +=a[SIZE]
+
+
+                D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+
+            dao.DIR = D
 
 
     @staticmethod
@@ -1179,10 +1206,12 @@ class Tab_All(QWidget):
     def on_kpi_clicked(self,item):
         index = item.data(DATCOMP)
         s = self.dao.ALL[index]
-        Api.filter_all(self.dao)
+
         if item.column() == 1:
+          Api.filter_all(self.dao, KPI_FILES)
           self.files_all.displayFiles()
         if item.column() == 2:
+          Api.filter_all(self.dao, KPI_DIRECTORY)
           self.files_all.displayDir()
 
 
@@ -1277,10 +1306,12 @@ class Tab_SU(QWidget):
     def on_kpi_clicked(self,item):
         index = item.data(DATCOMP)
         s = self.dao.SU[index]
-        Api.filter_suffix(self.dao,s[0])
+
         if item.column() == 1:
+          Api.filter_suffix(self.dao, KPI_FILES,s[0])
           self.files_su.displayFiles()
         if item.column() == 2:
+          Api.filter_suffix(self.dao, KPI_DIRECTORY,s[0])
           self.files_su.displayDir()
 
 class Tab_YE(QWidget):
@@ -1343,10 +1374,12 @@ class Tab_YE(QWidget):
     def on_kpi_clicked(self,item):
         index = item.data(DATCOMP)
         s = self.dao.YE[index]
-        Api.filter_year(self.dao,s[0])
+
         if item.column() == 1:
+          Api.filter_year(self.dao,KPI_FILES,s[0])
           self.files_ye.displayFiles()
         if item.column() == 2:
+          Api.filter_year(self.dao,KPI_DIRECTORY,s[0])
           self.files_ye.displayDir()
 
 
@@ -1420,10 +1453,12 @@ class Tab_YEMO(QWidget):
     def on_kpi_clicked(self,item):
         index = item.data(DATCOMP)
         s = self.dao.YEMO[index]
-        Api.filter_year_month(self.dao,s[0],s[1])
+
         if item.column() == 2:
+          Api.filter_year_month(self.dao,KPI_FILES,s[0],s[1])
           self.files_yemo.displayFiles()
         if item.column() == 3:
+          Api.filter_year_month(self.dao,KPI_DIRECTORY,s[0],s[1])
           self.files_yemo.displayDir()
 
 
@@ -1497,10 +1532,12 @@ class Tab_SUYE(QWidget):
     def on_kpi_clicked(self,item):
         index = item.data(DATCOMP)
         s = self.dao.SUYE[index]
-        Api.filter_suffix_year(self.dao,s[0],s[1])
+
         if item.column() == 2:
+          Api.filter_suffix_year(self.dao,KPI_FILES,s[0],s[1])
           self.files_suye.displayFiles()
         if item.column() == 3:
+          Api.filter_suffix_year(self.dao,KPI_DIRECTORY,s[0],s[1])
           self.files_suye.displayDir()
 
 
@@ -1575,10 +1612,12 @@ class Tab_YESU(QWidget):
     def on_kpi_clicked(self,item):
         index = item.data(DATCOMP)
         s = self.dao.YESU[index]
-        Api.filter_year_suffix(self.dao,s[0],s[1])
+
         if item.column() == 2:
+          Api.filter_year_suffix(self.dao,KPI_FILES,s[0],s[1])
           self.files_yesu.displayFiles()
         if item.column() == 3:
+          Api.filter_year_suffix(self.dao,KPI_DIRECTORY,s[0],s[1])
           self.files_yesu.displayDir()
 
 
@@ -1657,10 +1696,12 @@ class Tab_SUYEMO(QWidget):
     def on_kpi_clicked(self,item):
         index = item.data(DATCOMP)
         s = self.dao.SUYEMO[index]
-        Api.filter_suffix_year_month(self.dao,s[0],s[1],s[2])
+
         if item.column() == 3:
+          Api.filter_suffix_year_month(self.dao,KPI_FILES,s[0],s[1],s[2])
           self.files_suyemo.displayFiles()
         if item.column() == 4:
+          Api.filter_suffix_year_month(self.dao,KPI_DIRECTORY,s[0],s[1],s[2])
           self.files_suyemo.displayDir()
 
 
@@ -1737,10 +1778,12 @@ class Tab_YEMOSU(QWidget):
     def on_kpi_clicked(self,item):
         index = item.data(DATCOMP)
         s = self.dao.YEMOSU[index]
-        Api.filter_year_month_suffix(self.dao,s[0],s[1],s[2])
+
         if item.column() == 3:
+          Api.filter_year_month_suffix(self.dao,KPI_FILES,s[0],s[1],s[2])
           self.files_yemosu.displayFiles()
         if item.column() == 4:
+          Api.filter_year_month_suffix(self.dao,KPI_DIRECTORY,s[0],s[1],s[2])
           self.files_yemosu.displayDir()
 
 
@@ -1812,10 +1855,12 @@ class Tab_LE(QWidget):
     def on_kpi_clicked(self,item):
         index = item.data(DATCOMP)
         s = self.dao.LE[index]
-        Api.filter_level(self.dao,s[0])
+
         if item.column() == 1:
+          Api.filter_level(self.dao,KPI_FILES,s[0])
           self.files_le.displayFiles()
         if item.column() == 2:
+          Api.filter_level(self.dao,KPI_DIRECTORY,s[0])
           self.files_le.displayDir()
 
 
@@ -2195,20 +2240,23 @@ class Form(QWidget):
 
 
         self.editA = QTextEdit()
-        ss = self.daoConfig.value_get( 'sourceA' , 'Please select a Directory' )
-        self.editA.setText(ss)
+        self.editA.textChanged.connect(self.on_text_changedA)
+        text = self.daoConfig.value_get( 'sourceA' , 'Please select a Directory' )
+        self.editA.setText(text)
 
         butA = QPushButton('Source A')
         butA.clicked.connect(self.on_button_clickedA)
         layouttab3.addRow(butA, self.editA)
 
         self.editB = QTextEdit()
-        ss = self.daoConfig.value_get('sourceB', 'Please select a Directory')
-        self.editB.setText(ss)
+        self.editB.textChanged.connect(self.on_text_changedB)
+        text = self.daoConfig.value_get('sourceB', 'Please select a Directory')
+        self.editB.setText(text)
 
         butB = QPushButton('Source B')
         butB.clicked.connect(self.on_button_clickedB)
-        layouttab3.addRow(butB, self.editB)
+        layouttab3.addRow(butB,  self.editB)
+
 
         self.matrixA.display()
         self.matrixB.display()
@@ -2353,23 +2401,41 @@ class Form(QWidget):
 
 
     def on_button_clickedA(self):
-        ss = QFileDialog(self,"Bitte Directory auswaehlen","/home/user").getExistingDirectory(self)
-        if ss:
-          self.editA.setText(ss)
-          self.daoConfig.value_set('sourceA',ss)
+        newpath = QFileDialog(self,"Bitte Directory auswaehlen","/home/user").getExistingDirectory(self)
+        if newpath:
+          # neuen Pfad zu den bereits abgespeicherten Pfaden addieren ...
+          text=self.editA.toPlainText()
+          if text:
+            text+='\n'   # nur falls text vorhanden war, soll dieser durch einen Zeilenumbruch vom neuen Pfad getrennt werden
+          text+=newpath
+          self.editA.setText(text)
+          self.daoConfig.value_set('sourceA',text)
           # Tabs der Matrix von SpaceA werden neu aufgebaut ...
-          self.daoA.path = ss
-          #self.daoA.selection()
-          #self.daoA.count_files()
-          #self.matrixA.tab_all.set_content()
+          self.daoA.path = text
+
 
     def on_button_clickedB(self):
-        ss = QFileDialog(self,'Bitte Directory auswaehlen','/home/user').getExistingDirectory(self)
-        if ss:
-          self.editB.setText(ss)
-          self.daoConfig.value_set('sourceB',ss)
+        newpath = QFileDialog(self,'Bitte Directory auswaehlen','/home/user').getExistingDirectory(self)
+        if newpath:
+          # neuen Pfad zu den bereits abgespeicherten Pfaden addieren ...
+          text=self.editB.toPlainText()
+          if text:
+            text+='\n'   # nur falls text vorhanden war, soll dieser durch einen Zeilenumbruch vom neuen Pfad getrennt werden
+          text+=newpath
+          self.editB.setText(text)
+          self.daoConfig.value_set('sourceB',text)
           # Tabs der Matrix von SpaceB werden neu aufgebaut ...
-          self.daoB.path = ss
+          self.daoB.path = text
+
+    def on_text_changedA(self):
+        # persistieren, sobald sich die Pfade im text geaendert haben ...
+        text=self.editA.toPlainText()
+        self.daoConfig.value_set('sourceA',text)
+
+    def on_text_changedB(self):
+        # persistieren, sobald sich die Pfade im text geaendert haben ...
+        text=self.editB.toPlainText()
+        self.daoConfig.value_set('sourceB',text)
 
 
 
