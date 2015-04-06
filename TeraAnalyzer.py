@@ -1,5 +1,5 @@
 
-
+# todo: Falls in der config ein pfad geaendert wird, aber correkt hingeschreiben, so wird dieser nicht erkannt; erst bei erneutem aufruf
 # todo: Quatratischen Algorithmus fuer Direcories refacturen
 # todo: Space A und Space B: mehrere Ordner zulassen, evtl einige ausschliessen, ausschliessen mit einem Minus davor
 # todo: in dao.A datum und Uhrzeit als column ergaenzen und in Files anzeigen ...
@@ -136,6 +136,45 @@ class DaoConfig():
 
 
 class Api():
+    @staticmethod
+    def selection(dao):
+          print('Beginn Selektion')
+          dao.A=[]
+
+          conf = DaoConfig()
+          path = conf.value_get(dao.datasource,'Please enter a Directory')
+
+          if dao.datasource == DATA_SOURCE_A : print('Source A: ',path)
+          if dao.datasource == DATA_SOURCE_B : print('Source B: ',path)
+
+
+
+
+
+          for root, Dir, File in os.walk(path):
+            for file in File:
+              if file[0] == '.': continue
+              a = os.path.join(root, file)
+              if '/.' in os.path.join(root, a): continue
+              if SUFFIXES and os.path.splitext(a)[1].lower() not in SUFFIXES: continue
+              if not os.path.exists(a): continue
+              dao.A.append( [ str(a),
+                               str(os.path.dirname(a)),
+                               str(os.path.basename(a)),
+                               str(os.path.splitext(a)[1][1:].lower()),
+                               int(round(os.stat(a).st_mtime)),
+                               str(date.fromtimestamp(os.stat(a).st_mtime).year),
+                               str('0'+str(date.fromtimestamp(os.stat(a).st_mtime).month))[-2:],
+                               str(date.fromtimestamp(os.stat(a).st_mtime).year)+' '+str(date.fromtimestamp(os.stat(a).st_mtime).month),
+                               os.stat(a).st_size,
+                               a.count('/')-1,  #level
+                               0,               #hash
+                               NOCLUSTER,       #duplicate cluster, default = -1
+                               0] )             #duplicate   (as waste)  originaleintrag bleibt erhalten und ist ein duplicate
+
+          print('Ende Selektion')
+
+
     @staticmethod
     def difference(daoa, daob):
          # dient nur als Prototyp ...
@@ -368,32 +407,7 @@ class Api():
         print('Das Ergebnis')
 
 
-    @staticmethod
-    def selection(dao):
-          print('Beginn Selektion')
-          dao.A=[]
-          for root, Dir, File in os.walk(dao.path):
-            for file in File:
-              if file[0] == '.': continue
-              a = os.path.join(root, file)
-              if '/.' in os.path.join(root, a): continue
-              if SUFFIXES and os.path.splitext(a)[1].lower() not in SUFFIXES: continue
-              if not os.path.exists(a): continue
-              dao.A.append( [ str(a),
-                               str(os.path.dirname(a)),
-                               str(os.path.basename(a)),
-                               str(os.path.splitext(a)[1][1:].lower()),
-                               int(round(os.stat(a).st_mtime)),
-                               str(date.fromtimestamp(os.stat(a).st_mtime).year),
-                               str('0'+str(date.fromtimestamp(os.stat(a).st_mtime).month))[-2:],
-                               str(date.fromtimestamp(os.stat(a).st_mtime).year)+' '+str(date.fromtimestamp(os.stat(a).st_mtime).month),
-                               os.stat(a).st_size,
-                               a.count('/')-1,  #level
-                               0,               #hash
-                               NOCLUSTER,       #duplicate cluster, default = -1
-                               0] )             #duplicate   (as waste)  originaleintrag bleibt erhalten und ist ein duplicate
 
-          print('Ende Selektion')
 
     @staticmethod
     def filter_all(dao, kpi):
@@ -1050,13 +1064,9 @@ class Dao():
         self.LE=[]
         self.SUYE=[]
         self.Expand=[]
+        self.datasource = datasource
 
-        self.path = ''
-        if datasource == DATA_SOURCE_A or datasource == DATA_SOURCE_B:
-            conf = DaoConfig()
-            self.path = conf.value_get(datasource,'Please enter a Directory')
-            if datasource == DATA_SOURCE_A : print('Source A: ',self.path)
-            if datasource == DATA_SOURCE_B : print('Source B: ',self.path)
+
 
 
 
@@ -2410,8 +2420,7 @@ class Form(QWidget):
           text+=newpath
           self.editA.setText(text)
           self.daoConfig.value_set('sourceA',text)
-          # Tabs der Matrix von SpaceA werden neu aufgebaut ...
-          self.daoA.path = text
+
 
 
     def on_button_clickedB(self):
@@ -2424,8 +2433,7 @@ class Form(QWidget):
           text+=newpath
           self.editB.setText(text)
           self.daoConfig.value_set('sourceB',text)
-          # Tabs der Matrix von SpaceB werden neu aufgebaut ...
-          self.daoB.path = text
+
 
     def on_text_changedA(self):
         # persistieren, sobald sich die Pfade im text geaendert haben ...
