@@ -1,4 +1,4 @@
-
+# todo: nach Quit suchen.   Dann dort den command cp absetzen. Prüfen, ob die Attribute mitkopiert werden ...
 # todo: Quatratischen Algorithmus fuer Direcories refacturen
 # todo: Space A und Space B: mehrere Ordner zulassen, evtl einige ausschliessen, ausschliessen mit einem Minus davor
 # todo: in dao.A datum und Uhrzeit als column ergaenzen und in Files anzeigen ...
@@ -2003,11 +2003,15 @@ class Files(QTableView):
 
     # pops up the context menu ...
     def popup(self, pos):
-        for i in self.selectionModel().selection().indexes():
-            print( i.row(), i.column())
+        selmod = self.selectionModel()
+        for i in selmod.selection().indexes():
+            if i.column()==1:
+              print( i.row(), i.column() ,self.proxymodel.data(i) )  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
         menu = QMenu()
         quitAction = menu.addAction("Quit")
         action = menu.exec_(QCursor.pos() )
+
+
 
 
 
