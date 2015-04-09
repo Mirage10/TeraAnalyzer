@@ -1,4 +1,5 @@
-# todo: nach Quit suchen.   Dann dort den command cp absetzen. Prüfen, ob die Attribute mitkopiert werden ...
+# todo in config die target destionation angeben
+# todo: cp + move Befehl implementieren: nach Quit suchen.   Dann dort den command cp absetzen. Prüfen, ob die Attribute mitkopiert werden ...
 # todo: Quatratischen Algorithmus fuer Direcories refacturen
 # todo: Space A und Space B: mehrere Ordner zulassen, evtl einige ausschliessen, ausschliessen mit einem Minus davor
 # todo: in dao.A datum und Uhrzeit als column ergaenzen und in Files anzeigen ...
@@ -2001,15 +2002,64 @@ class Files(QTableView):
           self.clicked.connect(self.on_file_clicked)
           self.clicked.connect(self.on_directory_clicked)   #on_file_clicked
 
-    # pops up the context menu ...
-    def popup(self, pos):
+
+
+    def onCopy(self):
+        # Kopieren der in der Fileuebersicht markierten Files in den Target Ordner ...
+        # Namensduplikate werden unique gemacht ...
+        print('Beginn Kopieren')
+        config =DaoConfig()
+        target = config.value_get('target','')
         selmod = self.selectionModel()
+        Fi=[]
         for i in selmod.selection().indexes():
             if i.column()==1:
-              print( i.row(), i.column() ,self.proxymodel.data(i) )  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+              Fi.append(self.proxymodel.data(i) )  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+        # uniquefifieren der Dateinamen ...
+
+        for fi in Fi:
+          command = 'cp -p ' + '\'' + fi + '\'' + ' ' + '\'' + target + '\''          #-p: preserve attributes
+          os.system(command)
+        print('Ende Kopieren')
+
+    def onMove(self):
+        print('Beginn Move')
+        config =DaoConfig()
+        target = config.value_get('target','')
+        selmod = self.selectionModel()
+        Fi=[]
+        for i in selmod.selection().indexes():
+            if i.column()==1:
+              Fi.append(self.proxymodel.data(i) )  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+        # uniquefifieren der Dateinamen ...
+
+        for fi in Fi:
+          command = 'mv ' + '\'' + fi + '\'' + ' ' + '\'' + target + '\''
+          os.system(command)
+
+
+
+        print('Ende Move')
+
+
+    # pops up the context menu of Files ...
+    def popup(self, pos):
+
         menu = QMenu()
-        quitAction = menu.addAction("Quit")
+        copyAction = menu.addAction("Copy")
+        moveAction = menu.addAction("Move")
+
+
+
+        copyAction.triggered.connect(self.onCopy)
+        moveAction.triggered.connect(self.onMove)
         action = menu.exec_(QCursor.pos() )
+
+
+
+
+
+
 
 
 
@@ -2290,6 +2340,18 @@ class Form(QWidget):
         layouttab3.addRow(butB,  self.editB)
 
 
+
+        self.editC = QLineEdit()
+        self.editC.textChanged.connect(self.on_text_changedC)
+        text = self.daoConfig.value_get('target', 'Please select a Directory')
+        self.editC.setText(text)
+
+        butC = QPushButton('Target')
+        butC.clicked.connect(self.on_button_clickedC)
+        layouttab3.addRow(butC,  self.editC)
+
+
+
         self.matrixA.display()
         self.matrixB.display()
 
@@ -2456,6 +2518,14 @@ class Form(QWidget):
           self.editB.setText(text)
           self.daoConfig.value_set('sourceB',text)
 
+    def on_button_clickedC(self):
+        newpath = QFileDialog(self,'Bitte Directory auswaehlen','/home/user').getExistingDirectory(self)
+
+        self.editC.setText(newpath)
+        self.daoConfig.value_set('target',newpath)
+
+
+
 
     def on_text_changedA(self):
         # persistieren, sobald sich die Pfade im text geaendert haben ...
@@ -2463,10 +2533,13 @@ class Form(QWidget):
         self.daoConfig.value_set('sourceA',text)
 
     def on_text_changedB(self):
-        # persistieren, sobald sich die Pfade im text geaendert haben ...
+        # persistieren, sobald  ch die Pfade im text geaendert haben ...
         text=self.editB.toPlainText()
         self.daoConfig.value_set('sourceB',text)
-
+    def on_text_changedC(self):
+        # persistieren, sobald sich die Pfade im text geaendert haben ...
+        text=self.editC.text()
+        self.daoConfig.value_set('target',text)
 
 
     def submitIndexing(self):
