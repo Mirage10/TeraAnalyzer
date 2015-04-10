@@ -1,9 +1,11 @@
-# todo: delete Befehl implementieren
+# todo: Ordnung bei Selection mit anschliessendem Display
+# todo: delete allowed - Security
+# todo: Display Music, Documents, Videos, Pictures
 # todo: copy + move : fuer unique files sorgen (hash als Unterscheidungsmerkmal)
 # todo: Quatratischen Algorithmus fuer Direcories refacturen
 # todo: Space A und Space B: mehrere Ordner zulassen, evtl einige ausschliessen, ausschliessen mit einem Minus davor
 # todo: in dao.A datum und Uhrzeit als column ergaenzen und in Files anzeigen ...
-# todo in Directory Liste # directories all # #directories subtree einfuegen. evtl noch selected directories jeweils
+# todo: in Directory Liste # directories all # #directories subtree einfuegen. evtl noch selected directories jeweils
 # todo: in Files: delete and ignore column
 # todo: /home   und /hime/user/dropbox   -> in der Schnittmengenbildung B-A und A-B sind Dateien, die dort nicht hingehoeren -> Inkonsistenz
 # todo: Logik einbauen: falls hash bereits errechnet, dann nicht nochmal berechnen/ueberschreiben
@@ -2064,7 +2066,7 @@ class Files(QTableView):
         print('Begin Display')
 
         selmod = self.selectionModel()
-        command='xdg-open '
+        command='eog '     #gnome command: eog=eye of gnome, image viewer
         for i in selmod.selection().indexes():
             if i.column()==1:
               command+= ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
