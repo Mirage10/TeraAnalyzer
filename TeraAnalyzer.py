@@ -2060,7 +2060,19 @@ class Files(QTableView):
 
 
         print('Ende Move')
+    def onDisplay(self):
+        print('Begin Display')
 
+        selmod = self.selectionModel()
+        command='xdg-open '
+        for i in selmod.selection().indexes():
+            if i.column()==1:
+              command+= ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+
+        os.system(command)
+        print('End Display')
+        # wichtig wichtig wichtig
+        # find . -type f -name '*.png' -exec eog {} \+
 
     # pops up the context menu of Files ...
     def popup(self, pos):
@@ -2069,10 +2081,12 @@ class Files(QTableView):
         copyAction = menu.addAction("Copy")
         moveAction = menu.addAction("Move")
         deleteAction = menu.addAction("Delete")
+        displayAction = menu.addAction('Display')
 
         copyAction.triggered.connect(self.onCopy)
         moveAction.triggered.connect(self.onMove)
         deleteAction.triggered.connect(self.onDelete)
+        displayAction.triggered.connect(self.onDisplay)
         action = menu.exec_(QCursor.pos() )
 
 
