@@ -1,5 +1,5 @@
-# todo in config die target destionation angeben
-# todo: cp + move Befehl implementieren: nach Quit suchen.   Dann dort den command cp absetzen. Prüfen, ob die Attribute mitkopiert werden ...
+# todo: delete Befehl implementieren
+# todo: copy + move : fuer unique files sorgen (hash als Unterscheidungsmerkmal)
 # todo: Quatratischen Algorithmus fuer Direcories refacturen
 # todo: Space A und Space B: mehrere Ordner zulassen, evtl einige ausschliessen, ausschliessen mit einem Minus davor
 # todo: in dao.A datum und Uhrzeit als column ergaenzen und in Files anzeigen ...
@@ -2004,6 +2004,26 @@ class Files(QTableView):
 
 
 
+
+
+    def onDelete(self):
+        # Kopieren der in der Fileuebersicht markierten Files in den Target Ordner ...
+        # Namensduplikate werden unique gemacht ...
+        print('Beginn Delete')
+        config =DaoConfig()
+        #target = config.value_get('target','')
+        selmod = self.selectionModel()
+        Fi=[]
+        for i in selmod.selection().indexes():
+            if i.column()==1:
+              Fi.append(self.proxymodel.data(i) )  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+        # uniquefifieren der Dateinamen ...
+
+        for fi in Fi:
+          command = 'rm ' + '\'' + fi + '\''
+          os.system(command)
+        print('Ende Delete')
+
     def onCopy(self):
         # Kopieren der in der Fileuebersicht markierten Files in den Target Ordner ...
         # Namensduplikate werden unique gemacht ...
@@ -2048,11 +2068,11 @@ class Files(QTableView):
         menu = QMenu()
         copyAction = menu.addAction("Copy")
         moveAction = menu.addAction("Move")
-
-
+        deleteAction = menu.addAction("Delete")
 
         copyAction.triggered.connect(self.onCopy)
         moveAction.triggered.connect(self.onMove)
+        deleteAction.triggered.connect(self.onDelete)
         action = menu.exec_(QCursor.pos() )
 
 
