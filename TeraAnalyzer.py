@@ -1,6 +1,6 @@
-
+# todo: recording: statt seriell parallele gnome terminals moeglich? + ggf. aus File single click auf recording entfernen
 # todo: menueeintaege alle anzeigen; bei vorhandensein entsprechender filetypen menueeintraege einblenden
-# todo: recording ebenso ins menue portieren
+
 # todo: Ordnung bei Selection mit anschliessendem Display
 # todo: delete allowed - Security
 # todo: Display Music, Documents, Videos, Pictures
@@ -2052,7 +2052,18 @@ class Files(QTableView):
     def onRecording(self):
         # Recording der in der Fileuebersicht markierten Files ...
         print('Begin Recording')
+        selmod = self.selectionModel()
+        Fi=[]
+        for i in selmod.selection().indexes():
+            if i.column()==1:
+              Fi.append(self.proxymodel.data(i) )  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
 
+        for fi in Fi:
+            if fi.endswith('xspf'):
+              #command = 'streamripper http://91.250.77.9:8070 -u gaudi'
+              command = 'gnome-terminal --command=\'streamripper ' + Util.get_url_stream(fi) + ' -d /home/user/astreamrip -u gaudi  \''
+              os.system(command)
+        print('Ende Recording')
 
 
     def onMove(self):
@@ -2099,13 +2110,14 @@ class Files(QTableView):
         moveAction = menu.addAction("Move")
         deleteAction = menu.addAction("Delete")
         displayAction = menu.addAction('Display')
-
+        recordingAction = menu.addAction('Recording')
 
 
         copyAction.triggered.connect(self.onCopy)
         moveAction.triggered.connect(self.onMove)
         deleteAction.triggered.connect(self.onDelete)
         displayAction.triggered.connect(self.onDisplay)
+        recordingAction.triggered.connect(self.onRecording)
 
         # delete nur zulassen, wenn dies in der Configuration explizit angegeben ist ...
         if allowdel == 'X':
