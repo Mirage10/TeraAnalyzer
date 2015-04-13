@@ -1,3 +1,6 @@
+
+# todo: menueeintaege alle anzeigen; bei vorhandensein entsprechender filetypen menueeintraege einblenden
+# todo: recording ebenso ins menue portieren
 # todo: Ordnung bei Selection mit anschliessendem Display
 # todo: delete allowed - Security
 # todo: Display Music, Documents, Videos, Pictures
@@ -54,9 +57,13 @@ RWCNT       = 40
 MAXSIZE     = 4000000
 
 
-KPI_FILES = 'FILES'
+KPI_FILES     = 'FILES'
 KPI_DIRECTORY = 'DIRECTORY'
 
+CONFIG_SOURCEA  = 'sourceA'
+CONFIG_SOURCEB  = 'sourceB'
+CONFIG_TARGET   = 'target'
+CONFIG_ALLOWDEL = 'allowDelete'
 
 class Util():
     @staticmethod
@@ -2012,8 +2019,6 @@ class Files(QTableView):
         # Kopieren der in der Fileuebersicht markierten Files in den Target Ordner ...
         # Namensduplikate werden unique gemacht ...
         print('Beginn Delete')
-        config =DaoConfig()
-        #target = config.value_get('target','')
         selmod = self.selectionModel()
         Fi=[]
         for i in selmod.selection().indexes():
@@ -2031,7 +2036,7 @@ class Files(QTableView):
         # Namensduplikate werden unique gemacht ...
         print('Beginn Kopieren')
         config =DaoConfig()
-        target = config.value_get('target','')
+        target = config.value_get(CONFIG_TARGET,'')
         selmod = self.selectionModel()
         Fi=[]
         for i in selmod.selection().indexes():
@@ -2044,10 +2049,16 @@ class Files(QTableView):
           os.system(command)
         print('Ende Kopieren')
 
+    def onRecording(self):
+        # Recording der in der Fileuebersicht markierten Files ...
+        print('Begin Recording')
+
+
+
     def onMove(self):
         print('Beginn Move')
         config =DaoConfig()
-        target = config.value_get('target','')
+        target = config.value_get(CONFIG_TARGET,'')
         selmod = self.selectionModel()
         Fi=[]
         for i in selmod.selection().indexes():
@@ -2079,16 +2090,30 @@ class Files(QTableView):
     # pops up the context menu of Files ...
     def popup(self, pos):
 
+
+        config = DaoConfig()
+        allowdel = config.value_get(CONFIG_ALLOWDEL,'')
+
         menu = QMenu()
         copyAction = menu.addAction("Copy")
         moveAction = menu.addAction("Move")
         deleteAction = menu.addAction("Delete")
         displayAction = menu.addAction('Display')
 
+
+
         copyAction.triggered.connect(self.onCopy)
         moveAction.triggered.connect(self.onMove)
         deleteAction.triggered.connect(self.onDelete)
         displayAction.triggered.connect(self.onDisplay)
+
+        # delete nur zulassen, wenn dies in der Configuration explizit angegeben ist ...
+        if allowdel == 'X':
+          deleteAction.setDisabled(False)
+        else:
+          deleteAction.setDisabled(True)
+
+
         action = menu.exec_(QCursor.pos() )
 
 
@@ -2359,16 +2384,22 @@ class Form(QWidget):
 
         self.editA = QTextEdit()
         self.editA.textChanged.connect(self.on_text_changedA)
-        text = self.daoConfig.value_get( 'sourceA' , 'Please select a Directory' )
+        text = self.daoConfig.value_get( CONFIG_SOURCEA , 'Please select a Directory' )
         self.editA.setText(text)
 
         butA = QPushButton('Source A')
         butA.clicked.connect(self.on_button_clickedA)
         layouttab3.addRow(butA, self.editA)
 
+
+
+
+
+
+
         self.editB = QTextEdit()
         self.editB.textChanged.connect(self.on_text_changedB)
-        text = self.daoConfig.value_get('sourceB', 'Please select a Directory')
+        text = self.daoConfig.value_get(CONFIG_SOURCEB, 'Please select a Directory')
         self.editB.setText(text)
 
         butB = QPushButton('Source B')
@@ -2379,14 +2410,22 @@ class Form(QWidget):
 
         self.editC = QLineEdit()
         self.editC.textChanged.connect(self.on_text_changedC)
-        text = self.daoConfig.value_get('target', 'Please select a Directory')
+        text = self.daoConfig.value_get(CONFIG_TARGET, 'Please select a Directory')
         self.editC.setText(text)
 
         butC = QPushButton('Target')
         butC.clicked.connect(self.on_button_clickedC)
         layouttab3.addRow(butC,  self.editC)
 
-
+        #self.checkLabel = QLabel('allow Delete')
+        self.check = QCheckBox('allow Delete')
+        chk = self.daoConfig.value_get(CONFIG_ALLOWDEL,' ')
+        if chk == 'X':
+          self.check.setChecked(True)
+        else:
+          self.check.setChecked(False)
+        self.check.stateChanged.connect(self.on_delallowchanged)
+        layouttab3.addRow( self.check )
 
         self.matrixA.display()
         self.matrixB.display()
@@ -2539,7 +2578,7 @@ class Form(QWidget):
             text+='\n'   # nur falls text vorhanden war, soll dieser durch einen Zeilenumbruch vom neuen Pfad getrennt werden
           text+=newpath
           self.editA.setText(text)
-          self.daoConfig.value_set('sourceA',text)
+          self.daoConfig.value_set(CONFIG_SOURCEA,text)
 
 
 
@@ -2552,13 +2591,13 @@ class Form(QWidget):
             text+='\n'   # nur falls text vorhanden war, soll dieser durch einen Zeilenumbruch vom neuen Pfad getrennt werden
           text+=newpath
           self.editB.setText(text)
-          self.daoConfig.value_set('sourceB',text)
+          self.daoConfig.value_set(CONFIG_SOURCEB,text)
 
     def on_button_clickedC(self):
         newpath = QFileDialog(self,'Bitte Directory auswaehlen','/home/user').getExistingDirectory(self)
 
         self.editC.setText(newpath)
-        self.daoConfig.value_set('target',newpath)
+        self.daoConfig.value_set(CONFIG_TARGET,newpath)
 
 
 
@@ -2566,16 +2605,23 @@ class Form(QWidget):
     def on_text_changedA(self):
         # persistieren, sobald sich die Pfade im text geaendert haben ...
         text=self.editA.toPlainText()
-        self.daoConfig.value_set('sourceA',text)
+        self.daoConfig.value_set(CONFIG_SOURCEA,text)
 
     def on_text_changedB(self):
         # persistieren, sobald  ch die Pfade im text geaendert haben ...
         text=self.editB.toPlainText()
-        self.daoConfig.value_set('sourceB',text)
+        self.daoConfig.value_set(CONFIG_SOURCEB,text)
     def on_text_changedC(self):
         # persistieren, sobald sich die Pfade im text geaendert haben ...
         text=self.editC.text()
-        self.daoConfig.value_set('target',text)
+        self.daoConfig.value_set(CONFIG_TARGET,text)
+
+    def on_delallowchanged(self):
+        chk=self.check.checkState()
+        if chk:
+          self.daoConfig.value_set(CONFIG_ALLOWDEL,'X')
+        else:
+          self.daoConfig.value_set(CONFIG_ALLOWDEL,' ')
 
 
     def submitIndexing(self):
