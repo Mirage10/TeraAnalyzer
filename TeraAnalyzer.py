@@ -2,7 +2,6 @@
 # todo: recording: statt seriell parallele gnome terminals moeglich? + ggf. aus File single click auf recording entfernen
 # todo: menueeintaege alle anzeigen; bei vorhandensein entsprechender filetypen menueeintraege einblenden
 # todo: Ordnung bei Selection mit anschliessendem Display
-# todo: Display Music, Documents, Videos, Pictures
 # todo: copy + move : fuer unique files sorgen (hash als Unterscheidungsmerkmal)
 # todo: Quatratischen Algorithmus fuer Direcories refacturen
 # todo: in Directory Liste # directories all # #directories subtree einfuegen. evtl noch selected directories jeweils
@@ -21,7 +20,12 @@ import sys
 
 import datetime as dt
 
-
+GENERIC_VIEWER = 'xdg-open'
+MUSIC_PLAYER   = 'vlc'
+VIDEO_PLAYER   = 'vlc'
+PHOTO_VIEWER   = 'eog' # eye of gnome
+FILE_EXPLORER  = 'nemo'
+TERMINAL       = 'gnome-terminal'
 
 SUFFIXES = ['.eps','.tif','.tiff','.jpeg','.jpg',  '.png', '.ppt', '.pptx', '.pdf', '.mts',
             '.doc', '.docx', '.avi', '.ogg','.mov','.wav','.ps','.abw','.txt','.mp3','.mpeg',
@@ -63,6 +67,8 @@ CONFIG_SOURCEA  = 'sourceA'
 CONFIG_SOURCEB  = 'sourceB'
 CONFIG_TARGET   = 'target'
 CONFIG_ALLOWDEL = 'allowDelete'
+
+
 
 class Util():
     @staticmethod
@@ -127,7 +133,7 @@ class Util():
     def do_record(file):
         if file.endswith('xspf'):
             #command = 'streamripper http://91.250.77.9:8070 -u gaudi'
-            command = 'gnome-terminal --command=\'streamripper ' + Util.get_url_stream(file) + ' -d /home/user/astreamrip -u gaudi  \''
+            command = TERMINAL + ' --command=\'streamripper ' + Util.get_url_stream(file) + ' -d /home/user/astreamrip -u gaudi  \''
             # das File muss in Hochkommata stehen, da der finename ein blank enthalten kann
             os.system(command)
 
@@ -459,12 +465,12 @@ class Api():
                 length = len(d)
                 treecnt             = 0
                 treesize            = 0
-                treeselectedcnt     = 0   #subtree
+                treeselectedcnt     = 0  #subtree
                 treeselectedsize    = 0  # subtree
 
                 topcnt              = 0
                 topsize             = 0
-                topselectedcnt      = 0   #toplevel
+                topselectedcnt      = 0  #toplevel
                 topselectedsize     = 0  #toplevel
                 subtreecnt          = 0
                 subtreesize         = 0
@@ -524,12 +530,12 @@ class Api():
 
                 treecnt             = 0
                 treesize            = 0
-                treeselectedcnt     = 0   #subtree
-                treeselectedsize    = 0  # subtree
+                treeselectedcnt     = 0  #subbtree
+                treeselectedsize    = 0  #subtree
 
                 topcnt              = 0
                 topsize             = 0
-                topselectedcnt      = 0   #toplevel
+                topselectedcnt      = 0  #toplevel
                 topselectedsize     = 0  #toplevel
                 subtreecnt          = 0
                 subtreesize         = 0
@@ -2092,7 +2098,7 @@ class Files(QTableView):
         print('Begin Display')
 
         selmod = self.selectionModel()
-        command='eog '     #gnome command: eog=eye of gnome, image viewer
+        command=PHOTO_VIEWER     #gnome command: eog=eye of gnome, image viewer
         for i in selmod.selection().indexes():
             if i.column()==1:
               command+= ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
@@ -2102,9 +2108,34 @@ class Files(QTableView):
         # wichtig wichtig wichtig
         # find . -type f -name '*.png' -exec eog {} \+
 
-    # pops up the context menu of Files ...
-    def popup(self, pos):
+    def onVideos(self):
+        print('Begin Videos')
 
+        selmod = self.selectionModel()
+        command = VIDEO_PLAYER
+        for i in selmod.selection().indexes():
+            if i.column()==1:
+              command+= ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+
+        os.system(command)
+        print('End Videos')
+
+    def onMusic(self):
+        print('Begin Music')
+
+        selmod = self.selectionModel()
+        command = MUSIC_PLAYER
+        for i in selmod.selection().indexes():
+            if i.column()==1:
+              command+= ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+
+        os.system(command)
+        print('End Music')
+
+
+
+    def popup(self, pos):
+        # pops up the context menu of Files ...
 
         config = DaoConfig()
         allowdel = config.value_get(CONFIG_ALLOWDEL,'')
@@ -2114,6 +2145,8 @@ class Files(QTableView):
         moveAction = menu.addAction("Move")
         deleteAction = menu.addAction("Delete")
         photosAction = menu.addAction('Photos')
+        videosAction = menu.addAction('Videos')
+        musicAction = menu.addAction('Music')
         recordingAction = menu.addAction('Recording')
 
 
@@ -2121,6 +2154,8 @@ class Files(QTableView):
         moveAction.triggered.connect(self.onMove)
         deleteAction.triggered.connect(self.onDelete)
         photosAction.triggered.connect(self.onPhotos)
+        videosAction.triggered.connect(self.onVideos)
+        musicAction.triggered.connect(self.onMusic)
         recordingAction.triggered.connect(self.onRecording)
 
         # delete nur zulassen, wenn dies in der Configuration explizit angegeben ist ...
@@ -2297,12 +2332,10 @@ class Files(QTableView):
 
         index_directory    = self.proxymodel.index(item.row(),0)
 
-
-
         directory      = self.proxymodel.data(index_directory)
         command=''
         if item.column() == 0: # click auf directory
-           command = 'nemo '+'\''+directory+'\''
+           command = FILE_EXPLORER +' \''+directory+'\''
         #  Ordner anzeigen mit dem richtigen Tool ...
         if command: os.system(command)
 
@@ -2330,12 +2363,12 @@ class Files(QTableView):
           Util.do_record(file)
 
         if item.column() == 2: # click auf filename
-          command = 'xdg-open '+'\''+file+'\''
+          command = GENERIC_VIEWER +' \''+file+'\''
           # File oder Ordner anzeigen mit dem richtigen Tool ...
           os.system(command)
           # das Directory muss in Hochkommata stehen, da der finename ein blank enthalten kann
         if item.column() == 3: # click auf directory
-          command = 'nemo '+'\''+file+'\''
+          command = FILE_EXPLORER + ' \''+file+'\''
           # File oder Ordner anzeigen mit dem richtigen Tool ...
           os.system(command)
 
