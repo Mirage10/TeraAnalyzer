@@ -1,10 +1,10 @@
+# todo: Fuer Source A und Source B: Alternativ zu Directories: Files als Source + Save to File
 # todo: recording: statt seriell parallele gnome terminals moeglich? + ggf. aus File single click auf recording entfernen
 # todo: menueeintaege alle anzeigen; bei vorhandensein entsprechender filetypen menueeintraege einblenden
 # todo: Ordnung bei Selection mit anschliessendem Display
 # todo: Display Music, Documents, Videos, Pictures
 # todo: copy + move : fuer unique files sorgen (hash als Unterscheidungsmerkmal)
 # todo: Quatratischen Algorithmus fuer Direcories refacturen
-# todo: Space A und Space B: mehrere Ordner zulassen, evtl einige ausschliessen, ausschliessen mit einem Minus davor
 # todo: in dao.A datum und Uhrzeit als column ergaenzen und in Files anzeigen ...
 # todo: in Directory Liste # directories all # #directories subtree einfuegen. evtl noch selected directories jeweils
 # todo: in Files: delete and ignore column
@@ -2087,7 +2087,7 @@ class Files(QTableView):
 
 
         print('Ende Move')
-    def onDisplay(self):
+    def onPhotos(self):
         print('Begin Display')
 
         selmod = self.selectionModel()
@@ -2112,14 +2112,14 @@ class Files(QTableView):
         copyAction = menu.addAction("Copy")
         moveAction = menu.addAction("Move")
         deleteAction = menu.addAction("Delete")
-        displayAction = menu.addAction('Display')
+        photosAction = menu.addAction('Photos')
         recordingAction = menu.addAction('Recording')
 
 
         copyAction.triggered.connect(self.onCopy)
         moveAction.triggered.connect(self.onMove)
         deleteAction.triggered.connect(self.onDelete)
-        displayAction.triggered.connect(self.onDisplay)
+        photosAction.triggered.connect(self.onPhotos)
         recordingAction.triggered.connect(self.onRecording)
 
         # delete nur zulassen, wenn dies in der Configuration explizit angegeben ist ...
@@ -2130,10 +2130,6 @@ class Files(QTableView):
 
 
         action = menu.exec_(QCursor.pos() )
-
-
-
-
 
 
 
