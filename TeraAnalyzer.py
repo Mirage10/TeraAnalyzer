@@ -5,7 +5,6 @@
 # todo: Display Music, Documents, Videos, Pictures
 # todo: copy + move : fuer unique files sorgen (hash als Unterscheidungsmerkmal)
 # todo: Quatratischen Algorithmus fuer Direcories refacturen
-# todo: in dao.A datum und Uhrzeit als column ergaenzen und in Files anzeigen ...
 # todo: in Directory Liste # directories all # #directories subtree einfuegen. evtl noch selected directories jeweils
 # todo: in Files: delete and ignore column
 # todo: /home   und /hime/user/dropbox   -> in der Schnittmengenbildung B-A und A-B sind Dateien, die dort nicht hingehoeren -> Inkonsistenz
@@ -19,6 +18,8 @@ import itertools as it
 #import collections as co
 import os
 import sys
+
+import datetime as dt
 
 
 
@@ -1966,7 +1967,7 @@ class ProxyModelFiles(QSortFilterProxyModel):
           # size ...
           leftdata  = int(str(left.data()).replace('.',''))
           rightdata = int(str(right.data()).replace('.',''))
-        if col == 6 or col == 7:
+        if  col == 7:
           # timestamp, level ...
           leftdata  = int(left.data())
           rightdata = int(right.data())
@@ -2176,8 +2177,10 @@ class Files(QTableView):
           value = QStandardItem(row[MONTH])
           self.model.setItem(i, 5, value)
 
-          # Achtung: timestamps muessen nach integer sortiert werden und nicht lexikographisch ...
-          value = QStandardItem(str(row[TIMESTAMP]))
+
+          #value = QStandardItem(str(row[TIMESTAMP]))
+          value = QStandardItem( dt.datetime.fromtimestamp(row[TIMESTAMP]).strftime('%Y-%m-%d   %R') )
+
           value.setTextAlignment(Qt.AlignRight)
           self.model.setItem(i, 6, value)
 
@@ -2200,12 +2203,13 @@ class Files(QTableView):
 
 
         # Spaltennamen der Filetabelle setzen
-        self.model.setHorizontalHeaderLabels( ['suffix','file', 'name', 'directory', 'year','month','timestamp' , 'level', 'dubgroup' ,'size'])
+        self.model.setHorizontalHeaderLabels( ['suffix','file', 'name', 'directory', 'year','month','datetime' , 'level', 'dubgroup' ,'size'])
         print('clickEND')
         self.setSortingEnabled(True)
         # spalte filename vollständig anzeigen ...
         self.resizeColumnToContents(2)
         self.resizeColumnToContents(0)
+        self.resizeColumnToContents(6)
 
 
     def displayDir(self):
