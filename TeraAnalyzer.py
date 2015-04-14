@@ -1,8 +1,6 @@
 # todo: recording: statt seriell parallele gnome terminals moeglich? + ggf. aus File single click auf recording entfernen
 # todo: menueeintaege alle anzeigen; bei vorhandensein entsprechender filetypen menueeintraege einblenden
-
 # todo: Ordnung bei Selection mit anschliessendem Display
-# todo: delete allowed - Security
 # todo: Display Music, Documents, Videos, Pictures
 # todo: copy + move : fuer unique files sorgen (hash als Unterscheidungsmerkmal)
 # todo: Quatratischen Algorithmus fuer Direcories refacturen
@@ -124,6 +122,13 @@ class Util():
             n-=1
         return ret
 
+    @staticmethod
+    def do_record(file):
+        if file.endswith('xspf'):
+            #command = 'streamripper http://91.250.77.9:8070 -u gaudi'
+            command = 'gnome-terminal --command=\'streamripper ' + Util.get_url_stream(file) + ' -d /home/user/astreamrip -u gaudi  \''
+            # das File muss in Hochkommata stehen, da der finename ein blank enthalten kann
+            os.system(command)
 
 
 
@@ -2059,10 +2064,8 @@ class Files(QTableView):
               Fi.append(self.proxymodel.data(i) )  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
 
         for fi in Fi:
-            if fi.endswith('xspf'):
-              #command = 'streamripper http://91.250.77.9:8070 -u gaudi'
-              command = 'gnome-terminal --command=\'streamripper ' + Util.get_url_stream(fi) + ' -d /home/user/astreamrip -u gaudi  \''
-              os.system(command)
+            Util.do_record(fi)
+
         print('Ende Recording')
 
 
@@ -2322,26 +2325,20 @@ class Files(QTableView):
         directory  = self.proxymodel.data(index_directory)
 
 
-        command=''
-
-
         if item.column() == 1: # click auf file
           # falls auf ein xfpf stream geclickt wird, soll derselbige gerecorded werden ...
-          ss=file
-          if ss.endswith('xspf'):
-            #command = 'streamripper http://91.250.77.9:8070 -u gaudi'
-            command = 'gnome-terminal --command=\'streamripper ' + Util.get_url_stream(ss) + ' -d /home/user/astreamrip -u gaudi\''
+          Util.do_record(file)
 
-          #command = 'xdg-open '+'\''+item.text()+'\''
-          # das File muss in Hochkommata stehen, da der finename ein blank enthalten kann
         if item.column() == 2: # click auf filename
           command = 'xdg-open '+'\''+file+'\''
+          # File oder Ordner anzeigen mit dem richtigen Tool ...
+          os.system(command)
           # das Directory muss in Hochkommata stehen, da der finename ein blank enthalten kann
         if item.column() == 3: # click auf directory
           command = 'nemo '+'\''+file+'\''
+          # File oder Ordner anzeigen mit dem richtigen Tool ...
+          os.system(command)
 
-        # File oder Ordner anzeigen mit dem richtigen Tool ...
-        if command: os.system(command)
 
 
 
