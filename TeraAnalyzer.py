@@ -1,8 +1,9 @@
+
+# todo: im contextmenu die Anzahl und #KB anzeigen
 # todo: Fuer Source A und Source B: Alternativ zu Directories: Files als Source + Save to File
 # todo: recording: statt seriell parallele gnome terminals moeglich? + ggf. aus File single click auf recording entfernen
 # todo: menueeintaege alle anzeigen; bei vorhandensein entsprechender filetypen menueeintraege einblenden
 # todo: Ordnung bei Selection mit anschliessendem Display
-# todo: copy + move : fuer unique files sorgen (hash als Unterscheidungsmerkmal)
 # todo: Quatratischen Algorithmus fuer Direcories refacturen
 # todo: in Directory Liste # directories all # #directories subtree einfuegen. evtl noch selected directories jeweils
 # todo: in Files: delete and ignore column
@@ -19,6 +20,11 @@ import os
 import sys
 
 import datetime as dt
+import random
+import os.path
+
+
+
 
 GENERIC_VIEWER = 'xdg-open'
 MUSIC_PLAYER   = 'vlc'
@@ -2043,6 +2049,7 @@ class Files(QTableView):
           os.system(command)
         print('Ende Delete')
 
+
     def onCopy(self):
         # Kopieren der in der Fileuebersicht markierten Files in den Target Ordner ...
         # Namensduplikate werden unique gemacht ...
@@ -2051,15 +2058,66 @@ class Files(QTableView):
         target = config.value_get(CONFIG_TARGET,'')
         selmod = self.selectionModel()
         Fi=[]
+        # Fi mit Tupeln file, filename fuellen ...
         for i in selmod.selection().indexes():
             if i.column()==1:
-              Fi.append(self.proxymodel.data(i) )  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+              Fi.append( [self.proxymodel.data(i),i.sibling(i.row(), 2).data() ] )  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+              # i.sibling(i.row(), 2).data() ]   name of file without preceding path. 2 = name in Files
+
         # uniquefifieren der Dateinamen ...
 
-        for fi in Fi:
-          command = 'cp -p ' + '\'' + fi + '\'' + ' ' + '\'' + target + '\''          #-p: preserve attributes
+        cnt=0
+        for fi, name in Fi:
+
+          newfile = target + '/' + name
+          if os.path.exists(newfile):  # falls zielfile bereits im Targetordner existiert, wird der name vor dem suffix um eine Zufallszahl erweitert
+              sha = str(random.random())[2:] # es soll eine ganze Zahl erscheinen, also ohne '0.' ...
+              ind = newfile.rfind('.')
+              if ind == -1:   # filenaem ohne suffix ...
+                  newfile +=  '_' + sha
+              else:           # filename mit suffix
+                left = newfile[:ind]
+                right = newfile[ind:]
+                newfile = left+'_'+sha+right # random Zahl dazwischen einfuegen ...
+          cnt+=1
+          command = 'cp -p ' + '\'' + fi + '\'' + ' ' + '\'' + newfile + '\''          #-p: preserve attributes
           os.system(command)
+        print('copied fiels: ',cnt)
         print('Ende Kopieren')
+
+
+
+
+    def onMove(self):
+        print('Beginn Move')
+        config =DaoConfig()
+        target = config.value_get(CONFIG_TARGET,'')
+        selmod = self.selectionModel()
+        Fi=[]
+        for i in selmod.selection().indexes():
+            if i.column()==1:
+              Fi.append([self.proxymodel.data(i), i.sibling(i.row(), 2).data() ]  )  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+              # i.sibling(i.row(), 2).data() ]   name of file without preceding path. 2 = name in Files
+
+        # uniquefifieren der Dateinamen ...
+        cnt=0
+        for fi, name in Fi:
+          newfile = target + '/' + name
+          if os.path.exists(newfile):  # falls zielfile bereits im Targetordner existiert, wird der name vor dem suffix um eine Zufallszahl erweitert
+              sha = str(random.random())[2:] # es soll eine ganze Zahl erscheinen, also ohne '0.' ...
+              ind = newfile.rfind('.')
+              if ind == -1:   # filenaem ohne suffix ...
+                  newfile +=  '_' + sha
+              else:           # filename mit suffix
+                left = newfile[:ind]
+                right = newfile[ind:]
+                newfile = left+'_'+sha+right # random Zahl dazwischen einfuegen ...
+          cnt+=1
+          command = 'mv ' + '\'' + fi + '\'' + ' ' + '\'' + newfile + '\''
+          os.system(command)
+        print('moved fieles: ',cnt)
+        print('Ende Move')
+
 
     def onRecording(self):
         # Recording der in der Fileuebersicht markierten Files ...
@@ -2075,25 +2133,6 @@ class Files(QTableView):
 
         print('Ende Recording')
 
-
-    def onMove(self):
-        print('Beginn Move')
-        config =DaoConfig()
-        target = config.value_get(CONFIG_TARGET,'')
-        selmod = self.selectionModel()
-        Fi=[]
-        for i in selmod.selection().indexes():
-            if i.column()==1:
-              Fi.append(self.proxymodel.data(i) )  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
-        # uniquefifieren der Dateinamen ...
-
-        for fi in Fi:
-          command = 'mv ' + '\'' + fi + '\'' + ' ' + '\'' + target + '\''
-          os.system(command)
-
-
-
-        print('Ende Move')
     def onPhotos(self):
         print('Begin Display')
 
@@ -2351,6 +2390,12 @@ class Files(QTableView):
         index_file      = self.proxymodel.index(item.row(),1)
         index_name      = self.proxymodel.index(item.row(),2)
         index_directory = self.proxymodel.index(item.row(),3)
+
+
+
+
+
+
 
         suffix     = self.proxymodel.data(index_suffix)
         file       = self.proxymodel.data(index_file)
@@ -2762,9 +2807,25 @@ screen.show()
 sys.exit(app.exec_())
 
 
+#### code snippet for getting rows
+#// Get all selections
+#QModelIndexList indexes = view->selectionModel()->selection().indexes();
+#for (int i = 0; i < indexes.count(); ++i)
+#{
+#	QModelIndex index = indexes.at(i);
+#	// To get the row/column numbers use index.row() / index.column()
+#}
 
-
-
+###########  row data vis siblings ###################################
+#void GuiClass::onTableCellClicked(const QModelIndex &index)
+#{
+#    int row = index.row();
+#    QString name = index.sibling(row, 0).data().toString();
+#    QString surname = index.sibling(row, 1).data().toString();
+#    int age = index.sibling(row, 2).data().toInt();
+#    QString username = index.sibling(row, 3).data().toString();
+#    ...
+#}
 
 
 
