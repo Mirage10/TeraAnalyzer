@@ -2182,8 +2182,9 @@ class Files(QTableView):
         command = SEARCH_INDEXER + ' -i  '
         for i in selmod.selection().indexes():
             if i.column()==1:
-               command +=   ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
-        os.system(command)
+               # Achtung: Files lassen sich auch als 1 gesamtes File uebergeben ...
+               command =   SEARCH_INDEXER + ' -i  ' +    ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+               os.system(command)
 
         os.system(SEARCH_ENGINE)
         print('End Search')
