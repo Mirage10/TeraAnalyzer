@@ -32,6 +32,8 @@ VIDEO_PLAYER   = 'vlc'
 PHOTO_VIEWER   = 'eog' # eye of gnome
 FILE_EXPLORER  = 'nemo'
 TERMINAL       = 'gnome-terminal'
+SEARCH_ENGINE  = 'recoll'
+SEARCH_INDEXER = 'recollindex'
 
 SUFFIXES = ['.eps','.tif','.tiff','.jpeg','.jpg',  '.png', '.ppt', '.pptx', '.pdf', '.mts',
             '.doc', '.docx', '.avi', '.ogg','.mov','.wav','.ps','.abw','.txt','.mp3','.mpeg',
@@ -2082,7 +2084,7 @@ class Files(QTableView):
           cnt+=1
           command = 'cp -p ' + '\'' + fi + '\'' + ' ' + '\'' + newfile + '\''          #-p: preserve attributes
           os.system(command)
-        print('copied fiels: ',cnt)
+        print('copied files: ',cnt)
         print('Ende Kopieren')
 
 
@@ -2172,6 +2174,22 @@ class Files(QTableView):
         print('End Music')
 
 
+    def onSearch(self):
+        print('Begin Search')
+        command = 'rm -r /home/user/.recoll/xapiandb'
+        os.system(command)
+        selmod = self.selectionModel()
+        command = SEARCH_INDEXER + ' -i -f '
+        for i in selmod.selection().indexes():
+            if i.column()==1:
+               command =  SEARCH_INDEXER + ' -i -f ' +     ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+               os.system(command)
+
+        os.system(SEARCH_ENGINE)
+        print('End Search')
+
+
+
 
     def popup(self, pos):
         # pops up the context menu of Files ...
@@ -2187,7 +2205,7 @@ class Files(QTableView):
         videosAction = menu.addAction('Videos')
         musicAction = menu.addAction('Music')
         recordingAction = menu.addAction('Recording')
-
+        searchAction = menu.addAction('Search')
 
         copyAction.triggered.connect(self.onCopy)
         moveAction.triggered.connect(self.onMove)
@@ -2196,6 +2214,7 @@ class Files(QTableView):
         videosAction.triggered.connect(self.onVideos)
         musicAction.triggered.connect(self.onMusic)
         recordingAction.triggered.connect(self.onRecording)
+        searchAction.triggered.connect(self.onSearch)
 
         # delete nur zulassen, wenn dies in der Configuration explizit angegeben ist ...
         if allowdel == 'X':
