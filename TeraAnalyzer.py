@@ -2179,11 +2179,11 @@ class Files(QTableView):
         command = 'rm -r /home/user/.recoll/xapiandb'
         os.system(command)
         selmod = self.selectionModel()
-        command = SEARCH_INDEXER + ' -i -f '
+        command = SEARCH_INDEXER + ' -i  '
         for i in selmod.selection().indexes():
             if i.column()==1:
-               command =  SEARCH_INDEXER + ' -i -f ' +     ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
-               os.system(command)
+               command +=   ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+        os.system(command)
 
         os.system(SEARCH_ENGINE)
         print('End Search')
