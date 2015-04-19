@@ -1,14 +1,40 @@
-
-
-
+# todo: push to github funktioniert nicht mehr
+# todo: reduce on Files level, reduce separat implementieren  ...
+# todo: im contextmenu die Anzahl und #KB anzeigen
+# todo: Fuer Source A und Source B: Alternativ zu Directories: Files als Source + Save to File
+# todo: recording: statt seriell parallele gnome terminals moeglich? + ggf. aus File single click auf recording entfernen
+# todo: menueeintaege alle anzeigen; bei vorhandensein entsprechender filetypen menueeintraege einblenden
+# todo: Ordnung bei Selection mit anschliessendem Display
+# todo: Quatratischen Algorithmus fuer Direcories refacturen
+# todo: in Directory Liste # directories all # #directories subtree einfuegen. evtl noch selected directories jeweils
+# todo: in Files: delete and ignore column
+# todo: /home   und /hime/user/dropbox   -> in der Schnittmengenbildung B-A und A-B sind Dateien, die dort nicht hingehoeren -> Inkonsistenz
+# todo: Logik einbauen: falls hash bereits errechnet, dann nicht nochmal berechnen/ueberschreiben
+# todo: in files tab rename dedupgroups by filesize
+# todo: hash button in toolbar
 
 # PyQt5 examples: http://nullege.com/codes/show/src%40p%40y%40pyqt5-HEAD%40examples%40sql%40cachedtable.py/46/PyQt5.QtWidgets.QTableView/python
 from datetime import date
 import itertools as it
-import collections as co
+#import collections as co
+import os
 import sys
 
+import datetime as dt
+import random
+import os.path
 
+
+
+
+GENERIC_VIEWER = 'xdg-open'
+MUSIC_PLAYER   = 'vlc'
+VIDEO_PLAYER   = 'vlc'
+PHOTO_VIEWER   = 'eog' # eye of gnome
+FILE_EXPLORER  = 'nemo'
+TERMINAL       = 'gnome-terminal'
+SEARCH_ENGINE  = 'recoll'
+SEARCH_INDEXER = 'recollindex'
 
 SUFFIXES = ['.eps','.tif','.tiff','.jpeg','.jpg',  '.png', '.ppt', '.pptx', '.pdf', '.mts',
             '.doc', '.docx', '.avi', '.ogg','.mov','.wav','.ps','.abw','.txt','.mp3','.mpeg',
@@ -32,51 +58,96 @@ YEARMONTH   = 7
 SIZE        = 8
 LEVEL       = 9
 HASH        = 10
+DUBGROUP    = 11
+WASTE       = 12
 
 
-ASTERIX     = '*'
+ASTERIX           = '*'
+NOCLUSTER         = -1
+DATCOMP           = 5
+RWCNT             = 40
+DEDUP_MAXSIZE     = 5000000
+
+
+KPI_FILES     = 'FILES'
+KPI_DIRECTORY = 'DIRECTORY'
+
+CONFIG_SOURCEA  = 'sourceA'
+CONFIG_SOURCEB  = 'sourceB'
+CONFIG_TARGET   = 'target'
+CONFIG_ALLOWDEL = 'allowDelete'
 
 
 
+class Util():
+    @staticmethod
+    def getkeysuffix(item):
+        return item[SUFFIX]
+    @staticmethod
+    def getkeyyear(item):
+        return item[YEAR]
+    @staticmethod
+    def getkeysuffixyear(item):
+        return item[SUFFIX],item[YEAR]
+    @staticmethod
+    def getkeyyearsuffix(item):
+        return item[YEAR],item[SUFFIX]
+    @staticmethod
+    def getkeyyearmonth(item):
+        return item[YEAR],item[MONTH]
+    @staticmethod
+    def getkeysuffixyearmonth(item):
+        return item[SUFFIX],item[YEAR],item[MONTH]
+    @staticmethod
+    def getkeyyearmonthsuffix(item):
+        return item[YEAR],item[MONTH],item[SUFFIX]
+    @staticmethod
+    def getkeylevel(item):
+        return int(item[LEVEL])
+    @staticmethod
+    def getkeysize(item):
+        return int(item[SIZE])
+    @staticmethod
+    def getkeyhash(item):
+        return item[HASH]
 
 
-def getkeysuffix(item):
-    return item[SUFFIX]
-def getkeyyear(item):
-    return item[YEAR]
-def getkeysuffixyear(item):
-    return item[SUFFIX],item[YEAR]
-def getkeyyearsuffix(item):
-    return item[YEAR],item[SUFFIX]
-def getkeyyearmonth(item):
-    return item[YEAR],item[MONTH]
-def getkeysuffixyearmonth(item):
-    return item[SUFFIX],item[YEAR],item[MONTH]
-def getkeyyearmonthsuffix(item):
-    return item[YEAR],item[MONTH],item[SUFFIX]
-def getkeylevel(item):
-    return int(item[LEVEL])
-def getkeysize(item):
-    return int(item[SIZE])
-def getkeyhash(item):
-    return item[HASH]
-def getkey2(item):
-    return item[2]
+
+    @staticmethod
+    def get_url_stream(file):
+        # aus einem xspf-file die http Adresse fuer einen musicstream ermitteln ...
+        with open(file,'r') as f:
+           text = f.read()
+           start= text.find("<location>")       # zwischen <location>http:// ... </location> steht der http stream link
+           end  = text.find("</location")
+           start+=10                            # das location tag ueberspreingen (10 Zeichen)
+           return text[start:end]
+
+    # format with intermediate points for large numbers...
+    @staticmethod
+    def frmt(numstr):
+        numstr=str(numstr)
+        ret=''
+        n = len(numstr)
+        k=0
+        while not n == 0:
+            k+=1
+            ret = numstr[n-1]+ret
+            if (k % 3) == 0 and n != 1 :
+                ret='.'+ret
+            n-=1
+        return ret
+
+    @staticmethod
+    def do_record(file):
+        if file.endswith('xspf'):
+            #command = 'streamripper http://91.250.77.9:8070 -u gaudi'
+            command = TERMINAL + ' --command=\'streamripper ' + Util.get_url_stream(file) + ' -d /home/user/astreamrip -u gaudi  \''
+            # das File muss in Hochkommata stehen, da der finename ein blank enthalten kann
+            os.system(command)
 
 
-# format with intermediate points for large numbers...
-def frmt(numstr):
-    numstr=str(numstr)
-    ret=''
-    n = len(numstr)
-    k=0
-    while not n == 0:
-        k+=1
-        ret = numstr[n-1]+ret
-        if (k % 3) == 0 and n != 1 :
-            ret='.'+ret
-        n=n-1
-    return ret
+
 
 
 
@@ -91,177 +162,872 @@ class DaoConfig():
         self.__settings.setValue(key,value)
 
 
-import itertools
-
-## little change
-######################################################################
-class Dao():
 
 
-    def diff(A,B):
-    # dient nur als Prototyp ...
-        L =[]
-        M =[]
-        R =[]
-        A.sort()
-        B.sort()
-        i = 0
-        j = 0
 
-        while True:
-            try: a=A[i]
-            except:
-              R.extend(B[j:])
-              break
-            try: b=B[j]
-            except:
-              L.extend(A[i:])
-              break
+class Api():
+    @staticmethod
+    def selection(dao):
+          print('Beginn Selektion')
+          dao.A=[]
 
-            if a > b:
-                R.append(b)
-                j+=1
-                continue
-            if a == b:
-                M.append(a)
-                i+=1
-                j+=1
-                continue
-            if a < b:
-                L.append(a)
-                i+=1
-                continue
-        return L, M , R
+          conf = DaoConfig()
+          text = conf.value_get(dao.datasource,'Please enter a Directory')
+          # text nach Pfaden splitten ...
+          Entry = text.split('\n')
+
+          Path      = {entry for entry in Entry if len(entry) > 0 and entry[0]=='/'}
+          Exclusive = {entry[1:] for entry in Entry if len(entry) > 0 and entry[0]=='-'}
 
 
 
 
+          print(Path)
 
 
 
 
+          for path in Path:
+              for root, Dir, File in os.walk(path):
+                # root enthält das Directory der Files ...
+                for file in File:
+                  tobeexcluded = False
+                  for excl in Exclusive:
+                      a=len(root)
+                      b=len(excl)
+                      if a >= b:
+                          # prüfen, ob root das gleiche Präfix hat wie excl ...
+                          if root[0:b]==excl: tobeexcluded = True
 
 
+                  if tobeexcluded: continue
+
+                  if file[0] == '.': continue
+                  a = os.path.join(root, file)
+                  if '/.' in os.path.join(root, a): continue
+                  if SUFFIXES and os.path.splitext(a)[1].lower() not in SUFFIXES: continue
+                  if not os.path.exists(a): continue
+                  dao.A.append( [ str(a),
+                                   str(os.path.dirname(a)),
+                                   str(os.path.basename(a)),
+                                   str(os.path.splitext(a)[1][1:].lower()),
+                                   int(round(os.stat(a).st_mtime)),
+                                   str(date.fromtimestamp(os.stat(a).st_mtime).year),
+                                   str('0'+str(date.fromtimestamp(os.stat(a).st_mtime).month))[-2:],
+                                   str(date.fromtimestamp(os.stat(a).st_mtime).year)+' '+str(date.fromtimestamp(os.stat(a).st_mtime).month),
+                                   os.stat(a).st_size,
+                                   a.count('/')-1,  #level
+                                   0,               #hash
+                                   NOCLUSTER,       #duplicate cluster, default = -1
+                                   0] )             #duplicate   (as waste)  originaleintrag bleibt erhalten und ist ein duplicate
+
+              print('Ende Selektion')
 
 
-
-
-
-
-
-
-
-
+    @staticmethod
     def difference(daoa, daob):
-        # dient nur als Prototyp ...
-        daol=Dao()
-        daom=Dao()
-        daor=Dao()
-        daoa.A.sort(key=getkeysize)
-        daob.A.sort(key=getkeysize)
-        lena = len(daoa.A)
-        lenb = len(daob.A)
+         # dient nur als Prototyp ...
+        daol       =Dao()
+        daom       =Dao()
+        daor       =Dao()
+        daoab      =Dao()
+        daodyaddiff=Dao()
+        A = daoa.A[:]     # es darf auf A daoa.A keine Sortierung erfolgen, daher arbeiten auf Kopie
+        B = daob.A[:]
+        A.sort(key=Util.getkeysize)
+        B.sort(key=Util.getkeysize)
+        L=[]
+        M=[]
+        R=[]
+        MA=[]
+        MB=[]
+
+        lena = len(A)
+        lenb = len(B)
         i = 0
         j = 0
-
-        while True:
-            try:
-              a=daoa.A[i]
-            except:
-              daor.A.extend(daob.A[j:])
-              break
-            try: b=daob.A[j]
-            except:
-              daol.A.extend(daoa.A[i:])
-              break
-
-            if a[SIZE] > b[SIZE]:
-                daor.A.append(b)
-                j+=1
-                continue
-            if a[SIZE] == b[SIZE]:
-                print('Gleichheit')
-                daom.A.append(a)
-                i+=1
-                j+=1
-
-                continue
+        while i<lena and j < lenb:
+            a=A[i]
+            b=B[j]
             if a[SIZE] < b[SIZE]:
-                daol.A.append(a)
-                i+=1
+              L.append(a)
+              i+=1
+              continue
+            if a[SIZE] > b[SIZE]:
+              R.append(b)
+              j+=1
+              continue
+            if a[SIZE] == b[SIZE]:
+              MA.append(a)
+              MB.append(b)
+              i+=1
+              j+=1
+              continue
+
+        # Rest aufnehmen, falls fuer i Ende lena nicht erreicht ...
+        for p in range(i,lena):
+            L.append(A[p])
+        # Rest aufnehmen, falls fuer j Ende lenb nicht erreicht ...
+        for p in range(j,lenb):
+            R.append(B[p])
+
+
+
+
+        # MA und MB enthaelt files mit gleicher Laenge. Hier ist Phase II anzuwenden: Hashcodes ermitteln und dann die Vergleiche auf derselbigen ...
+        for a in MA:
+            # wird eine bestimmte Groesse ueberschritten, so kann dies als hash-Wert betrachtet werden ...
+            if a[SIZE] > DEDUP_MAXSIZE:
+                a[HASH]=a[SIZE]
                 continue
-        return daol, daom , daor
+            # Fehlerbehandlung erforderlich bei fehlender Berechtigung ...
+            with open(a[FILE],'rb') as f:
+                h = hash(f.read())
+                if h < 0: h=-h
+                a[HASH] = h
+
+        for b in MB:
+            # wird eine bestimmte Groesse ueberschritten, so kann dies als hash-Wert betrachtet werden ...
+            if b[SIZE] > DEDUP_MAXSIZE:
+                b[HASH]=b[SIZE]
+                continue
+            # Fehlerbehandlung erforderlich bei fehlender Berechtigung ...
+            with open(b[FILE],'rb') as f:
+                h = hash(f.read())
+                if h < 0: h=-h
+                b[HASH] = h
+
+        MA.sort(key=Util.getkeyhash)
+        MB.sort(key=Util.getkeyhash)
+
+        lena = len(MA)
+        lenb = len(MB)
+        i = 0
+        j = 0
+        while i<lena and j < lenb:
+            a=MA[i]
+            b=MB[j]
+            if a[HASH] < b[HASH]:
+              L.append(a)
+              i+=1
+              continue
+            if a[HASH] > b[HASH]:
+              R.append(b)
+              j+=1
+              continue
+            if a[HASH] == b[HASH]:
+              M.append(a)             # File ist in beiden Mengen vorhanden ...
+              i+=1
+              j+=1
+              continue
+
+        # Rest aufnehmen, falls fuer i Ende lena nicht erreicht ...
+        for p in range(i,lena):
+            L.append(MA[p])
+        # Rest aufnehmen, falls fuer j Ende lenb nicht erreicht ...
+        for p in range(j,lenb):
+            R.append(MB[p])
+
+        daol.A=L[:]
+        daom.A=M[:]
+        daor.A=R[:]
+
+
+        assert len(A)+len(B) == len(L)+2*len(M)+len(R)
+        print('Gesamtlaenge A+B:',len(A)+len(B))
+        print('Gesamtlaenge l+m+r:',len(L)+2*len(M)+len(R))
+        for m in M:
+            print('Msize: ', m[SIZE])
+        print('M: ', M)
+
+        # die Vereinigungsmenge aus A und B berechnen
+        daoab.A=L[:]
+        daoab.A.extend(M)
+        daoab.A.extend(R)
+
+        # die dyadische Differenz aus A und B berechnen ...  (dyadische Differenz = Vereinigungsmenge von A und B minus Schnittmenge)
+        daodyaddiff.A=L[:]
+        daodyaddiff.A.extend(R)
+
+        print('dyad:',len(daodyaddiff.A)+2*len(M))
+        print('ab: ',len(daoab.A))
+        return daol, daom, daor, daoab, daodyaddiff
+
+    @staticmethod
+    def count_files(dao, reduc=False):
+        if reduc:
+          # redundante Eintraege zwischenspeichern ...
+          dao.Expand = [a for a in dao.A if a[WASTE]]
+          # Redundanzbefreiung ...
+          dao.A = [a for a in dao.A if not a[WASTE]]
+
+        else:
+          if len(dao.Expand):
+              dao.A.extend(dao.Expand)
+              dao.Expand=[]
+
+
+        print('Beginn zaehlen')
+        # Achtung: hier wird A sortiert; Die Sortierreihenfolge von A darf wegen Referenzen auf derselbigen nicht veraendert werden ...
+
+        # Summe der Dateigroessen ermitteln ...
+        size_all=0
+        waste = 0
+        for a in dao.A:
+            size_all+=int(a[SIZE])
+            if a[WASTE]: waste+=int(a[SIZE])
+
+
+        dao.ALL=[]
+        dao.ALL.append((ASTERIX ,len(dao.A), len({a[DIRECTORY]for a in dao.A}),
+                                  len({a[DUBGROUP] for a in dao.A  if a[DUBGROUP] >= 1}  ) , len([a[DUBGROUP] for a in dao.A  if a[DUBGROUP] >= 1]   )    , size_all, waste))
+
+
+        dao.SU = []
+        dao.A.sort(key=Util.getkeysuffix)
+
+        for k, F in it.groupby(dao.A, Util.getkeysuffix):
+            F=list(F)
+            wastesuff = 0
+            for f in F:
+             if f[WASTE]: wastesuff+=int(f[SIZE])
+
+
+            dao.SU.append((k , len(F), len({a[DIRECTORY] for a in F }),
+                            len({a[DUBGROUP] for a in F  if a[DUBGROUP] >= 1 and a[SUFFIX] == k }  ),
+                            len([a[DUBGROUP] for a in F  if a[DUBGROUP] >= 1 and a[SUFFIX] == k ]  ),
+                            sum([int(a[SIZE]) for a in F ]),
+                            wastesuff
+                            ))
+
+
+
+        dao.YE = []
+        dao.A.sort(key=Util.getkeyyear)
+        for k, F in it.groupby(dao.A, Util.getkeyyear):
+            F=list(F)
+            dao.YE.append((k,len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+        dao.SUYE = []
+
+        dao.A.sort(key=Util.getkeysuffixyear)
+        for k, F in it.groupby(dao.A, Util.getkeysuffixyear):
+            F=list(F)
+            dao.SUYE.append((k[0],k[1],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+        dao.YESU = []
+        dao.A.sort(key=Util.getkeyyearsuffix)
+        for k, F in it.groupby(dao.A, Util.getkeyyearsuffix):
+            F=list(F)
+            dao.YESU.append((k[0],k[1],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+        dao.YEMO = []
+        dao.A.sort(key=Util.getkeyyearmonth)
+        for k, F in it.groupby(dao.A, Util.getkeyyearmonth):
+            F=list(F)
+            dao.YEMO.append((k[0],k[1], len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+        dao.SUYEMO = []
+        dao.A.sort(key=Util.getkeysuffixyearmonth)
+        for k, F in it.groupby(dao.A, Util.getkeysuffixyearmonth):
+            F=list(F)
+            dao.SUYEMO.append((k[0],k[1],k[2],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+
+        dao.YEMOSU = []
+        dao.A.sort(key=Util.getkeyyearmonthsuffix)
+        for k, F in it.groupby(dao.A, Util.getkeyyearmonthsuffix):
+            F=list(F)
+            dao.YEMOSU.append(( k[0],k[1],k[2], len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+
+        dao.LE = []
+        dao.A.sort(key=Util.getkeylevel)
+        for k, F in it.groupby(dao.A, Util.getkeylevel):
+            F=list(F)
+            dao.LE.append((k , len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+
+
+        # am Schluss wird A sortiert nach suffix, weil dies die primäre Ansicht in Files ist ...
+        dao.A.sort(key=Util.getkeysuffix)
+
+        print('Ende zaehlen')
 
 
 
 
 
-    def __init__(self, datasource=None):
-        self.A=[]
-        self.FIL=[]
-        self.path = ''
-        if datasource == DATA_SOURCE_A or datasource == DATA_SOURCE_B:
-            conf = DaoConfig()
-            self.path = conf.value_get(datasource,'Please enter a Directory')
-            print('ein Path: ',self.path)
+    @staticmethod
+    def filter_all(dao, kpi):
+        if kpi == KPI_FILES or KPI_DIRECTORY:
+          dao.FIL=[ i for i, a in enumerate (dao.A)]
 
-    def getkeylen(self,item):
-        s=self.A[item][SIZE]
-        return s
-    def getkeyhash(self,item):
-        s=self.A[item][HASH]
-        return s
+        if kpi == KPI_DIRECTORY:
+            D = list({a[DIRECTORY] for a in dao.A})
+            #sorted(D)
 
 
-    def dedub(self):
+
+
+            for i,d in enumerate(D):
+                length = len(d)
+                treecnt             = 0
+                treesize            = 0
+                treeselectedcnt     = 0  #subtree
+                treeselectedsize    = 0  # subtree
+
+                topcnt              = 0
+                topsize             = 0
+                topselectedcnt      = 0  #toplevel
+                topselectedsize     = 0  #toplevel
+                subtreecnt          = 0
+                subtreesize         = 0
+                subtreeselectedcnt  = 0
+                subtreeselectedsize = 0
+                for a in dao.A:
+                    if  a[FILE][:length]==d:
+                       treecnt += 1
+                       treesize += a[SIZE]
+                       if True:
+                          treeselectedcnt  += 1
+                          treeselectedsize +=a[SIZE]
+                    if  a[DIRECTORY]==d:
+                       topcnt += 1
+                       topsize += a[SIZE]
+                       if True:
+                          topselectedcnt  += 1
+                          topselectedsize +=a[SIZE]
+                    if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                        # we are in a subdirectory ...
+                        if True:
+                          subtreeselectedcnt +=1
+                          subtreeselectedsize +=a[SIZE]
+                        subtreecnt +=1
+                        subtreesize +=a[SIZE]
+
+
+
+
+                D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+
+            dao.DIR = D
+
+
+
+
+
+
+
+
+
+
+
+    @staticmethod
+    def filter_suffix(dao,kpi, suffix):
+        if kpi == KPI_FILES or kpi==KPI_DIRECTORY:
+          dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix] # nur indices stehen in FIL
+
+        if kpi == KPI_DIRECTORY:
+            D = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix})
+            #sorted(D)
+
+
+            for i,d in enumerate(D):
+                length = len(d)
+
+
+                treecnt             = 0
+                treesize            = 0
+                treeselectedcnt     = 0  #subbtree
+                treeselectedsize    = 0  #subtree
+
+                topcnt              = 0
+                topsize             = 0
+                topselectedcnt      = 0  #toplevel
+                topselectedsize     = 0  #toplevel
+                subtreecnt          = 0
+                subtreesize         = 0
+                subtreeselectedcnt  = 0
+                subtreeselectedsize = 0
+
+
+                for a in dao.A:
+                    if  a[FILE][:length]==d:
+                       treecnt += 1
+                       treesize += a[SIZE]
+                       if a[SUFFIX] == suffix:
+                          treeselectedcnt  += 1
+                          treeselectedsize +=a[SIZE]
+                    if  a[DIRECTORY]==d:
+                       topcnt += 1
+                       topsize += a[SIZE]
+                       if a[SUFFIX] == suffix:
+                          topselectedcnt  += 1
+                          topselectedsize +=a[SIZE]
+                    if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                        # we are in a subdirectory ...
+                        if a[SUFFIX] == suffix:
+                          subtreeselectedcnt +=1
+                          subtreeselectedsize +=a[SIZE]
+                        subtreecnt +=1
+                        subtreesize +=a[SIZE]
+
+
+
+
+
+                D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+
+            dao.DIR = D
+
+
+
+
+
+
+
+    @staticmethod
+    def filter_year(dao,kpi,year):
+        if kpi == KPI_FILES or kpi==KPI_DIRECTORY:
+          dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year]
+        if kpi==KPI_DIRECTORY:
+            D = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year})
+
+
+            for i,d in enumerate(D):
+                length = len(d)
+
+                treecnt             = 0
+                treesize            = 0
+                treeselectedcnt     = 0   #subtree
+                treeselectedsize    = 0  # subtree
+
+                topcnt              = 0
+                topsize             = 0
+                topselectedcnt      = 0   #toplevel
+                topselectedsize     = 0  #toplevel
+                subtreecnt          = 0
+                subtreesize         = 0
+                subtreeselectedcnt  = 0
+                subtreeselectedsize = 0
+
+
+                for a in dao.A:
+                    if  a[FILE][:length]==d:
+                       treecnt += 1
+                       treesize += a[SIZE]
+                       if a[YEAR] == year:
+                          treeselectedcnt  += 1
+                          treeselectedsize +=a[SIZE]
+                    if  a[DIRECTORY]==d:
+                       topcnt += 1
+                       topsize += a[SIZE]
+                       if a[YEAR] == year:
+                          topselectedcnt  += 1
+                          topselectedsize +=a[SIZE]
+                    if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                        # we are in a subdirectory ...
+                        if a[YEAR] == year:
+                          subtreeselectedcnt +=1
+                          subtreeselectedsize +=a[SIZE]
+                        subtreecnt +=1
+                        subtreesize +=a[SIZE]
+
+
+                D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+
+
+            dao.DIR = D
+
+
+
+
+
+
+    @staticmethod
+    def filter_year_month(dao,kpi,year,month):
+        if kpi == KPI_FILES or kpi==KPI_DIRECTORY:
+          dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[MONTH] == month  ]
+        if kpi==KPI_DIRECTORY:
+            D = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year and a[MONTH] == month})
+
+
+            for i,d in enumerate(D):
+                length = len(d)
+                treecnt             = 0
+                treesize            = 0
+                treeselectedcnt     = 0   #subtree
+                treeselectedsize    = 0  # subtree
+
+                topcnt              = 0
+                topsize             = 0
+                topselectedcnt      = 0   #toplevel
+                topselectedsize     = 0  #toplevel
+                subtreecnt          = 0
+                subtreesize         = 0
+                subtreeselectedcnt  = 0
+                subtreeselectedsize = 0
+
+
+                for a in dao.A:
+                    if  a[FILE][:length]==d:
+                       treecnt += 1
+                       treesize += a[SIZE]
+                       if a[YEAR] == year and a[MONTH]==month:
+                          treeselectedcnt  += 1
+                          treeselectedsize +=a[SIZE]
+                    if  a[DIRECTORY]==d:
+                       topcnt += 1
+                       topsize += a[SIZE]
+                       if a[YEAR] == year and a[MONTH]==month:
+                          topselectedcnt  += 1
+                          topselectedsize +=a[SIZE]
+                    if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                        # we are in a subdirectory ...
+                        if a[YEAR] == year and a[MONTH]==month:
+                          subtreeselectedcnt +=1
+                          subtreeselectedsize +=a[SIZE]
+                        subtreecnt +=1
+                        subtreesize +=a[SIZE]
+
+
+                D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+
+
+            dao.DIR = D
+
+
+
+
+
+    @staticmethod
+    def filter_suffix_year(dao,kpi,suffix,year):
+        if kpi == KPI_FILES or kpi==KPI_DIRECTORY:
+          dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix and a[YEAR] == year  ]
+        if kpi==KPI_DIRECTORY:
+            D = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix and a[YEAR] == year})
+
+            for i,d in enumerate(D):
+                length = len(d)
+                treecnt             = 0
+                treesize            = 0
+                treeselectedcnt     = 0   #subtree
+                treeselectedsize    = 0  # subtree
+
+                topcnt              = 0
+                topsize             = 0
+                topselectedcnt      = 0   #toplevel
+                topselectedsize     = 0  #toplevel
+                subtreecnt          = 0
+                subtreesize         = 0
+                subtreeselectedcnt  = 0
+                subtreeselectedsize = 0
+
+
+                for a in dao.A:
+                    if  a[FILE][:length]==d:
+                       treecnt += 1
+                       treesize += a[SIZE]
+                       if a[YEAR] == year and a[SUFFIX]==suffix:
+                          treeselectedcnt  += 1
+                          treeselectedsize +=a[SIZE]
+                    if  a[DIRECTORY]==d:
+                       topcnt += 1
+                       topsize += a[SIZE]
+                       if a[YEAR] == year and a[SUFFIX]==suffix:
+                          topselectedcnt  += 1
+                          topselectedsize +=a[SIZE]
+                    if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                        # we are in a subdirectory ...
+                        if a[YEAR] == year and a[SUFFIX]==suffix:
+                          subtreeselectedcnt +=1
+                          subtreeselectedsize +=a[SIZE]
+                        subtreecnt +=1
+                        subtreesize +=a[SIZE]
+
+
+                D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+
+            dao.DIR = D
+
+
+
+
+    @staticmethod
+    def filter_year_suffix(dao,kpi,year, suffix):
+        if kpi == KPI_FILES or kpi==KPI_DIRECTORY:
+          dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[SUFFIX] == suffix  ]
+
+        if kpi==KPI_DIRECTORY:
+            D = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year and a[SUFFIX] == suffix})
+
+            for i,d in enumerate(D):
+                length = len(d)
+                treecnt             = 0
+                treesize            = 0
+                treeselectedcnt     = 0   #subtree
+                treeselectedsize    = 0  # subtree
+
+                topcnt              = 0
+                topsize             = 0
+                topselectedcnt      = 0   #toplevel
+                topselectedsize     = 0  #toplevel
+                subtreecnt          = 0
+                subtreesize         = 0
+                subtreeselectedcnt  = 0
+                subtreeselectedsize = 0
+
+
+                for a in dao.A:
+                    if  a[FILE][:length]==d:
+                       treecnt += 1
+                       treesize += a[SIZE]
+                       if a[YEAR] == year and a[SUFFIX]==suffix:
+                          treeselectedcnt  += 1
+                          treeselectedsize +=a[SIZE]
+                    if  a[DIRECTORY]==d:
+                       topcnt += 1
+                       topsize += a[SIZE]
+                       if a[YEAR] == year and a[SUFFIX]==suffix:
+                          topselectedcnt  += 1
+                          topselectedsize +=a[SIZE]
+                    if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                        # we are in a subdirectory ...
+                        if a[YEAR] == year and a[SUFFIX]==suffix:
+                          subtreeselectedcnt +=1
+                          subtreeselectedsize +=a[SIZE]
+                        subtreecnt +=1
+                        subtreesize +=a[SIZE]
+
+
+                D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+
+            dao.DIR = D
+
+
+
+
+    @staticmethod
+    def filter_suffix_year_month(dao,kpi, suffix, year, month):
+        if kpi == KPI_FILES or kpi==KPI_DIRECTORY:
+          dao.FIL=[ i for i, a in enumerate(dao.A) if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month  ]
+        if kpi==KPI_DIRECTORY:
+            D = list({a[DIRECTORY] for a in dao.A if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month})
+
+
+            for i,d in enumerate(D):
+                length = len(d)
+                treecnt             = 0
+                treesize            = 0
+                treeselectedcnt     = 0   #subtree
+                treeselectedsize    = 0  # subtree
+
+                topcnt              = 0
+                topsize             = 0
+                topselectedcnt      = 0   #toplevel
+                topselectedsize     = 0  #toplevel
+                subtreecnt          = 0
+                subtreesize         = 0
+                subtreeselectedcnt  = 0
+                subtreeselectedsize = 0
+
+
+                for a in dao.A:
+                    if  a[FILE][:length]==d:
+                       treecnt += 1
+                       treesize += a[SIZE]
+                       if a[YEAR] == year and a[SUFFIX]==suffix and a[MONTH]==month:
+                          treeselectedcnt  += 1
+                          treeselectedsize +=a[SIZE]
+                    if  a[DIRECTORY]==d:
+                       topcnt += 1
+                       topsize += a[SIZE]
+                       if a[YEAR] == year and a[SUFFIX]==suffix and a[MONTH]==month:
+                          topselectedcnt  += 1
+                          topselectedsize +=a[SIZE]
+                    if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                        # we are in a subdirectory ...
+                        if a[YEAR] == year and a[SUFFIX]==suffix and a[MONTH]==month:
+                          subtreeselectedcnt +=1
+                          subtreeselectedsize +=a[SIZE]
+                        subtreecnt +=1
+                        subtreesize +=a[SIZE]
+
+
+                D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+
+
+            dao.DIR = D
+
+
+
+
+    @staticmethod
+    def filter_year_month_suffix(dao, kpi, year, month, suffix):
+        if kpi == KPI_FILES or kpi==KPI_DIRECTORY:
+          dao.FIL=[ i for i, a in enumerate(dao.A) if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix  ]
+        if kpi==KPI_DIRECTORY:
+            D = list({a[DIRECTORY] for a in dao.A if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix})
+
+            for i,d in enumerate(D):
+                length = len(d)
+                treecnt             = 0
+                treesize            = 0
+                treeselectedcnt     = 0   #subtree
+                treeselectedsize    = 0  # subtree
+
+                topcnt              = 0
+                topsize             = 0
+                topselectedcnt      = 0   #toplevel
+                topselectedsize     = 0  #toplevel
+                subtreecnt          = 0
+                subtreesize         = 0
+                subtreeselectedcnt  = 0
+                subtreeselectedsize = 0
+
+
+                for a in dao.A:
+                    if  a[FILE][:length]==d:
+                       treecnt += 1
+                       treesize += a[SIZE]
+                       if a[YEAR] == year and a[MONTH]==month and a[SUFFIX]==suffix:
+                          treeselectedcnt  += 1
+                          treeselectedsize +=a[SIZE]
+                    if  a[DIRECTORY]==d:
+                       topcnt += 1
+                       topsize += a[SIZE]
+                       if a[YEAR] == year and a[MONTH]==month and a[SUFFIX]==suffix:
+                          topselectedcnt  += 1
+                          topselectedsize +=a[SIZE]
+                    if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                        # we are in a subdirectory ...
+                        if a[YEAR] == year and a[MONTH]==month and a[SUFFIX]==suffix:
+                          subtreeselectedcnt +=1
+                          subtreeselectedsize +=a[SIZE]
+                        subtreecnt +=1
+                        subtreesize +=a[SIZE]
+
+
+                D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+
+            dao.DIR = D
+
+
+    @staticmethod
+    def filter_level(dao,kpi,level):
+        if kpi == KPI_FILES or kpi==KPI_DIRECTORY:
+          dao.FIL=[ i for i, a in enumerate(dao.A) if a[LEVEL] == level]
+        if kpi==KPI_DIRECTORY:
+            D = list({a[DIRECTORY] for a in dao.A if a[LEVEL] == level})
+
+            for i,d in enumerate(D):
+                length = len(d)
+                treecnt             = 0
+                treesize            = 0
+                treeselectedcnt     = 0   #subtree
+                treeselectedsize    = 0  # subtree
+
+                topcnt              = 0
+                topsize             = 0
+                topselectedcnt      = 0   #toplevel
+                topselectedsize     = 0  #toplevel
+                subtreecnt          = 0
+                subtreesize         = 0
+                subtreeselectedcnt  = 0
+                subtreeselectedsize = 0
+
+
+                for a in dao.A:
+                    if  a[FILE][:length]==d:
+                       treecnt += 1
+                       treesize += a[SIZE]
+                       if a[LEVEL] == level:
+                          treeselectedcnt  += 1
+                          treeselectedsize +=a[SIZE]
+                    if  a[DIRECTORY]==d:
+                       topcnt += 1
+                       topsize += a[SIZE]
+                       if a[LEVEL] == level:
+                          topselectedcnt  += 1
+                          topselectedsize +=a[SIZE]
+                    if  a[FILE][:length]==d and a[DIRECTORY] != d:
+                        # we are in a subdirectory ...
+                        if a[LEVEL] == level:
+                          subtreeselectedcnt +=1
+                          subtreeselectedsize +=a[SIZE]
+                        subtreecnt +=1
+                        subtreesize +=a[SIZE]
+
+
+                D[i]=[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+
+            dao.DIR = D
+
+
+    @staticmethod
+    def dedub(dao,B=[]):
 
         # Achtung: Auf A keine Sortierung machen. Alle Pointer erwarten die anfangs gemachte Reihenfolge ...
+        # Achtung Nebeneffekt: Dedub setzt die dedubgroup in A ...
 
-
-        self.B=[i for i, a in enumerate(self.A)]
-        self.B.sort(key=self.getkeylen)
+        if B==[]:
+          B=[i for i, a in enumerate(dao.A)]
+        B.sort(key=dao.getkeylen)
         # in R sollen die pointer auf A stehen, die die gleichen Längen haben...
         R=[]
-        F=[]
+
 
         flag=False
 
-
-        for i, b in enumerate(self.B):
+        # Gruppenstufenermittlung: Elemente mit die zu einer gleichbleibenden Seqzenz gehoeren in R aufnehmen ...
+        for i, b in enumerate(B):
             if i==0: continue
-            x=self.A[self.B[i-1]][SIZE]
-            y=self.A[b][SIZE]
+            x=dao.A[B[i-1]][SIZE]
+            y=dao.A[b][SIZE]
             if x==y:
-              R.append(self.B[i-1])
+              R.append(B[i-1])
               flag=True
               continue
 
             if flag:
-               R.append(self.B[i-1])
+               R.append(B[i-1])
                flag=False
 
         if flag:
         # falls Gleichheit bis ans Ende besteht, den letzten Eintrag noch mitnehmen
-            R.append(self.B[-1])
+            R.append(B[-1])
 
-        # hash werte fuer genau die Elemente in R berechnen. Hash werte werden auf Ebene von A gespeichert
+        # In R stehen Elemente mit gleichen Sequenzen; schon zu Beginn gibt es mindestens 2 gleiche aufeinanderfolgende Elemente ...
+
+
+        # hash werte fuer genau die Elemente in R berechnen. Hash werte werden auf Ebene von A gespeichert...
         for r in R:
-            if self.A[r][SIZE]==0:
-                self.A[r][HASH] = 0
+            if dao.A[r][SIZE]==0:
+                # Files mit Länge 0 bekommen 0 als Hashwert ...
+                dao.A[r][HASH] = 0
                 continue
-            with open(self.A[r][FILE],'rb') as f:
+            if dao.A[r][SIZE] > DEDUP_MAXSIZE:
+                # Achtung Heuristik: hier wird angenommen, dass bei grossen Files die Filelaenge als Hash-Wert fungieren kan; dies ist nicht
+                # immer richtig, aber mit hoher Wahrscheinlichkeit. Womoeglich ist diese Option in der Configuration anzubieten ...
+                dao.A[r][HASH] = dao.A[r][SIZE]
+                continue
 
-                h = hash(f.read())
-                #print(h)
-                if h < 0: h=-h
-                self.A[r][HASH] = h
-                print(self.A[r][HASH])
+            try:
+
+                # Fehlerbehandlung erforderlich bei fehlender Berechtigung ...
+                with open(dao.A[r][FILE],'rb') as f:
+                    h = hash(f.read())
+                    if h < 0: h=-h
+                    dao.A[r][HASH] = h
+            except:
+                pass
 
 
         # Phase II: weitere Einschränkung von R ...
         # analog wie oben die duplikatermittlung auf hash, statt auf len ...
 
-        R.sort(key=self.getkeyhash)
+        R.sort(key=dao.getkeyhash)
         # in S sollen die pointer auf A stehen, die die gleichen hashes(laengen) haben...
         S=[]
 
@@ -270,8 +1036,8 @@ class Dao():
 
         for i, r in enumerate(R):
             if i==0: continue
-            x=self.A[R[i-1]][HASH]
-            y=self.A[r][HASH]
+            x=dao.A[R[i-1]][HASH]
+            y=dao.A[r][HASH]
             if x==y:
               S.append(R[i-1])
               flag=True
@@ -287,136 +1053,93 @@ class Dao():
 
 
         # Achtung: hier F aufbauen, die aus Unikaten besteht
+        S.sort(key=dao.getkeylen)
 
-        print('ERGE:  ',[self.A[b][SIZE] for b in self.B])
 
-        S.sort(key=self.getkeylen)
-        print('RR= ',[self.A[s][SIZE] for s in S])
-        return S
-
+        # duplicate group in A setzen ...
+        for s in S: dao.A[s][DUBGROUP] = dao.A[s][HASH]
 
 
 
-    def selection(self):
-      print('Beginn Selektion')
-      self.A=[]
-      for root, Dir, File in os.walk(self.path):
-        for file in File:
-          if file[0] == '.': continue
-          a = os.path.join(root, file)
-          if '/.' in os.path.join(root, a): continue
-          if SUFFIXES and os.path.splitext(a)[1].lower() not in SUFFIXES: continue
-          if not os.path.exists(a): continue
-          self.A.append( [ str(a),
-                           str(os.path.dirname(a)),
-                           str(os.path.basename(a)),
-                           str(os.path.splitext(a)[1][1:].lower()),
-                           str(os.stat(a).st_mtime),
-                           str(date.fromtimestamp(os.stat(a).st_mtime).year),
-                           str('0'+str(date.fromtimestamp(os.stat(a).st_mtime).month))[-2:],
-                           str(date.fromtimestamp(os.stat(a).st_mtime).year)+' '+str(date.fromtimestamp(os.stat(a).st_mtime).month),
-                           os.stat(a).st_size,
-                           a.count('/')-1,  #level
-                           0, ] )                 #hash
-
-
-      print('Ende Selektion')
+        # ab hier sollen die dubroups statt hash werte normale integer sein ...
+        S.sort(key=dao.getkeydubgroup)
 
 
 
-    def count_files(self):
-      print('Beginn zaehlen')
-
-    # Summe der Dateigroessen ermitteln ...
-      size_all=0
-      for a in self.A:
-        size_all+=int(a[SIZE])
-
-      self.ALL=[]
-      self.ALL.append((ASTERIX ,str(len(self.A)), str(len({a[DIRECTORY]for a in self.A})), str(size_all)))
+        if len(S)==0: return     # tritt ein beispielsweise nach Reduce+Dedup ...
 
 
-      self.SU = []
-      self.A.sort(key=getkeysuffix)
-      for k, F in it.groupby(self.A, getkeysuffix):
-         F=list(F)
-         self.SU.append((k , len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+        if len(dao.A) > 1:
+          # Gruppenbildung macht nur Sinn, wenn mindestens 2 Files vorhanden sind ...
+          i = 1
+          x = dao.A[S[0]][DUBGROUP]
+          dao.A[S[0]][DUBGROUP] = 1        # Achtung die Sequenz verweist anfangs auf mindestens zwei gleiche Elemente. Zaehlung beginnt bei 1 ...
+          for s in S[1:]:
+              y = dao.A[s][DUBGROUP]
+              if x==y:
+                  dao.A[s][DUBGROUP] = i
+                  dao.A[s][WASTE] = 1   # wenn kein Gruppenstufenwechsel, dann liegt waste vor. achtung zu Beginn einer Gruppenstufe ist waste =0 (Originaleintrag)
+                  continue
+              if x!=y:
+                  x=y
+                  i+=1
+
+                  dao.A[s][DUBGROUP] = i
 
 
 
-      self.YE = []
-      self.A.sort(key=getkeyyear)
-      for k, F in it.groupby(self.A, getkeyyear):
-         F=list(F)
-         self.YE.append((k,len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+        # alle -1 Werrte, d.h. es gibt keine Duplikate, auf 0 setzen...
 
-      self.SUYE = []
-
-      self.A.sort(key=getkeysuffixyear)
-      for k, F in it.groupby(self.A, getkeysuffixyear):
-         F=list(F)
-         self.SUYE.append((k[0],k[1],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
-
-      self.YESU = []
-      self.A.sort(key=getkeyyearsuffix)
-      for k, F in it.groupby(self.A, getkeyyearsuffix):
-         F=list(F)
-         self.YESU.append((k[0],k[1],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
-
-      self.YEMO = []
-      self.A.sort(key=getkeyyearmonth)
-      for k, F in it.groupby(self.A, getkeyyearmonth):
-         F=list(F)
-         self.YEMO.append((k[0],k[1], len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
-
-      self.SUYEMO = []
-      self.A.sort(key=getkeysuffixyearmonth)
-      for k, F in it.groupby(self.A, getkeysuffixyearmonth):
-         F=list(F)
-         self.SUYEMO.append((k[0],k[1],k[2],len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+        for a in dao.A:
+            if a[DUBGROUP] == NOCLUSTER: a[DUBGROUP] = 0
 
 
-      self.YEMOSU = []
-      self.A.sort(key=getkeyyearmonthsuffix)
-      for k, F in it.groupby(self.A, getkeyyearmonthsuffix):
-         F=list(F)
-         self.YEMOSU.append(( k[0],k[1],k[2], len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
+
+        #return R
+
+class Dao():
 
 
-      self.LE = []
-      self.A.sort(key=getkeylevel)
-      for k, F in it.groupby(self.A, getkeylevel):
-         F=list(F)
-         self.LE.append((k , len(F), len({a[DIRECTORY] for a in F }) , sum([int(a[SIZE]) for a in F ])))
-
-
-      print('Ende Zählen')
-      print('Das Ergebnis')
-
-    def filter_all(self):
-        self.FIL=[ i for i, a in enumerate (self.A)]
-
-    def filter_suffix(self,suffix):
-        self.FIL=[ i for i, a in enumerate(self.A) if a[SUFFIX] == suffix]
-    def filter_year(self,year):
-        self.FIL=[ i for i, a in enumerate(self.A) if a[YEAR] == year]
-    def filter_year_month(self,year,month):
-        self.FIL=[ i for i, a in enumerate(self.A) if a[YEAR] == year and a[MONTH] == month  ]
-    def filter_suffix_year(self,suffix,year):
-        self.FIL=[ i for i, a in enumerate(self.A) if a[SUFFIX] == suffix and a[YEAR] == year  ]
-    def filter_year_suffix(self,year, suffix):
-        self.FIL=[ i for i, a in enumerate(self.A) if a[YEAR] == year and a[SUFFIX] == suffix  ]
-    def filter_suffix_year_month(self, suffix, year, month):
-        self.FIL=[ i for i, a in enumerate(self.A) if a[SUFFIX] == suffix and a[YEAR] == year and a[MONTH] == month  ]
-    def filter_year_month_suffix(self, year, month, suffix):
-        self.FIL=[ i for i, a in enumerate(self.A) if a[YEAR] == year and a[MONTH] == month and a[SUFFIX] == suffix  ]
-    def filter_level(self,level):
-        self.FIL=[ i for i, a in enumerate(self.A) if a[LEVEL] == level]
+   def __init__(self, datasource=None):
+        self.A=[]
+        self.FIL=[]
+        self.ALL=[]
+        self.SU=[]
+        self.YE= []
+        self.YEMO=[]
+        self.YESU=[]
+        self.YEMOSU=[]
+        self.SUYEMO=[]
+        self.LE=[]
+        self.SUYE=[]
+        self.Expand=[]
+        self.datasource = datasource
 
 
 
 
-#
+
+   def getkeylen(self,item):
+        s=self.A[item][SIZE]
+        return s
+
+
+
+   def getkeydubgroup(self,item):
+        s=self.A[item][DUBGROUP]
+        return s
+
+
+   def getkeyhash(self,item):
+        s=self.A[item][HASH]
+        return s
+
+
+
+
+
+
+
 
 ##########################################################################
 ################### UI Entwicklung #######################################
@@ -430,7 +1153,7 @@ BRUSH_TARGET     = QBrush(QColor(255, 235, 235))  # pastell rot
 BRUSH_SIZE       = QBrush(QColor(229, 249, 255))  # pastell blau
 BRUSH_FILE       = QBrush(QColor(255, 242, 229))  # pastell orange
 BRUSH_DIRECTORY  = QBrush(QColor(242, 255, 229))  # pastell gruen
-
+BRUSH_FILENAME   = QBrush(QColor(255, 255, 240))  # pastell gelb
 
 # QTItem ueberschreibt den Vergleichsoperator <=, damit die Sortierung der Spalten mit Integer richtig funktioniert;
 # ansonsten werden die Integers nach der lexikographischen Reifenfolge sortiert ...
@@ -444,718 +1167,1295 @@ class QTItem(QTableWidgetItem):
     def __lt__(self, other):
         return self.sortKey < other.sortKey
 
-class Matrix(QTabWidget):
 
+
+
+
+
+
+
+
+class Tab_All(QWidget):
     def __init__(self, dao, parent=None):
-        super(Matrix, self).__init__(parent)
+        super(Tab_All, self).__init__(parent)
+        # all anzeigen
         self.dao = dao
-
-        tab1 = self.get_tab_cat_all()
-        self.addTab(tab1,'all')
-        tab2 = self.get_tab_cat_suffixes()
-        self.addTab(tab2,'suffix')
-        tab3 = self.get_tab_cat_years()
-        self.addTab(tab3,'year')
-        tab4 = self.get_tab_cat_year_month()
-        self.addTab(tab4,'year month')
-        tab5 = self.get_tab_cat_suffix_year()
-        self.addTab(tab5,'suffix year')
-        tab6 = self.get_tab_cat_year_suffix()
-        self.addTab(tab6,'year suffix')
-        tab7= self.get_tab_cat_suffix_year_month()
-        self.addTab(tab7,'suffix year month')
-        tab8= self.get_tab_cat_year_month_suffix()
-        self.addTab(tab8,'year month suffix')
-        tab9= self.get_tab_cat_level()
-        self.addTab(tab9,'level')
-
-
-
-
-
-    def get_tab_cat_all(self):
-         # all anzeigen
-
-        tab1 = QWidget()
         layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
-        tab1.setLayout(layouttab)
+        self.setLayout(layouttab)
 
         split = QSplitter()
         split.setOrientation( Qt.Vertical )
         layouttab.addWidget(split) # split als einzige Komponente
 
 
-        table = QTableWidget()
-        table.itemClicked.connect(self.on_matrixfiles_clicked_all)
-        split.addWidget(table)
+        self.table = QTableWidget()
+        self.table.itemClicked.connect(self.on_kpi_clicked)
+        split.addWidget(self.table)
 
-        self.files_all = Files(self.dao)
+        self.files_all = Files(dao)
         split.addWidget( self.files_all)
 
+        self.table.setSortingEnabled(True)
+        self.table.setColumnCount(30)
+
+        self.set_content()
+        #self.set_tab_content_all(tab)
+        #tab.xxx=self.set_tab_content_all
 
 
-        table.setSortingEnabled(True)
-        table.setColumnCount(30)
-        table.setRowCount(100)
-        table.setHorizontalHeaderLabels(['all', '# file', '# directory','# size'])
 
-        CNTFILE = 1
-        CNTDIR  = 2
-        CNTSIZE = 3
+    def set_content(self):
+        CNTFILE      = 1
+        CNTDIR       = 2
+        CNTDUPGROUP  = 3
+        CNTDUPFILES  = 4
+        CNTSIZE      = 5
+        CNTWASTE     = 6
+        self.table.clear()
+        self.table.setHorizontalHeaderLabels(['all', '# file', '# directory', '# dubfiles', '# dubgroup', 'size','waste'])
+        # rows are changing ...
+        self.table.setRowCount(len(self.dao.ALL)+RWCNT)
 
         for i,s in enumerate(self.dao.ALL):
           value = QTableWidgetItem(s[0])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
-          table.setItem(0, 0, value)
+          self.table.setItem(0, 0, value)
           value = QTItem(str(s[CNTFILE]), s[CNTFILE] )
           # zelle pastell rot ...
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           value.setBackground(BRUSH_TARGET)
-          table.setItem(0, 1, value)
+          self.table.setItem(0, 1, value)
           value = QTItem(str(s[CNTDIR]),s[CNTDIR])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
-          table.setItem(0, 2, value)
-          value = QTItem(frmt(s[CNTSIZE]),s[CNTSIZE]  )
-          value.setData(5,i) ##########################
+          self.table.setItem(0, 2, value)
+
+          value = QTItem(str(s[CNTDUPFILES]),s[CNTDUPFILES])
+          value.setData(DATCOMP,i) ##########################
+          # zelle pastell rot ...
+          value.setBackground(BRUSH_TARGET)
+          self.table.setItem(0, 3, value)
+
+
+          value = QTItem(str(s[CNTDUPGROUP]),s[CNTDUPGROUP])
+          value.setData(DATCOMP,i) ##########################
+          # zelle pastell rot ...
+          value.setBackground(BRUSH_TARGET)
+          self.table.setItem(0, 4, value)
+
+
+          value = QTItem(Util.frmt(s[CNTSIZE]),s[CNTSIZE]  )
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
-          table.setItem(0, 3, value)
-          #table.setSortingEnabled(True)
-        return tab1
+          self.table.setItem(0, 5, value)
+          value = QTItem(Util.frmt(s[CNTWASTE]),s[CNTWASTE]  )
+          value.setData(DATCOMP,i) ##########################
+          # zelle pastell rot ...
+          value.setBackground(BRUSH_SIZE)
+          value.setTextAlignment(Qt.AlignRight)
+          self.table.setItem(0, 6, value)
 
 
-    def get_tab_cat_suffixes(self):
 
 
-#tab2.itemClicked.connect(self.on_matrixfiles_clicked_su)
+    def on_kpi_clicked(self,item):
+        index = item.data(DATCOMP)
+        s = self.dao.ALL[index]
 
-        tab1 = QWidget()
+        if item.column() == 1:
+          Api.filter_all(self.dao, KPI_FILES)
+          self.files_all.displayFiles()
+        if item.column() == 2:
+          Api.filter_all(self.dao, KPI_DIRECTORY)
+          self.files_all.displayDir()
+
+
+
+class Tab_SU(QWidget):
+    def __init__(self, dao, parent=None):
+        super(Tab_SU, self).__init__(parent)
+
+#tab_su.itemClicked.connect(self.on_matrixfiles_clicked_su)
+        self.dao = dao
+
         layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
-        tab1.setLayout(layouttab)
+        self.setLayout(layouttab)
 
         split = QSplitter()
         split.setOrientation( Qt.Vertical )
         layouttab.addWidget(split) # split als einzige Komponente
 
 
-        table = QTableWidget()
-        table.itemClicked.connect(self.on_matrixfiles_clicked_su)
-        split.addWidget(table)
+        self.table = QTableWidget()
+        self.table.itemClicked.connect(self.on_kpi_clicked)
+        split.addWidget(self.table)
 
         self.files_su = Files(self.dao)
         split.addWidget( self.files_su)
+        self.table.setSortingEnabled(True)
+        self.table.setColumnCount(30)
+        self.set_content()
 
-        table.setSortingEnabled(True)
-        table.setColumnCount(30)
-        table.setRowCount(len(self.dao.SU))
-        table.setHorizontalHeaderLabels([ 'suffix','# file', '# directory', '# size'])
+    def set_content(self):
         # suffixe anzeigen ...
-        CNTFILE = 1
-        CNTDIR  = 2
-        CNTSIZE = 3
+        CNTFILE      = 1
+        CNTDIR       = 2
+        CNTDUPGROUP  = 3
+        CNTDUPFILES  = 4
+        CNTSIZE      = 5
+        CNTWASTE     = 6
+        # rows are changing ...
+        self.table.clear()
+        self.table.setHorizontalHeaderLabels([ 'suffix','# file', '# directory',  '# dubfiles', '# dubgroup', 'size','waste'])
+
+        self.table.setRowCount(len(self.dao.SU)+RWCNT)
+
 
         for i,s in enumerate(self.dao.SU):
           value = QTableWidgetItem(s[0])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
-          table.setItem(i, 0, value)
-          value = QTItem(str(s[CNTFILE]),s[CNTFILE]  )
-          value.setData(5,i) ##########################
+          self.table.setItem(i, 0, value)
+          value = QTItem(str(s[CNTFILE]),s[CNTFILE] )
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
-          table.setItem(i, 1, value)
-          value = QTItem(str(s[CNTDIR]), s[CNTDIR]    )
-          value.setData(5,i) ##########################
+          self.table.setItem(i, 1, value)
+          value = QTItem(str(s[CNTDIR]), s[CNTDIR] )
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
 
           value.setBackground(BRUSH_TARGET)
-          table.setItem(i, 2, value)
-          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
-          value.setData(5,i) ##########################
+          self.table.setItem(i, 2, value)
+
+          value = QTItem(str(s[CNTDUPFILES]),s[CNTDUPFILES])
+          value.setData(DATCOMP,i) ##########################
+          # zelle pastell rot ...
+          value.setBackground(BRUSH_TARGET)
+          self.table.setItem(i, 3, value)
+
+          value = QTItem(str(s[CNTDUPGROUP]),s[CNTDUPGROUP])
+          value.setData(DATCOMP,i) ##########################
+          # zelle pastell rot ...
+          value.setBackground(BRUSH_TARGET)
+          self.table.setItem(i, 4, value)
+
+
+          value = QTItem(Util.frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
-          table.setItem(i, 3, value)
-        #table.setSortingEnabled(True)
-        return tab1
+          self.table.setItem(i, 5, value)
 
-    def get_tab_cat_years(self):
-        # years anzeigen
+          value = QTItem(Util.frmt(s[CNTWASTE]),s[CNTWASTE]  )
+          value.setData(DATCOMP,i) ##########################
+          # zelle pastell rot ...
+          value.setBackground(BRUSH_SIZE)
+          value.setTextAlignment(Qt.AlignRight)
+          self.table.setItem(i, 6, value)
 
 
 
-        tab1 = QWidget()
+
+    def on_kpi_clicked(self,item):
+        index = item.data(DATCOMP)
+        s = self.dao.SU[index]
+
+        if item.column() == 1:
+          Api.filter_suffix(self.dao, KPI_FILES,s[0])
+          self.files_su.displayFiles()
+        if item.column() == 2:
+          Api.filter_suffix(self.dao, KPI_DIRECTORY,s[0])
+          self.files_su.displayDir()
+
+class Tab_YE(QWidget):
+    def __init__(self, dao, parent=None):
+        super(Tab_YE, self).__init__(parent)
+        self.dao = dao
         layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
-        tab1.setLayout(layouttab)
+        self.setLayout(layouttab)
 
         split = QSplitter()
         split.setOrientation( Qt.Vertical )
         layouttab.addWidget(split) # split als einzige Komponente
 
 
-        table = QTableWidget()
-        table.itemClicked.connect(self.on_matrixfiles_clicked_ye)
-        split.addWidget(table)
+        self.table = QTableWidget()
+        self.table.itemClicked.connect(self.on_kpi_clicked)
+        split.addWidget(self.table)
 
         self.files_ye = Files(self.dao)
         split.addWidget( self.files_ye)
 
 
 
-        table.setSortingEnabled(True)
-        table.setColumnCount(30)
-        table.setRowCount(len(self.dao.YE))
+        self.table.setSortingEnabled(True)
+        self.table.setColumnCount(30)
+        self.set_content()
 
+    def set_content(self):
+        # years anzeigen
         CNTFILE = 1
         CNTDIR  = 2
         CNTSIZE = 3
+        self.table.clear()
+        # rows are changing ...
+        self.table.setRowCount(len(self.dao.YE)+RWCNT)
 
-        table.setHorizontalHeaderLabels([ 'year','# file', '# directory', '# size'])
+        self.table.setHorizontalHeaderLabels([ 'year','# file', '# directory', 'size'])
         for i,s in enumerate(self.dao.YE):
           value = QTableWidgetItem(s[0])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
-          table.setItem(i, 0, value)
+          self.table.setItem(i, 0, value)
           value = QTItem(str(s[CNTFILE]),s[CNTFILE]        )
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
-          table.setItem(i, 1, value)
+          self.table.setItem(i, 1, value)
           value = QTItem(str(s[CNTDIR]),s[CNTDIR]   )
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
-          table.setItem(i, 2, value)
-          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
-          value.setData(5,i) ##########################
+          self.table.setItem(i, 2, value)
+          value = QTItem(Util.frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
-          table.setItem(i, 3, value)
-        return tab1
+          self.table.setItem(i, 3, value)
 
-    def get_tab_cat_year_month(self):
-        # year month anzeigen ...
+    def on_kpi_clicked(self,item):
+        index = item.data(DATCOMP)
+        s = self.dao.YE[index]
+
+        if item.column() == 1:
+          Api.filter_year(self.dao,KPI_FILES,s[0])
+          self.files_ye.displayFiles()
+        if item.column() == 2:
+          Api.filter_year(self.dao,KPI_DIRECTORY,s[0])
+          self.files_ye.displayDir()
 
 
 
-        tab1 = QWidget()
+class Tab_YEMO(QWidget):
+    def __init__(self, dao, parent=None):
+        super(Tab_YEMO, self).__init__(parent)
+         # year month anzeigen ...
+
+        self.dao = dao
+
+
         layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
-        tab1.setLayout(layouttab)
+        self.setLayout(layouttab)
 
         split = QSplitter()
         split.setOrientation( Qt.Vertical )
         layouttab.addWidget(split) # split als einzige Komponente
 
 
-        table = QTableWidget()
-        table.itemClicked.connect(self.on_matrixfiles_clicked_yemo)
-        split.addWidget(table)
+        self.table = QTableWidget()
+        self.table.itemClicked.connect(self.on_kpi_clicked)
+        split.addWidget(self.table)
 
         self.files_yemo = Files(self.dao)
         split.addWidget( self.files_yemo)
 
+        self.table.setSortingEnabled(True)
+        self.table.setColumnCount(30)
 
 
+        self.set_content()
 
-        table.setSortingEnabled(True)
-        table.setColumnCount(30)
-        table.setRowCount(len(self.dao.YEMO))
-        table.setHorizontalHeaderLabels([ 'year', 'month','# file', '# directory', '# size'])
+    def set_content(self):
         CNTFILE = 2
         CNTDIR  = 3
         CNTSIZE = 4
 
+        self.table.clear()
+        self.table.setHorizontalHeaderLabels([ 'year', 'month','# file', '# directory', 'size'])
+        # rows are changing ...
+        self.table.setRowCount(len(self.dao.YEMO)+RWCNT)
 
         for i,s in enumerate(self.dao.YEMO):
           value = QTableWidgetItem(s[0])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
-          table.setItem(i, 0, value)
+          self.table.setItem(i, 0, value)
           value = QTableWidgetItem(s[1])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
-          table.setItem(i, 1, value)
+          self.table.setItem(i, 1, value)
           value = QTItem(str(s[CNTFILE]),s[CNTFILE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
-          table.setItem(i, 2, value)
+          self.table.setItem(i, 2, value)
           value = QTItem(str(s[CNTDIR]), s[CNTDIR])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...dao.YEMO[k][CNTDIR]
           value.setBackground(BRUSH_TARGET)
-          table.setItem(i, 3, value)
-          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
-          value.setData(5,i) ##########################
+          self.table.setItem(i, 3, value)
+          value = QTItem(Util.frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
 
-          table.setItem(i, 4, value)
-        return tab1
+          self.table.setItem(i, 4, value)
 
-    def get_tab_cat_suffix_year(self):
-        # suffix years anzeigen
+    def on_kpi_clicked(self,item):
+        index = item.data(DATCOMP)
+        s = self.dao.YEMO[index]
+
+        if item.column() == 2:
+          Api.filter_year_month(self.dao,KPI_FILES,s[0],s[1])
+          self.files_yemo.displayFiles()
+        if item.column() == 3:
+          Api.filter_year_month(self.dao,KPI_DIRECTORY,s[0],s[1])
+          self.files_yemo.displayDir()
 
 
 
-        tab1 = QWidget()
+class Tab_SUYE(QWidget):
+    def __init__(self, dao, parent=None):
+        super(Tab_SUYE, self).__init__(parent)
+         # year month anzeigen ...
+
+        self.dao = dao
+          # suffix years anzeigen
+
         layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
-        tab1.setLayout(layouttab)
+        self.setLayout(layouttab)
 
         split = QSplitter()
         split.setOrientation( Qt.Vertical )
         layouttab.addWidget(split) # split als einzige Komponente
 
 
-        table = QTableWidget()
-        table.itemClicked.connect(self.on_matrixfiles_clicked_suye)
-        split.addWidget(table)
+        self.table = QTableWidget()
+        self.table.itemClicked.connect(self.on_kpi_clicked)
+        split.addWidget(self.table)
 
         self.files_suye= Files(self.dao)
         split.addWidget( self.files_suye)
 
 
-        table.setSortingEnabled(True)
-        table.setColumnCount(30)
-        table.setRowCount(len(self.dao.SUYE))
-        table.setHorizontalHeaderLabels([ 'suffix', 'year','# file', '# directory', '# size'])
+        self.table.setSortingEnabled(True)
+        self.table.setColumnCount(30)
 
+        self.set_content()
+
+    def set_content(self):
         CNTFILE = 2
         CNTDIR  = 3
         CNTSIZE = 4
 
+        self.table.clear()
+        self.table.setHorizontalHeaderLabels([ 'suffix', 'year','# file', '# directory', 'size'])
+        # rows are changing ...
+        self.table.setRowCount(len(self.dao.SUYE)+RWCNT)
 
         for i,s in enumerate(self.dao.SUYE):
           value = QTableWidgetItem(s[0])
-          # self.files.setSortingEnabled(False)
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
-          table.setItem(i, 0, value)
+          self.table.setItem(i, 0, value)
           value = QTableWidgetItem(s[1])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
-          table.setItem(i, 1, value)
+          self.table.setItem(i, 1, value)
           value = QTItem(str(s[CNTFILE]),s[CNTFILE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
-          table.setItem(i, 2, value)
+          self.table.setItem(i, 2, value)
           value = QTItem(str(s[CNTDIR]),s[CNTDIR])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
-          table.setItem(i, 3, value)
-          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
-          value.setData(5,i) ##########################
+          self.table.setItem(i, 3, value)
+          value = QTItem(Util.frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
-          table.setItem(i, 4, value)
-        return tab1
+          self.table.setItem(i, 4, value)
 
 
-    def get_tab_cat_year_suffix(self):
-        # years suffix anzeigen
+    def on_kpi_clicked(self,item):
+        index = item.data(DATCOMP)
+        s = self.dao.SUYE[index]
 
-        tab1 = QWidget()
+        if item.column() == 2:
+          Api.filter_suffix_year(self.dao,KPI_FILES,s[0],s[1])
+          self.files_suye.displayFiles()
+        if item.column() == 3:
+          Api.filter_suffix_year(self.dao,KPI_DIRECTORY,s[0],s[1])
+          self.files_suye.displayDir()
+
+
+
+
+
+class Tab_YESU(QWidget):
+    def __init__(self, dao, parent=None):
+        super(Tab_YESU, self).__init__(parent)
+         # year month anzeigen ...
+        self.dao = dao
+         # years suffix anzeigen
+
+
         layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
-        tab1.setLayout(layouttab)
+        self.setLayout(layouttab)
 
         split = QSplitter()
         split.setOrientation( Qt.Vertical )
         layouttab.addWidget(split) # split als einzige Komponente
 
 
-        table = QTableWidget()
-        table.itemClicked.connect(self.on_matrixfiles_clicked_yesu)
-        split.addWidget(table)
+        self.table = QTableWidget()
+        self.table.itemClicked.connect(self.on_kpi_clicked)
+        split.addWidget(self.table)
 
         self.files_yesu = Files(self.dao)
         split.addWidget( self.files_yesu)
 
-        table.setSortingEnabled(True)
-        table.setColumnCount(30)
-        table.setRowCount(len(self.dao.YESU))
-        table.setHorizontalHeaderLabels([ 'year', 'suffix','# file', '# directory', '# size'])
+        self.table.setSortingEnabled(True)
+        self.table.setColumnCount(30)
 
+        self.set_content()
+
+    def set_content(self):
         CNTFILE = 2
         CNTDIR  = 3
         CNTSIZE = 4
+
+        self.table.clear()
+        self.table.setHorizontalHeaderLabels([ 'year', 'suffix','# file', '# directory', '# size'])
+        # rows are changing ...
+        self.table.setRowCount(len(self.dao.YESU)+RWCNT)
 
         for i,s in enumerate(self.dao.YESU):
           value = QTableWidgetItem(s[0])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
-          table.setItem(i, 0, value)
+          self.table.setItem(i, 0, value)
           value = QTableWidgetItem(s[1])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
-          table.setItem(i, 1, value)
+          self.table.setItem(i, 1, value)
           value = QTItem(str(s[CNTFILE]),s[CNTFILE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
-          table.setItem(i, 2, value)
+          self.table.setItem(i, 2, value)
           value = QTItem(str(s[CNTDIR]),s[CNTDIR])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
-          table.setItem(i, 3, value)
-          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
-          value.setData(5,i) ##########################
+          self.table.setItem(i, 3, value)
+          value = QTItem(Util.frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
-          table.setItem(i, 4, value)
-        return tab1
+          self.table.setItem(i, 4, value)
 
 
-    def get_tab_cat_suffix_year_month(self):
+    def on_kpi_clicked(self,item):
+        index = item.data(DATCOMP)
+        s = self.dao.YESU[index]
+
+        if item.column() == 2:
+          Api.filter_year_suffix(self.dao,KPI_FILES,s[0],s[1])
+          self.files_yesu.displayFiles()
+        if item.column() == 3:
+          Api.filter_year_suffix(self.dao,KPI_DIRECTORY,s[0],s[1])
+          self.files_yesu.displayDir()
 
 
-        tab1 = QWidget()
+
+
+class Tab_SUYEMO(QWidget):
+    def __init__(self, dao, parent=None):
+        super(Tab_SUYEMO, self).__init__(parent)
+         # year month anzeigen ...
+        self.dao = dao
+         # years suffix anzeigen
+
+
         layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
-        tab1.setLayout(layouttab)
+        self.setLayout(layouttab)
 
         split = QSplitter()
         split.setOrientation( Qt.Vertical )
         layouttab.addWidget(split) # split als einzige Komponente
 
 
-        table = QTableWidget()
-        table.itemClicked.connect(self.on_matrixfiles_clicked_suyemo)
-        split.addWidget(table)
+        self.table = QTableWidget()
+        self.table.itemClicked.connect(self.on_kpi_clicked)
+        split.addWidget(self.table)
 
         self.files_suyemo = Files(self.dao)
         split.addWidget( self.files_suyemo)
 
-        table.setSortingEnabled(True)
-        table.setColumnCount(30)
-        table.setRowCount(len(self.dao.SUYEMO))
-        table.setHorizontalHeaderLabels([ 'suffix', 'year', 'month','# file', '# directory', '# size'])
+        self.table.setSortingEnabled(True)
+        self.table.setColumnCount(30)
 
+        self.set_content()
+
+    def set_content(self):
         CNTFILE = 3
         CNTDIR  = 4
         CNTSIZE = 5
 
-
+        self.table.clear()
+        self.table.setHorizontalHeaderLabels([ 'suffix', 'year', 'month','# file', '# directory', 'size'])
         # suffix years month anzeigen
+
+        # rows are changing ...
+        self.table.setRowCount(len(self.dao.SUYEMO)+RWCNT)
 
         for i,s in enumerate(self.dao.SUYEMO):
           value = QTableWidgetItem(s[0])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
-          table.setItem(i, 0, value)
+          self.table.setItem(i, 0, value)
           value = QTableWidgetItem(s[1])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
-          table.setItem(i, 1, value)
+          self.table.setItem(i, 1, value)
           value = QTableWidgetItem(s[2])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
-          table.setItem(i, 2, value)
+          self.table.setItem(i, 2, value)
           value = QTItem(str(s[CNTFILE]),s[CNTFILE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
-          table.setItem(i, 3, value)
+          self.table.setItem(i, 3, value)
           value = QTItem(str(s[CNTDIR]),s[CNTDIR])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
-          table.setItem(i, 4, value)
-          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
-          value.setData(5,i) ##########################
+          self.table.setItem(i, 4, value)
+          value = QTItem(Util.frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
-          table.setItem(i, 5, value)
-        return tab1
+          self.table.setItem(i, 5, value)
 
-    def get_tab_cat_year_month_suffix(self):
-        # years month suffix anzeigen
+    def on_kpi_clicked(self,item):
+        index = item.data(DATCOMP)
+        s = self.dao.SUYEMO[index]
 
-        tab1 = QWidget()
+        if item.column() == 3:
+          Api.filter_suffix_year_month(self.dao,KPI_FILES,s[0],s[1],s[2])
+          self.files_suyemo.displayFiles()
+        if item.column() == 4:
+          Api.filter_suffix_year_month(self.dao,KPI_DIRECTORY,s[0],s[1],s[2])
+          self.files_suyemo.displayDir()
+
+
+
+class Tab_YEMOSU(QWidget):
+    def __init__(self, dao, parent=None):
+        super(Tab_YEMOSU, self).__init__(parent)
+         # year month anzeigen ...
+        self.dao = dao
+         # years suffix anzeigen
+         # years month suffix anzeigen
+
         layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
-        tab1.setLayout(layouttab)
+        self.setLayout(layouttab)
 
         split = QSplitter()
         split.setOrientation( Qt.Vertical )
         layouttab.addWidget(split) # split als einzige Komponente
 
 
-        table = QTableWidget()
-        table.itemClicked.connect(self.on_matrixfiles_clicked_yemosu)
-        split.addWidget(table)
+        self.table = QTableWidget()
+        self.table.itemClicked.connect(self.on_kpi_clicked)
+        split.addWidget(self.table)
 
         self.files_yemosu = Files(self.dao)
         split.addWidget( self.files_yemosu)
 
 
-        table.setSortingEnabled(True)
-        table.setColumnCount(30)
-        table.setRowCount(len(self.dao.YEMOSU))
-        table.setHorizontalHeaderLabels([ 'year', 'month','suffix','# file', '# directory', '# size'])
+        self.table.setSortingEnabled(True)
+        self.table.setColumnCount(30)
 
+        self.set_content()
+
+    def set_content(self):
         CNTFILE = 3
         CNTDIR  = 4
         CNTSIZE = 5
 
+        self.table.clear()
+        self.table.setHorizontalHeaderLabels([ 'year', 'month','suffix','# file', '# directory', 'size'])
+        # rows are changing ...
+        self.table.setRowCount(len(self.dao.YEMOSU)+RWCNT)
 
         for i,s in enumerate(self.dao.YEMOSU):
           value = QTableWidgetItem(s[0])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
-          table.setItem(i, 0, value)
+          self.table.setItem(i, 0, value)
           value = QTableWidgetItem(s[1])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
-          table.setItem(i, 1, value)
+          self.table.setItem(i, 1, value)
           value = QTableWidgetItem(s[2])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
-          table.setItem(i, 2, value)
+          self.table.setItem(i, 2, value)
           value = QTItem(str(s[CNTFILE]),s[CNTFILE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
-          table.setItem(i, 3, value)
+          self.table.setItem(i, 3, value)
           value = QTItem(str(s[CNTDIR]),s[CNTDIR])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
-          table.setItem(i, 4, value)
-          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
-          value.setData(5,i) ##########################
+          self.table.setItem(i, 4, value)
+          value = QTItem(Util.frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
-          table.setItem(i, 5, value)
-        return tab1
+          self.table.setItem(i, 5, value)
 
-    def get_tab_cat_level(self):
-        # years month suffix anzeigen
+    def on_kpi_clicked(self,item):
+        index = item.data(DATCOMP)
+        s = self.dao.YEMOSU[index]
 
-        tab1 = QWidget()
+        if item.column() == 3:
+          Api.filter_year_month_suffix(self.dao,KPI_FILES,s[0],s[1],s[2])
+          self.files_yemosu.displayFiles()
+        if item.column() == 4:
+          Api.filter_year_month_suffix(self.dao,KPI_DIRECTORY,s[0],s[1],s[2])
+          self.files_yemosu.displayDir()
+
+
+
+
+class Tab_LE(QWidget):
+    def __init__(self, dao, parent=None):
+        super(Tab_LE, self).__init__(parent)
+         # year month anzeigen ...
+        self.dao = dao
+         # years suffix anzeigen
+         # years month suffix anzeigen
+
+    # years month suffix anzeigen
+
+
         layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
-        tab1.setLayout(layouttab)
+        self.setLayout(layouttab)
 
         split = QSplitter()
         split.setOrientation( Qt.Vertical )
         layouttab.addWidget(split) # split als einzige Komponente
 
 
-        table = QTableWidget()
-        table.itemClicked.connect(self.on_matrixfiles_clicked_le)
-        split.addWidget(table)
+        self.table = QTableWidget()
+        self.table.itemClicked.connect(self.on_kpi_clicked)
+        split.addWidget(self.table)
 
         self.files_le = Files(self.dao)
         split.addWidget( self.files_le)
 
-        table.setSortingEnabled(True)
-        table.setColumnCount(30)
-        table.setRowCount(len(self.dao.LE))
-        table.setHorizontalHeaderLabels([ 'level','# file', '# directory', '# size'])
+        self.table.setSortingEnabled(True)
+        self.table.setColumnCount(30)
 
+        self.set_content()
+
+    def set_content(self):
         CNTFILE = 1
         CNTDIR  = 2
         CNTSIZE = 3
 
+        self.table.clear()
+        self.table.setHorizontalHeaderLabels([ 'level','# file', '# directory', 'size'])
+        # rows are changing ...
+        self.table.setRowCount(len(self.dao.LE)+RWCNT)
 
         for i,s in enumerate(self.dao.LE):
-          value=QTItem(frmt(str(s[0])),s[0])
+          value=QTItem(Util.frmt(str(s[0])),s[0])
           # zelle hell violett ...
           value.setBackground(BRUSH_COMBI)
-          table.setItem(i, 0, value)
+          self.table.setItem(i, 0, value)
           value = QTItem(str(s[CNTFILE]),s[CNTFILE])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
-          table.setItem(i, 1, value)
+          self.table.setItem(i, 1, value)
           value = QTItem(str(s[CNTDIR]),s[CNTDIR])
-          value.setData(5,i) ##########################
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_TARGET)
-          table.setItem(i, 2, value)
-          value = QTItem(frmt(str(s[CNTSIZE])),s[CNTSIZE])
-          value.setData(5,i) ##########################
+          self.table.setItem(i, 2, value)
+          value = QTItem(Util.frmt(str(s[CNTSIZE])),s[CNTSIZE])
+          value.setData(DATCOMP,i) ##########################
           # zelle pastell rot ...
           value.setBackground(BRUSH_SIZE)
           value.setTextAlignment(Qt.AlignRight)
-          table.setItem(i, 3, value)
+          self.table.setItem(i, 3, value)
 
-        return tab1
-
-
-
-
-
-    def on_matrixfiles_clicked_all(self,item):
-        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files_all.setSortingEnabled(False)
-        index = item.data(5)
-        s = self.dao.ALL[index]
-        self.dao.filter_all()
-        self.files_all.display()
-        #self.files.setSortingEnabled(True)
-
-    def on_matrixfiles_clicked_su(self,item):
-        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files_su.setSortingEnabled(False)
-        index = item.data(5)
-        s = self.dao.SU[index]
-        self.dao.filter_suffix(s[0])
-        self.files_su.display()
-        #self.files.setSortingEnabled(True)
-
-    def on_matrixfiles_clicked_ye(self,item):
-        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files_ye.setSortingEnabled(False)
-        index = item.data(5)
-        s = self.dao.YE[index]
-        self.dao.filter_year(s[0])
-        self.files_ye.display()
-        #self.files.setSortingEnabled(True)
-    def on_matrixfiles_clicked_yemo(self,item):
-        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files_yemo.setSortingEnabled(False)
-        index = item.data(5)
-        s = self.dao.YEMO[index]
-        self.dao.filter_year_month(s[0],s[1])
-        self.files_yemo.display()
-        #self.files.setSortingEnabled(True)
-
-    def on_matrixfiles_clicked_suye(self,item):
-        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files_suye.setSortingEnabled(False)
-        index = item.data(5)
-        s = self.dao.SUYE[index]
-        self.dao.filter_suffix_year(s[0],s[1])
-        self.files_suye.display()
-        #self.files.setSortingEnabled(True)
-
-    def on_matrixfiles_clicked_yesu(self,item):
-        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files_yesu.setSortingEnabled(False)
-        index = item.data(5)
-        s = self.dao.YESU[index]
-        self.dao.filter_year_suffix(s[0],s[1])
-        self.files_yesu.display()
-        #self.files.setSortingEnabled(True)
-    def on_matrixfiles_clicked_suyemo(self,item):
-        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files_suyemo.setSortingEnabled(False)
-        index = item.data(5)
-        s = self.dao.SUYEMO[index]
-        self.dao.filter_suffix_year_month(s[0],s[1],s[2])
-        self.files_suyemo.display()
-        #self.files.setSortingEnabled(True)
-
-    def on_matrixfiles_clicked_yemosu(self,item):
-        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files_yemosu.setSortingEnabled(False)
-        index = item.data(5)
-        s = self.dao.YEMOSU[index]
-        self.dao.filter_year_month_suffix(s[0],s[1],s[2])
-        self.files_yemosu.display()
-        #self.files.setSortingEnabled(True)
-
-    def on_matrixfiles_clicked_le(self,item):
-        # es muss erst die Sortierung ausgeschaltet werden, danach kann das Datenauffuellen erfolgen ...
-        self.files_le.setSortingEnabled(False)
-        index = item.data(5)
+    def on_kpi_clicked(self,item):
+        index = item.data(DATCOMP)
         s = self.dao.LE[index]
-        self.dao.filter_level(s[0])
-        self.files_le.display()
-        #self.files.setSortingEnabled(True)
+
+        if item.column() == 1:
+          Api.filter_level(self.dao,KPI_FILES,s[0])
+          self.files_le.displayFiles()
+        if item.column() == 2:
+          Api.filter_level(self.dao,KPI_DIRECTORY,s[0])
+          self.files_le.displayDir()
 
 
 
 
-import os
 
-class Files(QTableWidget):
+class Matrix(QTabWidget):
+
+    def __init__(self, dao, parent=None):
+        super(Matrix, self).__init__(parent)
+        self.dao = dao
+        self.tab_all = Tab_All( self.dao )
+        self.addTab(self.tab_all,'all')
+        self.tab_su = Tab_SU( self.dao )
+        self.addTab(self.tab_su,'suffix')
+        self.tab_ye = Tab_YE( self.dao )
+        self.addTab(self.tab_ye,'year')
+        self.tab_yemo = Tab_YEMO( self.dao )
+        self.addTab(self.tab_yemo,'year month')
+        self.tab_suye = Tab_SUYE( self.dao )
+        self.addTab(self.tab_suye,'suffix year')
+        self.tab_yesu = Tab_YESU( self.dao )
+        self.addTab(self.tab_yesu,'year suffix')
+        self.tab_suyemo= Tab_SUYEMO( self.dao )
+        self.addTab(self.tab_suyemo,'suffix year month')
+        self.tab_yemosu= Tab_YEMOSU( self.dao )
+        self.addTab(self.tab_yemosu,'year month suffix')
+        self.tab_le= Tab_LE( self.dao )
+        self.addTab(self.tab_le,'level')
+
+    def display(self):
+        # update the tabs with fresh data ...
+        self.tab_all.set_content()
+        self.tab_su.set_content()
+        self.tab_ye.set_content()
+        self.tab_yemo.set_content()
+        self.tab_suye.set_content()
+        self.tab_yesu.set_content()
+        self.tab_suyemo.set_content()
+        self.tab_yemosu.set_content()
+        self.tab_le.set_content()
+
+
+
+
+
+class ProxyModelFiles(QSortFilterProxyModel):
+
+    def __init__(self, parent=None):
+        super(ProxyModelFiles, self).__init__(parent)
+
+    def lessThan(self, left, right):
+
+
+        col = left.column()
+
+        leftdata  = left.data()
+        rightdata = right.data()
+        if col == 9:
+          # size ...
+          leftdata  = int(str(left.data()).replace('.',''))
+          rightdata = int(str(right.data()).replace('.',''))
+        if  col == 7:
+          # timestamp, level ...
+          leftdata  = int(left.data())
+          rightdata = int(right.data())
+        if col == 8:
+          # dubgroup ...
+           if left.data() == '': leftdata = 0    # dedoupgroup ist initial, daher muss die 0 direkt bestimmt werden ...
+           else: leftdata = int(left.data())
+           if right.data() == '': rightdata = 0
+           else: rightdata = int(right.data())
+
+        return leftdata < rightdata
+
+class ProxyModelDir(QSortFilterProxyModel):
+
+    def __init__(self, parent=None):
+        super(ProxyModelDir, self).__init__(parent)
+
+    def lessThan(self, left, right):
+
+
+        col = left.column()
+
+        leftdata  = left.data()
+        rightdata = right.data()
+        if col == 0:
+          # directory...
+          leftdata  = str(left.data())
+          rightdata = str(right.data())
+
+
+        return leftdata < rightdata
+
+
+class Files(QTableView):
     def __init__(self, dao, parent=None):
           super(Files, self).__init__(parent)
           self.dao = dao
-          self.itemClicked.connect(self.on_file_clicked)
 
-#
-    def display(self):
 
-        self.setColumnCount(9)
-        self.setRowCount(len(self.dao.FIL))
-        self.clear()
-        self.clearContents()
-        #self.hide()
+          # define context menu ...
+          self.setContextMenuPolicy(Qt.CustomContextMenu)
+          self.customContextMenuRequested.connect(self.popup)
+
+          self.sortByColumn(0, Qt.AscendingOrder)
+
+          # werden immer beide durchlaufen: sowohl bei displayFiles alsauch bei displayDir ...
+          self.clicked.connect(self.on_file_clicked)
+          self.clicked.connect(self.on_directory_clicked)   #on_file_clicked
+
+
+
+
+
+    def onDelete(self):
+        # Kopieren der in der Fileuebersicht markierten Files in den Target Ordner ...
+        # Namensduplikate werden unique gemacht ...
+        print('Beginn Delete')
+        selmod = self.selectionModel()
+        Fi=[]
+        for i in selmod.selection().indexes():
+            if i.column()==1:
+              Fi.append(self.proxymodel.data(i) )  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+        # uniquefifieren der Dateinamen ...
+
+        for fi in Fi:
+          command = 'rm ' + '\'' + fi + '\''
+          os.system(command)
+        print('Ende Delete')
+
+
+    def onCopy(self):
+        # Kopieren der in der Fileuebersicht markierten Files in den Target Ordner ...
+        # Namensduplikate werden unique gemacht ...
+        print('Beginn Kopieren')
+        config =DaoConfig()
+        target = config.value_get(CONFIG_TARGET,'')
+        selmod = self.selectionModel()
+        Fi=[]
+        # Fi mit Tupeln file, filename fuellen ...
+        for i in selmod.selection().indexes():
+            if i.column()==1:
+              Fi.append( [self.proxymodel.data(i),i.sibling(i.row(), 2).data() ] )  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+              # i.sibling(i.row(), 2).data() ]   name of file without preceding path. 2 = name in Files
+
+        # uniquefifieren der Dateinamen ...
+
+        cnt=0
+        for fi, name in Fi:
+
+          newfile = target + '/' + name
+          if os.path.exists(newfile):  # falls zielfile bereits im Targetordner existiert, wird der name vor dem suffix um eine Zufallszahl erweitert
+              sha = str(random.random())[2:] # es soll eine ganze Zahl erscheinen, also ohne '0.' ...
+              ind = newfile.rfind('.')
+              if ind == -1:   # filenaem ohne suffix ...
+                  newfile +=  '_' + sha
+              else:           # filename mit suffix
+                left = newfile[:ind]
+                right = newfile[ind:]
+                newfile = left+'_'+sha+right # random Zahl dazwischen einfuegen ...
+          cnt+=1
+          command = 'cp -p ' + '\'' + fi + '\'' + ' ' + '\'' + newfile + '\''          #-p: preserve attributes
+          os.system(command)
+        print('copied files: ',cnt)
+        print('Ende Kopieren')
+
+
+
+
+    def onMove(self):
+        print('Beginn Move')
+        config =DaoConfig()
+        target = config.value_get(CONFIG_TARGET,'')
+        selmod = self.selectionModel()
+        Fi=[]
+        for i in selmod.selection().indexes():
+            if i.column()==1:
+              Fi.append([self.proxymodel.data(i), i.sibling(i.row(), 2).data() ]  )  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+              # i.sibling(i.row(), 2).data() ]   name of file without preceding path. 2 = name in Files
+
+        # uniquefifieren der Dateinamen ...
+        cnt=0
+        for fi, name in Fi:
+          newfile = target + '/' + name
+          if os.path.exists(newfile):  # falls zielfile bereits im Targetordner existiert, wird der name vor dem suffix um eine Zufallszahl erweitert
+              sha = str(random.random())[2:] # es soll eine ganze Zahl erscheinen, also ohne '0.' ...
+              ind = newfile.rfind('.')
+              if ind == -1:   # filenaem ohne suffix ...
+                  newfile +=  '_' + sha
+              else:           # filename mit suffix
+                left = newfile[:ind]
+                right = newfile[ind:]
+                newfile = left+'_'+sha+right # random Zahl dazwischen einfuegen ...
+          cnt+=1
+          command = 'mv ' + '\'' + fi + '\'' + ' ' + '\'' + newfile + '\''
+          os.system(command)
+        print('moved fieles: ',cnt)
+        print('Ende Move')
+
+
+    def onRecording(self):
+        # Recording der in der Fileuebersicht markierten Files ...
+        print('Begin Recording')
+        selmod = self.selectionModel()
+        Fi=[]
+        for i in selmod.selection().indexes():
+            if i.column()==1:
+              Fi.append(self.proxymodel.data(i) )  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+
+        for fi in Fi:
+            Util.do_record(fi)
+
+        print('Ende Recording')
+
+    def onPhotos(self):
+        print('Begin Display')
+
+        selmod = self.selectionModel()
+        command=PHOTO_VIEWER     #gnome command: eog=eye of gnome, image viewer
+        for i in selmod.selection().indexes():
+            if i.column()==1:
+              command+= ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+
+        os.system(command)
+        print('End Display')
+        # wichtig wichtig wichtig
+        # find . -type f -name '*.png' -exec eog {} \+
+
+    def onVideos(self):
+        print('Begin Videos')
+
+        selmod = self.selectionModel()
+        command = VIDEO_PLAYER
+        for i in selmod.selection().indexes():
+            if i.column()==1:
+              command+= ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+
+        os.system(command)
+        print('End Videos')
+
+    def onMusic(self):
+        print('Begin Music')
+
+        selmod = self.selectionModel()
+        command = MUSIC_PLAYER
+        for i in selmod.selection().indexes():
+            if i.column()==1:
+              command+= ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+
+        os.system(command)
+        print('End Music')
+
+
+    def onSearch(self):
+        print('Begin Search')
+        command = 'rm -r /home/user/.recoll/xapiandb'
+        os.system(command)
+        selmod = self.selectionModel()
+        command = SEARCH_INDEXER + ' -i  '
+        for i in selmod.selection().indexes():
+            if i.column()==1:
+               # Achtung: Files lassen sich auch als 1 gesamtes File uebergeben ...
+               command =   SEARCH_INDEXER + ' -i  ' +    ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+               os.system(command)
+
+        os.system(SEARCH_ENGINE)
+        print('End Search')
+
+    def onDedup(self):
+        # Recording der in der Fileuebersicht markierten Files ...
+        print('Begin Dedup')
+        Api.dedub(self.dao,self.dao.FIL)
+        self.displayFiles()
+
+        #selmod = self.selectionModel()
+        #Fi=[]
+        #for i in selmod.selection().indexes():
+        #    if i.column()==1:
+        #      Fi.append(self.proxymodel.data(i) )  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
+
+        #for fi in Fi:
+        #    Util.do_record(fi)
+
+        print('Ende Dedup')
+
+
+    def popup(self, pos):
+        # pops up the context menu of Files ...
+
+        config = DaoConfig()
+        allowdel = config.value_get(CONFIG_ALLOWDEL,'')
+
+        menu = QMenu()
+        copyAction = menu.addAction("Copy")
+        moveAction = menu.addAction("Move")
+        deleteAction = menu.addAction("Delete")
+        photosAction = menu.addAction('Photos')
+        videosAction = menu.addAction('Videos')
+        musicAction = menu.addAction('Music')
+        recordingAction = menu.addAction('Recording')
+        searchAction = menu.addAction('Search')
+        dedupAction = menu.addAction('Dedup')
+
+
+        copyAction.triggered.connect(self.onCopy)
+        moveAction.triggered.connect(self.onMove)
+        deleteAction.triggered.connect(self.onDelete)
+        photosAction.triggered.connect(self.onPhotos)
+        videosAction.triggered.connect(self.onVideos)
+        musicAction.triggered.connect(self.onMusic)
+        recordingAction.triggered.connect(self.onRecording)
+        searchAction.triggered.connect(self.onSearch)
+        dedupAction.triggered.connect(self.onDedup)
+
+        # delete nur zulassen, wenn dies in der Configuration explizit angegeben ist ...
+        if allowdel == 'X':
+          deleteAction.setDisabled(False)
+        else:
+          deleteAction.setDisabled(True)
+
+
+        action = menu.exec_(QCursor.pos() )
+
+
+
+
+
+
+
+    def displayFiles(self):
+        #self.clicked.disconnect(self)
+        #self.clicked.connect(self.on_file_clicked)   #on_file_clicked
+
+        self.proxymodel = ProxyModelFiles()
+        self.model =  QStandardItemModel(len(self.dao.FIL), 10, self)
+        self.proxymodel.setSourceModel(self.model)
+        self.proxymodel.setDynamicSortFilter(False)
+        self.setModel(self.proxymodel)
+
+
+        #selection = self.selectionModel()
+        #selection.selectionChanged.connect(self.handleSelectionChanged)
+
+
         print('clickBegin', len(self.dao.FIL))
+        # Zeilen Aendern sich ...
+
+
         for i, fil in enumerate(self.dao.FIL):
           row=self.dao.A[fil]
-          value = QTableWidgetItem(row[SUFFIX])
-          value.setText(row[SUFFIX])
-          self.setItem(i, 0, value) # spalte suffix
-          value = QTableWidgetItem(row[FILE])
+          value = QStandardItem(row[SUFFIX])
+          #value.setText(row[SUFFIX])
+          self.model.setItem(i, 0, value) # spalte suffix
+          value = QStandardItem(row[FILE])
+          value.setBackground(BRUSH_FILENAME)
+          self.model.setItem(i, 1, value) # spalte file
+          value = QStandardItem(row[NAME])
           value.setBackground(BRUSH_FILE)
-          self.setItem(i, 1, value) # spalte file
-          value = QTableWidgetItem(row[NAME])
-          value.setData(5,fil)   # bei filename wird intern auch file gespeichert zwecks Positionierung in nemo
-          value.setBackground(BRUSH_FILE)
-          self.setItem(i, 2, value) # spalte filename
-          value = QTableWidgetItem(str(row[DIRECTORY]))
-          value.setData(5,fil)   # beim Directory wird intern auch file gespeichert zwecks Positionierung in nemo
+          self.model.setItem(i, 2, value) # spalte filename
+          value = QStandardItem(str(row[DIRECTORY]))
           value.setBackground(BRUSH_DIRECTORY)
-          self.setItem(i, 3, value) # spalte directory
+          self.model.setItem(i, 3, value) # spalte directory
+
+          value = QStandardItem(row[YEAR])
+          self.model.setItem(i, 4, value)
+          value = QStandardItem(row[MONTH])
+          self.model.setItem(i, 5, value)
 
 
-          value = QTableWidgetItem(row[YEAR])
-          self.setItem(i, 4, value)
-          value = QTableWidgetItem(row[MONTH])
-          self.setItem(i, 5, value)
+          #value = QStandardItem(str(row[TIMESTAMP]))
+          value = QStandardItem( dt.datetime.fromtimestamp(row[TIMESTAMP]).strftime('%Y-%m-%d   %R') )
 
-          value = QTableWidgetItem(row[TIMESTAMP])
-          self.setItem(i, 6, value)
-
-          value = QTItem(frmt(row[LEVEL]), int(row[LEVEL]))
           value.setTextAlignment(Qt.AlignRight)
-          self.setItem(i, 7, value)
+          self.model.setItem(i, 6, value)
 
-          value = QTItem(frmt(row[SIZE]), int(row[SIZE]))
+
+          value = QStandardItem(str(row[LEVEL]))
           value.setTextAlignment(Qt.AlignRight)
-          self.setItem(i, 8, value)
+          self.model.setItem(i, 7, value)
+
+          if row[DUBGROUP] == 0:
+              stri = ''
+          else:
+              stri = str(row[DUBGROUP])
+          value = QStandardItem(stri)
+          value.setTextAlignment(Qt.AlignRight)
+          self.model.setItem(i, 8, value)
+
+          value = QStandardItem(Util.frmt(row[SIZE]))
+          value.setTextAlignment(Qt.AlignRight)
+          self.model.setItem(i, 9, value)
 
 
-          # Spaltennamen der Filetabelle setzen
-        self.setHorizontalHeaderLabels( ['suffix','file', 'name', 'directory', 'year','month','timestamp' , 'level', 'size'])
+        # Spaltennamen der Filetabelle setzen
+        self.model.setHorizontalHeaderLabels( ['suffix','file', 'name', 'directory', 'year','month','datetime' , 'level', 'dubgroup' ,'size'])
         print('clickEND')
         self.setSortingEnabled(True)
         # spalte filename vollständig anzeigen ...
         self.resizeColumnToContents(2)
-        #self.show()
+        self.resizeColumnToContents(0)
+        self.resizeColumnToContents(6)
+
+
+    def displayDir(self):
+        #self.clicked.disconnect(self)
+
+
+        self.proxymodel = ProxyModelDir()
+        self.model =  QStandardItemModel(len(self.dao.DIR), 10, self)
+        self.proxymodel.setSourceModel(self.model)
+        self.proxymodel.setDynamicSortFilter(False)
+        self.setModel(self.proxymodel)
+
+
+        #selection = self.selectionModel()
+        #selection.selectionChanged.connect(self.handleSelectionChanged)
+
+
+        print('clickBegin', len(self.dao.DIR))
+        # Zeilen Aendern sich ...
+
+        # d,topselectedcnt, topcnt,  subtreeselectedcnt,subtreecnt, topselectedsize, topsize, subtreeselectedsize , subtreesize ]
+        for i, dir in enumerate(self.dao.DIR):
+
+          value = QStandardItem(dir[0])   #directory
+          value.setBackground(BRUSH_DIRECTORY)
+          self.model.setItem(i, 0, value) #
+          value = QStandardItem(str(dir[1]))   #files
+          value.setBackground(BRUSH_TARGET)
+          self.model.setItem(i, 1, value) #
+          value = QStandardItem(str(dir[2]))   # files subtree
+          value.setBackground(BRUSH_TARGET)
+          self.model.setItem(i, 2, value)
+          value = QStandardItem(str(dir[3]))   #files tree
+          value.setBackground(BRUSH_TARGET)
+          self.model.setItem(i, 3, value) #
+          value = QStandardItem(str(dir[4]))   #files all
+          value.setBackground(BRUSH_TARGET)
+          self.model.setItem(i, 4, value)
+          value = QStandardItem(str(dir[5]))   #files all subtree
+          value.setBackground(BRUSH_TARGET)
+          self.model.setItem(i, 5, value)
+          value = QStandardItem(str(dir[6]))   #files all tree
+          value.setBackground(BRUSH_TARGET)
+          self.model.setItem(i, 6, value)
+
+
+
+          value = QStandardItem(str(dir[7]))   #size
+          value.setBackground(BRUSH_SIZE)
+          self.model.setItem(i, 7, value) #
+          value = QStandardItem(str(dir[8]))   # size subtree
+          value.setBackground(BRUSH_SIZE)
+          self.model.setItem(i, 8, value)
+          value = QStandardItem(str(dir[9]))   #size all
+          value.setBackground(BRUSH_SIZE)
+          self.model.setItem(i, 9, value)
+          value = QStandardItem(str(dir[10]))   #size all subtree
+          value.setBackground(BRUSH_SIZE)
+          self.model.setItem(i, 10, value)
+          value = QStandardItem(str(dir[11]))   #size all
+          value.setBackground(BRUSH_SIZE)
+          self.model.setItem(i, 11, value)
+          value = QStandardItem(str(dir[12]))   #size all subtree
+          value.setBackground(BRUSH_SIZE)
+          self.model.setItem(i, 12, value)
+
+
+
+
+
+        #[d, topselectedcnt, subtreeselectedcnt,  treeselectedcnt, topcnt, subtreecnt,  treecnt,  topselectedsize, subtreeselectedsize, treeselectedsize , topsize, subtreesize, treesize ]
+
+        self.model.setHorizontalHeaderLabels( ['directory','# files','# files subtree','# files tree','# files all', '# files all subtree','# files all tree','# size','# size subtree','# size tree','# size all','#size all subtree', '# size all tree'            ])
+        self.resizeColumnToContents(0)
+        self.setSortingEnabled(True)
+
+
+
+    def on_directory_clicked(self,item):
+
+        # Achtung beide on_ callbacks werden im Konstruktor gesetzt, d.h. es werden immer beide
+        # callbacks gerufen. Daher muss festgestellt werden, welches Proxymodell (Liste) genau dahintersteht ...
+        if not isinstance(self.proxymodel, ProxyModelDir):
+            return
+
+        index_directory    = self.proxymodel.index(item.row(),0)
+
+        directory      = self.proxymodel.data(index_directory)
+        command=''
+        if item.column() == 0: # click auf directory
+           command = FILE_EXPLORER +' \''+directory+'\''
+        #  Ordner anzeigen mit dem richtigen Tool ...
+        if command: os.system(command)
 
 
     def on_file_clicked(self, item):
+        # Achtung beide on_ callbacks werden im Konstruktor gesetzt, d.h. es werden immer beide
+        # callbacks gerufen. Daher muss festgestellt werden, welches Proxymodell (Liste) genau dahintersteht ...
+        if not isinstance(self.proxymodel, ProxyModelFiles):
+            return
 
-        index = item.data(5)
-        command=''
+
+        index_suffix    = self.proxymodel.index(item.row(),0)
+        index_file      = self.proxymodel.index(item.row(),1)
+        index_name      = self.proxymodel.index(item.row(),2)
+        index_directory = self.proxymodel.index(item.row(),3)
+
+
+
+
+
+
+
+        suffix     = self.proxymodel.data(index_suffix)
+        file       = self.proxymodel.data(index_file)
+        name       = self.proxymodel.data(index_name)
+        directory  = self.proxymodel.data(index_directory)
+
+
         if item.column() == 1: # click auf file
-          command = 'xdg-open '+'\''+item.text()+'\''
-          # das File muss in Hochkommata stehen, da der finename ein blank enthalten kann
+          # falls auf ein xfpf stream geclickt wird, soll derselbige gerecorded werden ...
+          Util.do_record(file)
+
         if item.column() == 2: # click auf filename
-          # Achtung: data enthaelt  filename incl path, damit nemo in dem Directory auf das File positioniert ...
-          command = 'xdg-open '+'\''+self.dao.A[index][FILE]+'\''
+          command = GENERIC_VIEWER +' \''+file+'\''
+          # File oder Ordner anzeigen mit dem richtigen Tool ...
+          os.system(command)
           # das Directory muss in Hochkommata stehen, da der finename ein blank enthalten kann
         if item.column() == 3: # click auf directory
-          # Achtung: data enthaelt  filename incl path, damit nemo in dem Directory auf das File positioniert ...
-          command = 'nemo '+'\''+self.dao.A[index][FILE]+'\''
+          command = FILE_EXPLORER + ' \''+file+'\''
+          # File oder Ordner anzeigen mit dem richtigen Tool ...
+          os.system(command)
 
-        # File oder Ordner anzeigen mit dem richtigen Tool ...
-        if command: os.system(command)
 
 
 
@@ -1174,65 +2474,87 @@ class Form(QWidget):
 
 
 
-
-# assemble tab 1 ...
-        tab1 = QWidget()
-        layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
-        tab1.setLayout(layouttab)
-
-        split = QSplitter()
-        split.setOrientation( Qt.Vertical )
-        layouttab.addWidget(split) # split als einzige Komponente
-
-        matrix = Matrix(daoA)
-        split.addWidget(matrix)
-
-
-
-
-
- # assemble tab 2 ...
-        tab2 = QWidget()
-        layouttab = QVBoxLayout()   #masterdetaillayout soll nur den Splitter als einzige Komponente beinhalten
-        tab2.setLayout(layouttab)
+# assemble tab space A ...
+        tab_spaceA = QWidget()
+        layouttab = QVBoxLayout()
+        tab_spaceA.setLayout(layouttab)
 
         split = QSplitter()
         split.setOrientation( Qt.Vertical )
         layouttab.addWidget(split) # split als einzige Komponente
 
-
-        matrix = Matrix(daoB)
-        split.addWidget(matrix)
-
+        self.matrixA = Matrix(daoA)
+        split.addWidget(self.matrixA)
 
 
 
+ # assemble tab space B ...
+        tab_spaceB = QWidget()
+        layouttab = QVBoxLayout()
+        tab_spaceB.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
 
 
+        self.matrixB = Matrix(daoB)
+        split.addWidget(self.matrixB)
 
 
-# assemble tab 3 ...
-        tab3 = QWidget()
+# assemble tab space Config ...
+        tab_spaceConfig = QWidget()
         layouttab3 = QFormLayout()
-        tab3.setLayout(layouttab3)
+        tab_spaceConfig.setLayout(layouttab3)
 
 
-        self.editA = QLineEdit()
-        ss = self.daoConfig.value_get( 'sourceA' , 'Please select a Directory' )
-        self.editA.setText(ss)
+        self.editA = QTextEdit()
+        self.editA.textChanged.connect(self.on_text_changedA)
+        text = self.daoConfig.value_get( CONFIG_SOURCEA , 'Please select a Directory' )
+        self.editA.setText(text)
 
         butA = QPushButton('Source A')
         butA.clicked.connect(self.on_button_clickedA)
         layouttab3.addRow(butA, self.editA)
 
-        self.editB = QLineEdit()
-        ss = self.daoConfig.value_get('sourceB', 'Please select a Directory')
-        self.editB.setText(ss)
+
+
+
+
+
+
+        self.editB = QTextEdit()
+        self.editB.textChanged.connect(self.on_text_changedB)
+        text = self.daoConfig.value_get(CONFIG_SOURCEB, 'Please select a Directory')
+        self.editB.setText(text)
 
         butB = QPushButton('Source B')
         butB.clicked.connect(self.on_button_clickedB)
-        layouttab3.addRow(butB, self.editB)
+        layouttab3.addRow(butB,  self.editB)
 
+
+
+        self.editC = QLineEdit()
+        self.editC.textChanged.connect(self.on_text_changedC)
+        text = self.daoConfig.value_get(CONFIG_TARGET, 'Please select a Directory')
+        self.editC.setText(text)
+
+        butC = QPushButton('Target')
+        butC.clicked.connect(self.on_button_clickedC)
+        layouttab3.addRow(butC,  self.editC)
+
+        #self.checkLabel = QLabel('allow Delete')
+        self.check = QCheckBox('allow Delete')
+        chk = self.daoConfig.value_get(CONFIG_ALLOWDEL,' ')
+        if chk == 'X':
+          self.check.setChecked(True)
+        else:
+          self.check.setChecked(False)
+        self.check.stateChanged.connect(self.on_delallowchanged)
+        layouttab3.addRow( self.check )
+
+        self.matrixA.display()
+        self.matrixB.display()
 
 
 
@@ -1251,80 +2573,257 @@ class Form(QWidget):
 #        help       = menu_bar.addMenu("&Help")
 #
 #
-
-        action_scope       = QAction('Scope', self)
-        action_retrieve    = QAction('Retrieve', self)
-        action_indexing    = QAction('Indexing', self)
-        action_duplicates  = QAction('Duplicates', self)
-        action_trash       = QAction('Trash', self)
-        action_advanced    = QAction('Advanced', self)
-        action_scope.triggered.connect(self.submitContact)
-#       operations.addAction(action_scope)
-#       operations.addAction(action_indexing)
-#       operations.addAction(action_duplicates)
-#       operations.addAction(action_trash)
-
+        action_Indexing       = QAction('Indexing', self)
+        action_DedupSpace     = QAction('Dedup', self)
+        action_reduce         = QAction('Reduce', self)
+        action_calculate      = QAction('Calculate', self)
+        action_expand         = QAction('Expand', self)
+        action_advanced       = QAction('Advanced', self)
+        action_Indexing.triggered.connect(self.submitIndexing)
+        action_DedupSpace.triggered.connect(self.submitDedupSapce)
+        action_reduce.triggered.connect(self.submitReduce)
+        action_calculate.triggered.connect(self.submitCalculate)
+        action_advanced.triggered.connect(self.submitAdvanced)
+        action_expand.triggered.connect(self.submitExpand)
 
 
         toolbar = QToolBar()
-        toolbar.addAction(action_scope)
-        toolbar.addAction(action_retrieve)
-        toolbar.addAction(action_indexing)
-        toolbar.addAction(action_duplicates)
-        toolbar.addAction(action_trash)
+        toolbar.addAction(action_Indexing)
+        toolbar.addAction(action_DedupSpace)
+        toolbar.addAction(action_reduce)
+        toolbar.addAction(action_calculate)
+        toolbar.addAction(action_expand)
         toolbar.addAction(action_advanced)
 
 
-        tabwid = QTabWidget()
+        self.tabwid = QTabWidget()
 
 
-        tabwid.addTab(tab1,'Space A')
-        tabwid.addTab(tab2,'Space B')
-        tabwid.addTab(tab3,'Config')
+        self.tabwid.addTab(tab_spaceA,'Space A')
+        self.tabwid.addTab(tab_spaceB,'Space B')
+        self.tabwid.addTab(tab_spaceConfig,'Config')
 
 
         toplayout = QVBoxLayout(self)
         toplayout.addWidget(toolbar)
-        toplayout.addWidget(tabwid)
+        toplayout.addWidget(self.tabwid)
 
 
 #       self.matrix.itemClicked.connect(self.on_matrixfiles_clicked)
-#        self.files.itemClicked.connect(self.on_file_clicked)
+#       self.files.itemClicked.connect(self.on_file_clicked)
         self.setWindowTitle("Tera-Analyzer")
+
+
+    def add_CalculationTabs(self,daol,daom,daor,daoab,daodyaddiff):
+
+        # assemble tab space A ...
+        tab_spaceAminusB = QWidget()
+        layouttab = QVBoxLayout()
+        tab_spaceAminusB.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+        self.matrixAminusB = Matrix(daol)
+        split.addWidget(self.matrixAminusB)
+
+        self.tabwid.insertTab(2,tab_spaceAminusB,'Space A - B')
+
+
+        tab_spaceAintersectB = QWidget()
+        layouttab = QVBoxLayout()
+        tab_spaceAintersectB.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+        self.matrixAintersectB = Matrix(daom)
+        split.addWidget(self.matrixAintersectB)
+
+        self.tabwid.insertTab(3,tab_spaceAintersectB,'Space A /\ B')
+
+
+        tab_spaceBminusA = QWidget()
+        layouttab = QVBoxLayout()
+        tab_spaceBminusA.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+        self.matrixBminusA = Matrix(daor)
+        split.addWidget(self.matrixBminusA)
+
+        self.tabwid.insertTab(4,tab_spaceBminusA,'Space B - A')
+
+        tab_spaceAplusB = QWidget()
+        layouttab = QVBoxLayout()
+        tab_spaceAplusB.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+        self.matrixAplusB = Matrix(daoab)
+        split.addWidget(self.matrixAplusB)
+
+        self.tabwid.insertTab(5,tab_spaceAplusB,'Space A + B')
+
+
+
+        tab_spaceDyadDiff = QWidget()
+        layouttab = QVBoxLayout()
+        tab_spaceDyadDiff.setLayout(layouttab)
+
+        split = QSplitter()
+        split.setOrientation( Qt.Vertical )
+        layouttab.addWidget(split) # split als einzige Komponente
+
+        self.matrixDyadDiff = Matrix(daodyaddiff)
+        split.addWidget(self.matrixDyadDiff)
+
+        self.tabwid.insertTab(6,tab_spaceDyadDiff,'Space A - B \/ B - A')
+
+
+
+
+
+
 
 
 
 
     def on_button_clickedA(self):
-        ss = QFileDialog(self,"Bitte Directory auswaehlen","/home/user").getExistingDirectory(self)
-        if ss:
-          self.editA.setText(ss)
-          self.daoConfig.value_set('sourceA',ss)
+        newpath = QFileDialog(self,"Bitte Directory auswaehlen","/home/user").getExistingDirectory(self)
+        if newpath:
+          # neuen Pfad zu den bereits abgespeicherten Pfaden addieren ...
+          text=self.editA.toPlainText()
+          if text:
+            text+='\n'   # nur falls text vorhanden war, soll dieser durch einen Zeilenumbruch vom neuen Pfad getrennt werden
+          text+=newpath
+          self.editA.setText(text)
+          self.daoConfig.value_set(CONFIG_SOURCEA,text)
+
+
 
     def on_button_clickedB(self):
-        ss = QFileDialog(self,'Bitte Directory auswaehlen','/home/user').getExistingDirectory(self)
-        if ss:
-          self.editB.setText(ss)
-          self.daoConfig.value_set('sourceB',ss)
+        newpath = QFileDialog(self,'Bitte Directory auswaehlen','/home/user').getExistingDirectory(self)
+        if newpath:
+          # neuen Pfad zu den bereits abgespeicherten Pfaden addieren ...
+          text=self.editB.toPlainText()
+          if text:
+            text+='\n'   # nur falls text vorhanden war, soll dieser durch einen Zeilenumbruch vom neuen Pfad getrennt werden
+          text+=newpath
+          self.editB.setText(text)
+          self.daoConfig.value_set(CONFIG_SOURCEB,text)
+
+    def on_button_clickedC(self):
+        newpath = QFileDialog(self,'Bitte Directory auswaehlen','/home/user').getExistingDirectory(self)
+
+        self.editC.setText(newpath)
+        self.daoConfig.value_set(CONFIG_TARGET,newpath)
 
 
 
-    ################################################################
+
+    def on_text_changedA(self):
+        # persistieren, sobald sich die Pfade im text geaendert haben ...
+        text=self.editA.toPlainText()
+        self.daoConfig.value_set(CONFIG_SOURCEA,text)
+
+    def on_text_changedB(self):
+        # persistieren, sobald  ch die Pfade im text geaendert haben ...
+        text=self.editB.toPlainText()
+        self.daoConfig.value_set(CONFIG_SOURCEB,text)
+    def on_text_changedC(self):
+        # persistieren, sobald sich die Pfade im text geaendert haben ...
+        text=self.editC.text()
+        self.daoConfig.value_set(CONFIG_TARGET,text)
+
+    def on_delallowchanged(self):
+        chk=self.check.checkState()
+        if chk:
+          self.daoConfig.value_set(CONFIG_ALLOWDEL,'X')
+        else:
+          self.daoConfig.value_set(CONFIG_ALLOWDEL,' ')
 
 
-    ################################################################
-    def submitContact(self):
-        #name = self.nameLine.text()
+    def submitIndexing(self):
+        print('Begin Indexing')
+        Api.selection(daoA)
+        Api.count_files(self.daoA)
+        self.matrixA.display()
 
+        Api.selection(daoB)
+        Api.count_files(self.daoB)
+        self.matrixB.display()
+        print('End Indexing')
+
+    def submitDedupSapce(self):
+            print('Begin Dedup A ')
+            Api.dedub(self.daoA)
+            Api.count_files(self.daoA)
+            self.matrixA.display()
+            print('End Dedup A')
+            print('Begin Dedup B')
+            Api.dedub(self.daoB)
+            Api.count_files(self.daoB)
+            self.matrixB.display()
+            print('End Dedup B')
+
+
+
+    def submitReduce(self):
+
+            print('Begin Reduce A ')
+            Api.count_files(self.daoA,True)
+            self.matrixA.display()
+            print('End Reduce A')
+            print('Begin Reduce B')
+            Api.count_files(self.daoB,True)
+            self.matrixB.display()
+            print('End Reduce B')
+
+    def submitCalculate(self):
+            print('Begin Calculate ')
+            daol, daom, daor, daoab, daodydiff = Api.difference(self.daoA, self.daoB)
+
+            Api.count_files(daol,False)
+            Api.count_files(daom,False)
+            Api.count_files(daor,False)
+            Api.count_files(daoab,False)
+            Api.count_files(daodydiff,False)
+
+            self.add_CalculationTabs(daol, daom, daor, daoab, daodydiff)
+            self.matrixAminusB.display()
+            self.matrixAintersectB.display()
+            self.matrixBminusA.display()
+            self.matrixAplusB.display()
+            self.matrixDyadDiff.display()
+
+
+            print('Ende Calculate ')
+
+    def submitAdvanced(self):
+            print('Begin Advanced ')
+
+            print('Ende Advanced ')
         #if name == "":
-            QMessageBox.information( self, "Empty Field",
-                                    "Please enter a name and address.")
-            return
-        #else:
-         #   QMessageBox.information(self, "Success!",
-          #                          "Hello %s !" % name)
+            #QMessageBox.information( self, "Empty Field",
+            #                        "Please enter a name and address.")
 
 
+    def submitExpand(self):
+            print('Begin Expand A ')
+            Api.count_files(self.daoA,False)
+            self.matrixA.display()
+            print('End Expand A')
+            print('Begin Expand B')
+            Api.count_files(self.daoB,False)
+            self.matrixB.display()
+            print('End Expand B')
 
 
 
@@ -1334,28 +2833,8 @@ class Form(QWidget):
 
 
 daoA = Dao(DATA_SOURCE_A)
-daoA.selection()
-daoA.count_files()
-daoA.dedub()
-
 daoB = Dao(DATA_SOURCE_B)
-daoB.selection()
-daoB.count_files()
 daoConfig = DaoConfig()
-Dao.difference(daoA,daoB)
-# A=[3,2,1,7,7]
-# B=[3,2,1]
-# L,M,R = Dao.diff(A,B)
-# print('A=',A,'B=',B)
-# print('L=',L,'M=',M,'R=',R)
-#daoL,daoM,daoR = Dao.difference(daoA,daoB)
-#print('A=', len(daoA.A), 'B=', len(daoB.A), 'L=',len(daoL.A),'M=',len(daoM.A),'R=',len(daoR.A))
-
-
-
-
-
-#Dao.dedup(daoA)
 
 
 
@@ -1364,11 +2843,28 @@ screen = Form( daoA, daoB, daoConfig )
 screen.show()
 
 
-
-R=daoA.dedub()
-
-
 sys.exit(app.exec_())
+
+
+#### code snippet for getting rows
+#// Get all selections
+#QModelIndexList indexes = view->selectionModel()->selection().indexes();
+#for (int i = 0; i < indexes.count(); ++i)
+#{
+#	QModelIndex index = indexes.at(i);
+#	// To get the row/column numbers use index.row() / index.column()
+#}
+
+###########  row data vis siblings ###################################
+#void GuiClass::onTableCellClicked(const QModelIndex &index)
+#{
+#    int row = index.row();
+#    QString name = index.sibling(row, 0).data().toString();
+#    QString surname = index.sibling(row, 1).data().toString();
+#    int age = index.sibling(row, 2).data().toInt();
+#    QString username = index.sibling(row, 3).data().toString();
+#    ...
+#}
 
 
 
