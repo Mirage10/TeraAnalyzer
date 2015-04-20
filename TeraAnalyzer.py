@@ -113,6 +113,7 @@ class Util():
 
 
 
+
     @staticmethod
     def get_url_stream(file):
         # aus einem xspf-file die http Adresse fuer einen musicstream ermitteln ...
@@ -2034,6 +2035,8 @@ class Files(QTableView):
 
 
 
+    def getkeydubgroup(self,item):
+        return self.dao.A[item][DUBGROUP]
 
 
     def onDelete(self):
@@ -2191,7 +2194,7 @@ class Files(QTableView):
         print('End Search')
 
     def onDedup(self):
-        # Recording der in der Fileuebersicht markierten Files ...
+        # dedup of Fil in Files (independent of marking) ...
         print('Begin Dedup')
         Api.dedub(self.dao,self.dao.FIL)
         self.displayFiles()
@@ -2206,6 +2209,25 @@ class Files(QTableView):
         #    Util.do_record(fi)
 
         print('Ende Dedup')
+
+
+    def onReduce(self):
+        # reduce Fil in Files (independant of marking) ...
+        print('Begin Reduce')
+
+        ss=[self.dao.A[i][DUBGROUP] for i in self.dao.FIL]
+        print(ss)
+        self.dao.FIL.sort(key=self.getkeydubgroup)
+        ss=[[i,self.dao.A[j][DUBGROUP]] for i, j in enumerate(self.dao.FIL)      ]
+
+        # gleiche DOUBGROUP eliminieren und FIL erneut aufbauen ...
+
+        print(ss)
+        self.displayFiles()
+
+        # xxxx
+
+        print('End Reduce')
 
 
     def popup(self, pos):
@@ -2224,6 +2246,7 @@ class Files(QTableView):
         recordingAction = menu.addAction('Recording')
         searchAction = menu.addAction('Search')
         dedupAction = menu.addAction('Dedup')
+        reduceAction = menu.addAction('Reduce')
 
 
         copyAction.triggered.connect(self.onCopy)
@@ -2235,6 +2258,7 @@ class Files(QTableView):
         recordingAction.triggered.connect(self.onRecording)
         searchAction.triggered.connect(self.onSearch)
         dedupAction.triggered.connect(self.onDedup)
+        reduceAction.triggered.connect(self.onReduce)
 
         # delete nur zulassen, wenn dies in der Configuration explizit angegeben ist ...
         if allowdel == 'X':
