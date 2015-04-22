@@ -1,5 +1,4 @@
-# todo: push to github funktioniert nicht mehr ...
-# todo: reduce on Files level, reduce separat implementieren  ...
+# todo: redce: 1 file too much reduced; recheck with small example ...
 # todo: im contextmenu die Anzahl und #KB anzeigen
 # todo: Fuer Source A und Source B: Alternativ zu Directories: Files als Source + Save to File
 # todo: recording: statt seriell parallele gnome terminals moeglich? + ggf. aus File single click auf recording entfernen
@@ -2053,6 +2052,9 @@ class Files(QTableView):
         for fi in Fi:
           command = 'rm ' + '\'' + fi + '\''
           os.system(command)
+
+        cnt = len(Fi)
+        print('deleted files: ', cnt)
         print('Ende Delete')
 
 
@@ -2137,19 +2139,27 @@ class Files(QTableView):
         for fi in Fi:
             Util.do_record(fi)
 
+        cnt= len(Fi)
+        print('Recording of ', cnt, ' streams')
+
         print('Ende Recording')
 
+
     def onPhotos(self):
-        print('Begin Display')
+        print('Begin display Photos')
+
 
         selmod = self.selectionModel()
         command=PHOTO_VIEWER     #gnome command: eog=eye of gnome, image viewer
+        cnt=0
         for i in selmod.selection().indexes():
             if i.column()==1:
               command+= ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
-
+              cnt+=1
         os.system(command)
-        print('End Display')
+
+        print('displayed photos: ', cnt)
+        print('End display Photos')
         # wichtig wichtig wichtig
         # find . -type f -name '*.png' -exec eog {} \+
 
@@ -2158,11 +2168,13 @@ class Files(QTableView):
 
         selmod = self.selectionModel()
         command = VIDEO_PLAYER
+        cnt=0
         for i in selmod.selection().indexes():
             if i.column()==1:
               command+= ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
-
+              cnt+=1
         os.system(command)
+        print('displayed videos: ',cnt)
         print('End Videos')
 
     def onMusic(self):
@@ -2170,10 +2182,11 @@ class Files(QTableView):
 
         selmod = self.selectionModel()
         command = MUSIC_PLAYER
+        cnt=0
         for i in selmod.selection().indexes():
             if i.column()==1:
               command+= ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
-
+              cnt+=1
         os.system(command)
         print('End Music')
 
@@ -2184,19 +2197,24 @@ class Files(QTableView):
         os.system(command)
         selmod = self.selectionModel()
         command = SEARCH_INDEXER + ' -i  '
+        cnt=0
         for i in selmod.selection().indexes():
             if i.column()==1:
                # Achtung: Files lassen sich auch als 1 gesamtes File uebergeben ...
                command =   SEARCH_INDEXER + ' -i  ' +    ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
                os.system(command)
+               cnt+=1
 
         os.system(SEARCH_ENGINE)
+        print('indexed files: ', cnt)
         print('End Search')
 
     def onDedup(self):
         # dedup of Fil in Files (independent of marking) ...
         print('Begin Dedup')
         Api.dedub(self.dao,self.dao.FIL)
+        cnt_dubgroups=len({ self.dao.A[f][DUBGROUP] for f in self.dao.FIL if self.dao.A[f][DUBGROUP]>=1})
+        cnt_redundancies = len( [ self.dao.A[f][DUBGROUP] for f in self.dao.FIL if self.dao.A[f][DUBGROUP]>=1] ) - cnt_dubgroups
         self.displayFiles()
 
         #selmod = self.selectionModel()
@@ -2207,7 +2225,7 @@ class Files(QTableView):
 
         #for fi in Fi:
         #    Util.do_record(fi)
-
+        print(cnt_dubgroups, ' duplicate groups and ', cnt_redundancies, ' redundant files')
         print('Ende Dedup')
 
 
@@ -2215,9 +2233,7 @@ class Files(QTableView):
         # reduce Fil in Files (independant of marking) ...
         print('Begin Reduce')
 
-
         self.dao.FIL.sort(key=self.getkeydubgroup) # nach DUBGROUP sortieren und gleiche doubgroups eliminieren
-
 
         before = len(self.dao.FIL)
 
