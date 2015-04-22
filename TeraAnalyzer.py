@@ -2215,17 +2215,31 @@ class Files(QTableView):
         # reduce Fil in Files (independant of marking) ...
         print('Begin Reduce')
 
-        ss=[self.dao.A[i][DUBGROUP] for i in self.dao.FIL]
-        print(ss)
-        self.dao.FIL.sort(key=self.getkeydubgroup)
-        ss=[[i,self.dao.A[j][DUBGROUP]] for i, j in enumerate(self.dao.FIL)      ]
 
-        # gleiche DOUBGROUP eliminieren und FIL erneut aufbauen ...
+        self.dao.FIL.sort(key=self.getkeydubgroup) # nach DUBGROUP sortieren und gleiche doubgroups eliminieren
 
-        print(ss)
+
+        before = len(self.dao.FIL)
+
+        if len(self.dao.FIL)>1:
+          S=[]
+          for i, f in enumerate(self.dao.FIL):
+              if i == 0: continue
+              if self.dao.A[f][DUBGROUP] == 0 or      self.dao.A[self.dao.FIL[i-1]][DUBGROUP] != self.dao.A[f][DUBGROUP]:
+                  S.append(f)
+                  # Achtung: das letzte Element wird nie mitgenommen
+
+          if self.dao.A[self.dao.FIL[-2]][DUBGROUP] != self.dao.A[self.dao.FIL[-1]][DUBGROUP]:
+              S.append(self.dao.FIL[-1])   # das letzte Element aufnehmen
+          self.dao.FIL = S
+
+        after = len(self.dao.FIL)
+
         self.displayFiles()
 
-        # xxxx
+        print('of ', before, ' files there were ', before - after, ' reduced. There are ', after , ' files remaining' )
+
+
 
         print('End Reduce')
 
@@ -2237,12 +2251,13 @@ class Files(QTableView):
         allowdel = config.value_get(CONFIG_ALLOWDEL,'')
 
         menu = QMenu()
-        copyAction = menu.addAction("Copy")
-        moveAction = menu.addAction("Move")
-        deleteAction = menu.addAction("Delete")
+
         photosAction = menu.addAction('Photos')
         videosAction = menu.addAction('Videos')
         musicAction = menu.addAction('Music')
+        copyAction = menu.addAction("Copy")
+        moveAction = menu.addAction("Move")
+        deleteAction = menu.addAction("Delete")
         recordingAction = menu.addAction('Recording')
         searchAction = menu.addAction('Search')
         dedupAction = menu.addAction('Dedup')
