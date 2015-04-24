@@ -1,3 +1,5 @@
+# todo: standard hash ist nur innerhalb der session eindeutig. hashlib verwenden
+# todo: mts: Deduplication does not work incl reduce. All will be reduce evenn if there are no duplicates
 # todo: redce: 1 file too much reduced; recheck with small example ...
 # todo: im contextmenu die Anzahl und #KB anzeigen
 # todo: Fuer Source A und Source B: Alternativ zu Directories: Files als Source + Save to File
@@ -24,6 +26,7 @@ import random
 import os.path
 
 
+os.environ['PYTHONHASHSEED'] = '0'
 
 
 GENERIC_VIEWER = 'xdg-open'
@@ -2188,6 +2191,7 @@ class Files(QTableView):
               command+= ' \'' +   self.proxymodel.data(i) + '\''  # column 1 ist das Feld 'File'; die zugehoerige Zelle wird ausgegeben ...
               cnt+=1
         os.system(command)
+        print('played music: ', cnt)
         print('End Music')
 
 
@@ -2241,7 +2245,7 @@ class Files(QTableView):
           S=[]
           for i, f in enumerate(self.dao.FIL):
               if i == 0: continue
-              if self.dao.A[f][DUBGROUP] == 0 or      self.dao.A[self.dao.FIL[i-1]][DUBGROUP] != self.dao.A[f][DUBGROUP]:
+              if self.dao.A[f][DUBGROUP] <= 0 or      self.dao.A[self.dao.FIL[i-1]][DUBGROUP] != self.dao.A[f][DUBGROUP]:
                   S.append(f)
                   # Achtung: das letzte Element wird nie mitgenommen
 
@@ -2254,6 +2258,7 @@ class Files(QTableView):
         self.displayFiles()
 
         print('of ', before, ' files there were ', before - after, ' reduced. There are ', after , ' files remaining' )
+
 
 
 
@@ -2899,6 +2904,18 @@ screen.show()
 
 
 sys.exit(app.exec_())
+
+# hash(object) durch hashlib ersetzen ...
+#import hashlib
+#hasher = hashlib.sha1()
+#hasher.update('jan'.encode())
+#print(hasher.hexdigest())
+
+
+
+
+
+
 
 
 #### code snippet for getting rows
