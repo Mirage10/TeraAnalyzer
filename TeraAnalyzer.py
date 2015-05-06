@@ -41,6 +41,7 @@ SEARCH_INDEXER = 'recollindex'
 SUFFIXES = ['.eps','.tif','.tiff','.jpeg','.jpg',  '.png', '.ppt', '.pptx', '.pdf', '.mts',
             '.doc', '.docx', '.avi', '.ogg','.mov','.wav','.ps','.abw','.txt','.mp3','.mpeg',
             '.webm', '.py']
+# noinspection PyRedeclarationInspection
 SUFFIXES = []
 
 
@@ -969,12 +970,14 @@ class Api():
 
 
     @staticmethod
-    def dedub(dao,B=[]):
+    def dedub(dao, B=None):  # default B=[]
 
         # Achtung: Auf A keine Sortierung machen. Alle Pointer erwarten die anfangs gemachte Reihenfolge ...
         # Achtung Nebeneffekt: Dedub setzt die dedubgroup in A ...
 
-        if B==[]:
+        if not B:
+            B = []
+        if not B:   # means B==[]
           B=[i for i, a in enumerate(dao.A)]
         B.sort(key=dao.getkeylen)
         # in R sollen die pointer auf A stehen, die die gleichen Längen haben...
@@ -1024,7 +1027,7 @@ class Api():
                     if h < 0: h=-h
                     dao.A[r][HASH] = h
             except:
-                pass
+                print('cannot open file: ', dao.A[r][FILE])
 
 
         # Phase II: weitere Einschränkung von R ...
@@ -1192,6 +1195,8 @@ class Tab_All(QWidget):
 
 
         self.table = QTableWidget()
+
+        # noinspection PyUnresolvedReferencesInspection,PyUnresolvedReferencesInspection
         self.table.itemClicked.connect(self.on_kpi_clicked)
         split.addWidget(self.table)
 
@@ -1266,8 +1271,8 @@ class Tab_All(QWidget):
 
 
     def on_kpi_clicked(self,item):
-        index = item.data(DATCOMP)
-        s = self.dao.ALL[index]
+        #index = item.data(DATCOMP)
+        #s = self.dao.ALL[index]
 
         if item.column() == 1:
           Api.filter_all(self.dao, KPI_FILES)
@@ -2200,7 +2205,7 @@ class Files(QTableView):
         command = 'rm -r /home/user/.recoll/xapiandb'
         os.system(command)
         selmod = self.selectionModel()
-        command = SEARCH_INDEXER + ' -i  '
+
         cnt=0
         for i in selmod.selection().indexes():
             if i.column()==1:
@@ -2265,7 +2270,7 @@ class Files(QTableView):
         print('End Reduce')
 
 
-    def popup(self, pos):
+    def popup(self):
         # pops up the context menu of Files ...
 
         config = DaoConfig()
@@ -2303,7 +2308,7 @@ class Files(QTableView):
           deleteAction.setDisabled(True)
 
 
-        action = menu.exec_(QCursor.pos() )
+        menu.exec_(QCursor.pos() )
 
 
 
@@ -2404,7 +2409,7 @@ class Files(QTableView):
         # Zeilen Aendern sich ...
 
         # d,topselectedcnt, topcnt,  subtreeselectedcnt,subtreecnt, topselectedsize, topsize, subtreeselectedsize , subtreesize ]
-        for i, dir in enumerate(self.dao.DIR):
+        for i, directory in enumerate(self.dao.DIR):
 
           value = QStandardItem(dir[0])   #directory
           value.setBackground(BRUSH_DIRECTORY)
@@ -2485,10 +2490,10 @@ class Files(QTableView):
             return
 
 
-        index_suffix    = self.proxymodel.index(item.row(),0)
+        #index_suffix    = self.proxymodel.index(item.row(),0)
         index_file      = self.proxymodel.index(item.row(),1)
-        index_name      = self.proxymodel.index(item.row(),2)
-        index_directory = self.proxymodel.index(item.row(),3)
+        #index_name      = self.proxymodel.index(item.row(),2)
+        #index_directory = self.proxymodel.index(item.row(),3)
 
 
 
@@ -2496,10 +2501,10 @@ class Files(QTableView):
 
 
 
-        suffix     = self.proxymodel.data(index_suffix)
+        #suffix     = self.proxymodel.data(index_suffix)
         file       = self.proxymodel.data(index_file)
-        name       = self.proxymodel.data(index_name)
-        directory  = self.proxymodel.data(index_directory)
+        #name       = self.proxymodel.data(index_name)
+        #directory  = self.proxymodel.data(index_directory)
 
 
         if item.column() == 1: # click auf file
