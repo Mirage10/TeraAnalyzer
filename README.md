@@ -4,5 +4,5 @@ Union Difference or Intersection of Folder/Filesystems, Filecategorization, File
 
 Prerequisite:
 a) Python 3.4 or above,
-b) package PySide needs to be installe
-c) not other dependencies
+b) package PySide needs to be installed
+c) linux packages: nemo, streamripper, meld, ...
