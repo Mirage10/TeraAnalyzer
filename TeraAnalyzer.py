@@ -1,4 +1,3 @@
-# todo: Enumerations verwenden: siehe Beispielcoding ganz unten
 # todo: standard hash ist nur innerhalb der session eindeutig. hashlib verwenden
 # todo: mts: Deduplication does not work incl reduce. All will be reduce evenn if there are no duplicates
 # todo: redce: 1 file too much reduced; recheck with small example ...
@@ -2943,21 +2942,6 @@ sys.exit(app.exec_())
 #}
 
 
-
-
-
-# Beispielcoding fuer Enumerations
-# from enum import *
-#
-#
-# def Color(Enum):
-#     red = 3
-#     blue = 4
-#     redd = 17
-#
-# def dd(color):
-#     if color == Color.red:
-#         print('hallo')
 
 
 
