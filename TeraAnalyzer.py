@@ -83,6 +83,7 @@ CONFIG_ALLOWDEL = 'allowDelete'
 
 
 class Util():
+
     # keyfunctions for sorting ...
     getkeysuffix          = lambda item: item[SUFFIX]
     getkeyyear            = lambda item: item[YEAR]
