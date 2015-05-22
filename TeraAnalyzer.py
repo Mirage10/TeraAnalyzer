@@ -83,39 +83,17 @@ CONFIG_ALLOWDEL = 'allowDelete'
 
 
 class Util():
-    @staticmethod
-    def getkeysuffix(item):
-        return item[SUFFIX]
-    @staticmethod
-    def getkeyyear(item):
-        return item[YEAR]
-    @staticmethod
-    def getkeysuffixyear(item):
-        return item[SUFFIX],item[YEAR]
-    @staticmethod
-    def getkeyyearsuffix(item):
-        return item[YEAR],item[SUFFIX]
-    @staticmethod
-    def getkeyyearmonth(item):
-        return item[YEAR],item[MONTH]
-    @staticmethod
-    def getkeysuffixyearmonth(item):
-        return item[SUFFIX],item[YEAR],item[MONTH]
-    @staticmethod
-    def getkeyyearmonthsuffix(item):
-        return item[YEAR],item[MONTH],item[SUFFIX]
-    @staticmethod
-    def getkeylevel(item):
-        return int(item[LEVEL])
-    @staticmethod
-    def getkeysize(item):
-        return int(item[SIZE])
-    @staticmethod
-    def getkeyhash(item):
-        return item[HASH]
-
-
-
+    # keyfunctions for sorting ...
+    getkeysuffix          = lambda item: item[SUFFIX]
+    getkeyyear            = lambda item: item[YEAR]
+    getkeysuffixyear      = lambda item: (item[SUFFIX],item[YEAR])
+    getkeyyearsuffix      = lambda item: (item[YEAR],item[SUFFIX])
+    getkeyyearmonth       = lambda item: (item[YEAR],item[MONTH])
+    getkeysuffixyearmonth = lambda item: (item[SUFFIX],item[YEAR],item[MONTH])
+    getkeyyearmonthsuffix = lambda item: (item[YEAR],item[MONTH],item[SUFFIX])
+    getkeylevel           = lambda item: int(item[LEVEL])
+    getkeysize            = lambda item: int(item[SIZE])
+    getkeyhash            = lambda item: item[HASH]
 
     @staticmethod
     def get_url_stream(file):
