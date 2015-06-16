@@ -1,3 +1,4 @@
+# todo: photos are in B-1 although they should be in A /\ B z.B. IMG.0500 JPG (Photostream) und  2014.9.7 19.06.36 (Dropbox)  => recheck hashvalues individually
 # todo: dedub for space B delivers -1; seems not working appropriately; at least for connection to mounted windows file share
 # todo: standard hash ist nur innerhalb der session eindeutig. hashlib verwenden
 # todo: mts: Deduplication does not work incl reduce. All will be reduce evenn if there are no duplicates
