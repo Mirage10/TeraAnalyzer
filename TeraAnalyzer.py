@@ -1,3 +1,4 @@
+# todo: dedub for space B delivers -1; seems not working appropriately; at least for connection to mounted windows file share
 # todo: standard hash ist nur innerhalb der session eindeutig. hashlib verwenden
 # todo: mts: Deduplication does not work incl reduce. All will be reduce evenn if there are no duplicates
 # todo: redce: 1 file too much reduced; recheck with small example ...
@@ -83,7 +84,6 @@ CONFIG_ALLOWDEL = 'allowDelete'
 
 
 class Util():
-
     # keyfunctions for sorting ...
     getkeysuffix          = lambda item: item[SUFFIX]
     getkeyyear            = lambda item: item[YEAR]
