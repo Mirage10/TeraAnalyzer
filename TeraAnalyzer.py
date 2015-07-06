@@ -1,3 +1,5 @@
+
+# todo SpaceA = { /home/user/Dropbox /home/user/Videos /home/user/Music }  SpaceB = { /home/user/Downloads } : Problem; B\A Indikator zeigt jenseit 13.000 an
 # todo: Übersicht Files mit ähnlicher Laenge anbieten. Binning; aehnlich wie bei dedup group
 # todo: photos are in B-1 although they should be in A /\ B z.B. IMG.0500 JPG (Photostream) und  2014.9.7 19.06.36 (Dropbox)  => recheck hashvalues individually
 # todo:                                                               -> Vergleich von sha1sum IMG_0500.JPG mit sha1sum '2014-09-07 19.06.36.jpg' liegt eine minimale Bitdifferenz vor ?
