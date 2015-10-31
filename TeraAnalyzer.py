@@ -32,6 +32,12 @@ import random
 import os.path
 
 
+
+
+
+
+
+
 os.environ['PYTHONHASHSEED'] = '0'
 
 
@@ -126,6 +132,7 @@ class Util():
                 ret='.'+ret
             n-=1
         return ret
+
 
     @staticmethod
     def do_record(file):
@@ -1144,6 +1151,10 @@ BRUSH_FILE       = QBrush(QColor(255, 242, 229))  # pastell orange
 BRUSH_DIRECTORY  = QBrush(QColor(242, 255, 229))  # pastell gruen
 BRUSH_FILENAME   = QBrush(QColor(255, 255, 240))  # pastell gelb
 
+
+
+
+
 # QTItem ueberschreibt den Vergleichsoperator <=, damit die Sortierung der Spalten mit Integer richtig funktioniert;
 # ansonsten werden die Integers nach der lexikographischen Reifenfolge sortiert ...
 class QTItem(QTableWidgetItem):
@@ -1155,9 +1166,6 @@ class QTItem(QTableWidgetItem):
     #Qt uses a simple < check for sorting items, override this to use the sortKey
     def __lt__(self, other):
         return self.sortKey < other.sortKey
-
-
-
 
 
 
@@ -1192,6 +1200,7 @@ class Tab_All(QWidget):
         self.set_content()
         #self.set_tab_content_all(tab)
         #tab.xxx=self.set_tab_content_all
+
 
 
 
@@ -2891,7 +2900,18 @@ screen = Form( daoA, daoB, daoConfig )
 screen.show()
 
 
+
+
+
+
 sys.exit(app.exec_())
+
+
+
+
+
+
+
 
 # hash(object) durch hashlib ersetzen ...
 #import hashlib
